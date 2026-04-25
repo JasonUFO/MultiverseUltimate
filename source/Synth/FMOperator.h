@@ -15,6 +15,7 @@ public:
 
     void setSampleRate(double sr);
     void noteOn(float baseFrequency);
+    void setFrequency(float baseFrequency);
     void noteOff();
     void reset();
 

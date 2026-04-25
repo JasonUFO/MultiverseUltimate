@@ -29,6 +29,11 @@ void FMOperator::noteOff()
         envStage = EnvStage::Release;
 }
 
+void FMOperator::setFrequency(float baseFrequency)
+{
+    phaseInc = (static_cast<double>(ratio) * baseFrequency) / sampleRate;
+}
+
 void FMOperator::reset()
 {
     phase = 0.0;

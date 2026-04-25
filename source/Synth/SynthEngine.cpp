@@ -37,6 +37,7 @@ void SynthEngine::noteOn(int note, float velocity)
         if (vi != nullptr)
         {
             vi->voice.noteOn(note, velocity);
+            vi->voice.setPitchBend(static_cast<float>(pitchBend));
             vi->inUse = true;
             vi->lastUseTime = voiceCounter++;
         }
@@ -54,6 +55,7 @@ void SynthEngine::noteOn(int note, float velocity)
     if (vi != nullptr)
     {
         vi->voice.noteOn(note, velocity);
+        vi->voice.setPitchBend(static_cast<float>(pitchBend));
         vi->inUse = true;
         vi->lastUseTime = voiceCounter++;
     }
@@ -97,6 +99,18 @@ void SynthEngine::setMasterVolume(float volume)
 void SynthEngine::setPitchBend(float cents)
 {
     pitchBend = cents;
+    if (synthMode == SynthMode::FM)
+    {
+        for (auto& vi : fmVoices)
+            if (vi.inUse && vi.voice.isActive())
+                vi.voice.setPitchBend(cents);
+    }
+    else
+    {
+        for (auto& vi : voices)
+            if (vi.inUse && vi.voice.isActive())
+                vi.voice.setPitchBend(cents);
+    }
 }
 
 void SynthEngine::setEnvelopeParams(float a, float d, float s, float r)

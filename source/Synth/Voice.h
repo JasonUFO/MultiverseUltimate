@@ -16,6 +16,7 @@ public:
     void setFilterParams(float cutoff, float resonance);
     void setWaveform(WaveformType type);
     void setSampleRate(float sr);
+    void setPitchBend(float semitones);
     
     float process();
     
@@ -25,6 +26,7 @@ public:
 private:
     int midiNote = 60;
     float velocity = 0.5f;
+    float baseFrequency = 440.0f;
     bool active = false;
     float attackTime = 0.01f;
     float decayTime = 0.1f;

@@ -23,6 +23,7 @@ public:
     void noteOff();
     bool isActive() const;
     int getMidiNote() const { return midiNote; }
+    void setPitchBend(float semitones);
 
     float process();
 
@@ -31,4 +32,5 @@ private:
     int algorithmIndex = 0;
     int midiNote = -1;
     float velocity = 0.0f;
+    float baseFrequency = 440.0f;
 };

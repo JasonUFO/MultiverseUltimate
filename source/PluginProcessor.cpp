@@ -152,6 +152,12 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             synthEngine.noteOff (message.getNoteNumber());
             samplerEngine.noteOff (message.getNoteNumber());
         }
+        else if (message.isPitchWheel())
+        {
+            // MIDI pitch wheel: 0–16383, center = 8192; map to ±2 semitones
+            float semitones = ((message.getPitchWheelValue() - 8192) / 8192.0f) * 2.0f;
+            synthEngine.setPitchBend (semitones);
+        }
     }
 
     synthEngine.setMasterVolume (masterVolume);

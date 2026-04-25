@@ -39,9 +39,16 @@ void FMVoice::noteOn(int note, float vel)
 {
     midiNote = note;
     velocity = vel;
-    float freq = 440.0f * std::pow(2.0f, static_cast<float>(note - 69) / 12.0f);
+    baseFrequency = 440.0f * std::pow(2.0f, static_cast<float>(note - 69) / 12.0f);
     for (auto& op : operators)
-        op.noteOn(freq);
+        op.noteOn(baseFrequency);
+}
+
+void FMVoice::setPitchBend(float semitones)
+{
+    float freq = baseFrequency * std::pow(2.0f, semitones / 12.0f);
+    for (auto& op : operators)
+        op.setFrequency(freq);
 }
 
 void FMVoice::noteOff()

@@ -11,10 +11,15 @@ void Voice::noteOn(int note, float vel)
     midiNote = note;
     velocity = vel;
     active = true;
-    
-    float freq = 440.0f * std::pow(2.0f, (note - 69) / 12.0f);
-    oscillator.setFrequency(freq);
+
+    baseFrequency = 440.0f * std::pow(2.0f, (note - 69) / 12.0f);
+    oscillator.setFrequency(baseFrequency);
     envelope.triggerAttack();
+}
+
+void Voice::setPitchBend(float semitones)
+{
+    oscillator.setFrequency(baseFrequency * std::pow(2.0f, semitones / 12.0f));
 }
 
 void Voice::noteOff()
