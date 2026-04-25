@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="Multivrs" projectType="audioplug" version="1.0.0" name="MultiverseUltimate"
+              companyName="Multiphase Audio" companyCopyright="Multiphase Audio"
+              pluginFormats="buildAU,buildVST3" pluginCharacteristicsValue="pluginIsSynth"
+              pluginName="MultiverseUltimate" pluginDesc="Multiverse Synth"
+              pluginManufacturerCode="MpAu" pluginCode="MvUl"
+              jucerFormatVersion="1">
+  <MAINGROUP id="Pk6433" name="MultiverseUltimate">
+    <GROUP id="kaksjs" name="source">
+      <FILE id="Aa0001" name="PluginEditor.h"    compile="0" resource="0" file="source/PluginEditor.h"/>
+      <FILE id="Aa0002" name="PluginEditor.cpp"  compile="1" resource="0" file="source/PluginEditor.cpp"/>
+      <FILE id="Aa0003" name="PluginProcessor.h"   compile="0" resource="0" file="source/PluginProcessor.h"/>
+      <FILE id="Aa0004" name="PluginProcessor.cpp" compile="1" resource="0" file="source/PluginProcessor.cpp"/>
+      <GROUP id="GrpDrm" name="DrumSequencer">
+        <FILE id="Bb0001" name="DrumSequencer.h"       compile="0" resource="0" file="source/DrumSequencer/DrumSequencer.h"/>
+        <FILE id="Bb0002" name="DrumSequencer.cpp"     compile="1" resource="0" file="source/DrumSequencer/DrumSequencer.cpp"/>
+        <FILE id="Bb0003" name="DrumSequencerPanel.h"  compile="0" resource="0" file="source/DrumSequencer/DrumSequencerPanel.h"/>
+        <FILE id="Bb0004" name="DrumSequencerPanel.cpp" compile="1" resource="0" file="source/DrumSequencer/DrumSequencerPanel.cpp"/>
+      </GROUP>
+      <GROUP id="GrpFx" name="Effects">
+        <FILE id="Cc0001" name="Effect.h"   compile="0" resource="0" file="source/Effects/Effect.h"/>
+        <FILE id="Cc0002" name="Reverb.h"   compile="0" resource="0" file="source/Effects/Reverb.h"/>
+        <FILE id="Cc0003" name="Reverb.cpp" compile="1" resource="0" file="source/Effects/Reverb.cpp"/>
+        <FILE id="Cc0004" name="Delay.h"    compile="0" resource="0" file="source/Effects/Delay.h"/>
+        <FILE id="Cc0005" name="Delay.cpp"  compile="1" resource="0" file="source/Effects/Delay.cpp"/>
+      </GROUP>
+      <GROUP id="GrpPst" name="Presets">
+        <FILE id="Dd0001" name="Preset.h"          compile="0" resource="0" file="source/Presets/Preset.h"/>
+        <FILE id="Dd0002" name="Preset.cpp"        compile="1" resource="0" file="source/Presets/Preset.cpp"/>
+        <FILE id="Dd0003" name="PresetManager.h"   compile="0" resource="0" file="source/Presets/PresetManager.h"/>
+        <FILE id="Dd0004" name="PresetManager.cpp" compile="1" resource="0" file="source/Presets/PresetManager.cpp"/>
+      </GROUP>
+      <GROUP id="GrpSmp" name="Sampler">
+        <FILE id="Ee0001" name="SamplerEngine.h"   compile="0" resource="0" file="source/Sampler/SamplerEngine.h"/>
+        <FILE id="Ee0002" name="SamplerEngine.cpp" compile="1" resource="0" file="source/Sampler/SamplerEngine.cpp"/>
+        <FILE id="Ee0003" name="SamplerVoice.h"    compile="0" resource="0" file="source/Sampler/SamplerVoice.h"/>
+        <FILE id="Ee0004" name="SamplerVoice.cpp"  compile="1" resource="0" file="source/Sampler/SamplerVoice.cpp"/>
+        <FILE id="Ee0005" name="SamplerZone.h"     compile="0" resource="0" file="source/Sampler/SamplerZone.h"/>
+        <FILE id="Ee0006" name="SamplerPanel.h"    compile="0" resource="0" file="source/Sampler/SamplerPanel.h"/>
+        <FILE id="Ee0007" name="SamplerPanel.cpp"  compile="1" resource="0" file="source/Sampler/SamplerPanel.cpp"/>
+      </GROUP>
+      <GROUP id="GrpSeq" name="Sequencer">
+        <FILE id="Ff0001" name="Sequencer.h"        compile="0" resource="0" file="source/Sequencer/Sequencer.h"/>
+        <FILE id="Ff0002" name="Sequencer.cpp"      compile="1" resource="0" file="source/Sequencer/Sequencer.cpp"/>
+        <FILE id="Ff0003" name="SequencerPanel.h"   compile="0" resource="0" file="source/Sequencer/SequencerPanel.h"/>
+        <FILE id="Ff0004" name="SequencerPanel.cpp" compile="1" resource="0" file="source/Sequencer/SequencerPanel.cpp"/>
+      </GROUP>
+      <GROUP id="GrpSyn" name="Synth">
+        <FILE id="Gg0001" name="SynthEngine.h"          compile="0" resource="0" file="source/Synth/SynthEngine.h"/>
+        <FILE id="Gg0002" name="SynthEngine.cpp"        compile="1" resource="0" file="source/Synth/SynthEngine.cpp"/>
+        <FILE id="Gg0003" name="Voice.h"                compile="0" resource="0" file="source/Synth/Voice.h"/>
+        <FILE id="Gg0004" name="Voice.cpp"              compile="1" resource="0" file="source/Synth/Voice.cpp"/>
+        <FILE id="Gg0005" name="Oscillator.h"           compile="0" resource="0" file="source/Synth/Oscillator.h"/>
+        <FILE id="Gg0006" name="Oscillator.cpp"         compile="1" resource="0" file="source/Synth/Oscillator.cpp"/>
+        <FILE id="Gg0007" name="Envelope.h"             compile="0" resource="0" file="source/Synth/Envelope.h"/>
+        <FILE id="Gg0008" name="Envelope.cpp"           compile="1" resource="0" file="source/Synth/Envelope.cpp"/>
+        <FILE id="Gg0009" name="Filter.h"               compile="0" resource="0" file="source/Synth/Filter.h"/>
+        <FILE id="Gg0010" name="Filter.cpp"             compile="1" resource="0" file="source/Synth/Filter.cpp"/>
+        <FILE id="Gg0011" name="FMOperator.h"           compile="0" resource="0" file="source/Synth/FMOperator.h"/>
+        <FILE id="Gg0012" name="FMOperator.cpp"         compile="1" resource="0" file="source/Synth/FMOperator.cpp"/>
+        <FILE id="Gg0013" name="FMVoice.h"              compile="0" resource="0" file="source/Synth/FMVoice.h"/>
+        <FILE id="Gg0014" name="FMVoice.cpp"            compile="1" resource="0" file="source/Synth/FMVoice.cpp"/>
+        <FILE id="Gg0015" name="FMAlgorithm.h"          compile="0" resource="0" file="source/Synth/FMAlgorithm.h"/>
+        <FILE id="Gg0016" name="ModulationMatrix.h"     compile="0" resource="0" file="source/Synth/ModulationMatrix.h"/>
+        <FILE id="Gg0017" name="ModulationMatrix.cpp"   compile="1" resource="0" file="source/Synth/ModulationMatrix.cpp"/>
+        <FILE id="Gg0018" name="ModulationMatrixPanel.h"   compile="0" resource="0" file="source/Synth/ModulationMatrixPanel.h"/>
+        <FILE id="Gg0019" name="ModulationMatrixPanel.cpp" compile="1" resource="0" file="source/Synth/ModulationMatrixPanel.cpp"/>
+      </GROUP>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics"              showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices"             showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats"             showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_plugin_client"       showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors"          showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_utils"               showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_core"                      showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures"           showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_dsp"                       showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_events"                    showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_graphics"                  showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics"                showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra"                 showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+  </MODULES>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release" optimisation="3"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics"              path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices"             path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats"             path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client"       path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors"          path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils"               path="JUCE/modules"/>
+        <MODULEPATH id="juce_core"                      path="JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures"           path="JUCE/modules"/>
+        <MODULEPATH id="juce_dsp"                       path="JUCE/modules"/>
+        <MODULEPATH id="juce_events"                    path="JUCE/modules"/>
+        <MODULEPATH id="juce_graphics"                  path="JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics"                path="JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra"                 path="JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+  <JUCEOPTIONS JUCE_IGNORE_VST3_MISMATCHED_PARAMETER_ID_WARNING="1"/>
+</JUCERPROJECT>

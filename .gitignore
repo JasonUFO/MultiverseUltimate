@@ -1,5 +1,34 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode / build artifacts
+Builds/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+build/
+DerivedData/
+
+# JUCE library (use git submodule or download separately)
+JUCE/
+
+# CMake
+pamplejuce/JUCE/
 pamplejuce/Builds/
-pamplejuce/*.vcxproj
-pamplejuce/*.xcodeproj
-Multiverse Ultimate/Builds/
-Multiverse Ultimate/*.vcxproj
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# clap extensions / melatonin
+clap-juce-extensions/
+melatonin_inspector/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code local settings
+.claude/settings.local.json
