@@ -2,15 +2,18 @@
 
 #include <JuceHeader.h>
 
-#if (MSVC)
+#if defined(_MSC_VER)
 #include "ipps.h"
 #endif
 
 #include "Synth/SynthEngine.h"
+#include "Sampler/SamplerEngine.h"
 #include "Effects/Delay.h"
 #include "Effects/Reverb.h"
 #include "Presets/PresetManager.h"
 #include "DrumSequencer/DrumSequencer.h"
+#include "Synth/ModulationMatrix.h"
+#include "Sequencer/Sequencer.h"
 
 class PluginProcessor : public juce::AudioProcessor
 {
@@ -46,14 +49,25 @@ public:
 
 private:
     SynthEngine synthEngine;
+    SamplerEngine samplerEngine;
     DelayEffect delay;
     ReverbEffect reverb;
     PresetManager presetManager;
     DrumSequencer drumSequencer;
+    ModulationMatrix modulationMatrix;
+    Sequencer sequencer;  // melodic sequencer
     float masterVolume = 0.7f;
+
+    // Base parameters for modulation
+    float baseFilterCutoff = 20000.0f;
+    float baseFilterResonance = 0.0f;
+    float baseLfoRates[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 public:
     DrumSequencer& getDrumSequencer() { return drumSequencer; }
+    ModulationMatrix& getModulationMatrix() { return modulationMatrix; }
+    SamplerEngine& getSamplerEngine() { return samplerEngine; }
+    Sequencer& getSequencer() { return sequencer; }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

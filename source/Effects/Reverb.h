@@ -15,6 +15,12 @@ public:
     void setDamping(float damping);
     void setWetLevel(float wet);
     void setDryLevel(float dry);
+
+    // Getters for state persistence
+    float getRoomSize() const { return params.roomSize; }
+    float getDamping() const { return params.damping; }
+    float getWetLevel() const { return params.wetLevel; }
+    float getDryLevel() const { return params.dryLevel; }
     
 private:
     juce::Reverb reverb;

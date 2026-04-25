@@ -1,7 +1,12 @@
 #include "SynthEngine.h"
 #include <cmath>
 
-SynthEngine::SynthEngine() {}
+SynthEngine::SynthEngine()
+    : envAttack(0.01f), envDecay(0.1f), envSustain(0.7f), envRelease(0.3f),
+      waveform(WaveformType::Saw)
+{
+    // fmOpParams default-initialized
+}
 
 void SynthEngine::prepare(double sr, int)
 {
@@ -96,6 +101,10 @@ void SynthEngine::setPitchBend(float cents)
 
 void SynthEngine::setEnvelopeParams(float a, float d, float s, float r)
 {
+    envAttack = a;
+    envDecay = d;
+    envSustain = s;
+    envRelease = r;
     for (auto& vi : voices)
     {
         vi.voice.setEnvelopeParams(a, d, s, r);
@@ -112,6 +121,7 @@ void SynthEngine::setFilterParams(float cutoff, float resonance)
 
 void SynthEngine::setWaveform(WaveformType type)
 {
+    waveform = type;
     for (auto& vi : voices)
     {
         vi.voice.setWaveform(type);
@@ -210,8 +220,20 @@ void SynthEngine::setFMOperatorParams(int opIndex,
                                       float sustain,
                                       float release)
 {
+    if (opIndex < 0 || opIndex >= 4) return;
+    auto& p = fmOpParams[opIndex];
+    p.ratio = ratio;
+    p.level = level;
+    p.feedback = feedback;
+    p.attack = attack;
+    p.decay = decay;
+    p.sustain = sustain;
+    p.release = release;
+
     for (auto& vi : fmVoices)
+    {
         vi.voice.setOperatorParams(opIndex, ratio, level, feedback, attack, decay, sustain, release);
+    }
 }
 
 SynthEngine::VoiceInfo* SynthEngine::findFreeVoice()
@@ -272,4 +294,45 @@ SynthEngine::FMVoiceInfo* SynthEngine::findFMVoiceForNote(int note)
             return &vi;
     }
     return nullptr;
+}
+
+// Getters for state persistence
+void SynthEngine::getEnvelopeParams(float& a, float& d, float& s, float& r) const
+{
+    a = envAttack;
+    d = envDecay;
+    s = envSustain;
+    r = envRelease;
+}
+
+WaveformType SynthEngine::getWaveform() const
+{
+    return waveform;
+}
+
+void SynthEngine::getFMOperatorParams(int opIndex,
+                                      float& ratio,
+                                      float& level,
+                                      float& feedback,
+                                      float& attack,
+                                      float& decay,
+                                      float& sustain,
+                                      float& release) const
+{
+    if (opIndex >= 0 && opIndex < 4)
+    {
+        const auto& p = fmOpParams[opIndex];
+        ratio = p.ratio;
+        level = p.level;
+        feedback = p.feedback;
+        attack = p.attack;
+        decay = p.decay;
+        sustain = p.sustain;
+        release = p.release;
+    }
+    else
+    {
+        ratio = 1.0f; level = 1.0f; feedback = 0.0f;
+        attack = 0.01f; decay = 0.1f; sustain = 0.7f; release = 0.3f;
+    }
 }

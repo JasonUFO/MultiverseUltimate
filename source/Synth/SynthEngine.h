@@ -35,6 +35,7 @@ public:
     void setSynthMode(SynthMode mode);
     SynthMode getSynthMode() const { return synthMode; }
     void setFMAlgorithm(int index);
+    int getFMAlgorithm() const { return fmAlgorithmIndex; }
     void setFMOperatorParams(int opIndex,
                              float ratio,
                              float level,
@@ -47,6 +48,18 @@ public:
     float process();
 
     int getActiveVoiceCount() const;
+
+    // Getters for state persistence
+    void getEnvelopeParams(float& a, float& d, float& s, float& r) const;
+    WaveformType getWaveform() const;
+    void getFMOperatorParams(int opIndex,
+                             float& ratio,
+                             float& level,
+                             float& feedback,
+                             float& attack,
+                             float& decay,
+                             float& sustain,
+                             float& release) const;
 
 private:
     struct VoiceInfo
@@ -73,6 +86,28 @@ private:
 
     SynthMode synthMode = SynthMode::Classic;
     int fmAlgorithmIndex = 0;
+
+    // Envelope parameters (Classic mode)
+    float envAttack = 0.01f;
+    float envDecay = 0.1f;
+    float envSustain = 0.7f;
+    float envRelease = 0.3f;
+
+    // Waveform for classic oscillators
+    WaveformType waveform = WaveformType::Saw;
+
+    // FM operator parameters (4 operators)
+    struct FMOperatorSettings
+    {
+        float ratio = 1.0f;
+        float level = 1.0f;
+        float feedback = 0.0f;
+        float attack = 0.01f;
+        float decay = 0.1f;
+        float sustain = 0.7f;
+        float release = 0.3f;
+    };
+    std::array<FMOperatorSettings, 4> fmOpParams;
 
     float masterVolume = 0.5f;
     float sampleRate = 44100.0f;

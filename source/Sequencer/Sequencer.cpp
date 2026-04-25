@@ -207,3 +207,122 @@ juce::MidiFile Sequencer::exportMidi() const
 
     return midiFile;
 }
+
+juce::ValueTree Sequencer::getState() const
+{
+    juce::ValueTree v("Sequencer");
+    v.setProperty("bpm", bpm, nullptr);
+    v.setProperty("mode", static_cast<int>(mode), nullptr);
+    v.setProperty("currentPatternSlot", currentPatternSlot, nullptr);
+    v.setProperty("numSteps", currentPattern.numSteps, nullptr);
+
+    // Current pattern
+    juce::ValueTree pattern("CurrentPattern");
+    for (int i = 0; i < currentPattern.numSteps; ++i)
+    {
+        const auto& step = currentPattern.steps[i];
+        juce::ValueTree stepNode("Step");
+        stepNode.setProperty("step", i, nullptr);
+        stepNode.setProperty("active", step.active, nullptr);
+        stepNode.setProperty("noteNumber", step.noteNumber, nullptr);
+        stepNode.setProperty("velocity", step.velocity, nullptr);
+        pattern.appendChild(stepNode, nullptr);
+    }
+    v.appendChild(pattern, nullptr);
+
+    // Saved patterns
+    juce::ValueTree saved("SavedPatterns");
+    for (int slot = 0; slot < MAX_PATTERNS; ++slot)
+    {
+        const auto& pat = savedPatterns[slot];
+        juce::ValueTree patNode("Pattern");
+        patNode.setProperty("slot", slot, nullptr);
+        for (int i = 0; i < pat.numSteps; ++i)
+        {
+            const auto& step = pat.steps[i];
+            juce::ValueTree stepNode("Step");
+            stepNode.setProperty("step", i, nullptr);
+            stepNode.setProperty("active", step.active, nullptr);
+            stepNode.setProperty("noteNumber", step.noteNumber, nullptr);
+            stepNode.setProperty("velocity", step.velocity, nullptr);
+            patNode.appendChild(stepNode, nullptr);
+        }
+        saved.appendChild(patNode, nullptr);
+    }
+    v.appendChild(saved, nullptr);
+
+    return v;
+}
+
+void Sequencer::setState(const juce::ValueTree& state)
+{
+    if (!state.hasType("Sequencer"))
+        return;
+
+    if (state.hasProperty("bpm"))
+        setBPM((float)state.getProperty("bpm"));
+    if (state.hasProperty("mode"))
+        mode = static_cast<SequencerMode>((int)state.getProperty("mode"));
+    if (state.hasProperty("currentPatternSlot"))
+        currentPatternSlot = (int)state.getProperty("currentPatternSlot");
+    if (state.hasProperty("numSteps"))
+        setNumSteps((int)state.getProperty("numSteps"));
+
+    // Load current pattern
+    auto patternNode = state.getChildWithName("CurrentPattern");
+    if (patternNode.isValid())
+    {
+        for (auto stepNode : patternNode)
+        {
+            if (stepNode.hasType("Step"))
+            {
+                int idx = (int)stepNode.getProperty("step");
+                if (idx >= 0 && idx < MAX_STEPS)
+                {
+                    currentPattern.steps[idx].active = (bool)stepNode.getProperty("active");
+                    currentPattern.steps[idx].noteNumber = (int)stepNode.getProperty("noteNumber");
+                    currentPattern.steps[idx].velocity = (float)stepNode.getProperty("velocity");
+                }
+            }
+        }
+    }
+
+    // Load saved patterns
+    auto savedNode = state.getChildWithName("SavedPatterns");
+    if (savedNode.isValid())
+    {
+        for (auto patNode : savedNode)
+        {
+            if (patNode.hasType("Pattern"))
+            {
+                int slot = (int)patNode.getProperty("slot");
+                if (slot >= 0 && slot < MAX_PATTERNS)
+                {
+                    auto& pat = savedPatterns[slot];
+                    pat.numSteps = currentPattern.numSteps;
+                    for (int i = 0; i < MAX_STEPS; ++i)
+                    {
+                        pat.steps[i].active = false;
+                        pat.steps[i].noteNumber = 60;
+                        pat.steps[i].velocity = 0.8f;
+                    }
+                    for (auto stepNode : patNode)
+                    {
+                        if (stepNode.hasType("Step"))
+                        {
+                            int idx = (int)stepNode.getProperty("step");
+                            if (idx >= 0 && idx < MAX_STEPS)
+                            {
+                                pat.steps[idx].active = (bool)stepNode.getProperty("active");
+                                pat.steps[idx].noteNumber = (int)stepNode.getProperty("noteNumber");
+                                pat.steps[idx].velocity = (float)stepNode.getProperty("velocity");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    clearArpNotes();
+}

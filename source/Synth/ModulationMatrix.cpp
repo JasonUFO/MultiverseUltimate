@@ -1,4 +1,7 @@
 #include "ModulationMatrix.h"
+#include <cmath>
+#include <algorithm>
+#include "JuceHeader.h"
 
 ModulationMatrix::ModulationMatrix()
 {
@@ -120,4 +123,136 @@ ModTargetType ModulationMatrix::getTargetType(int index) const
         return static_cast<ModTargetType>(index);
     }
     return ModTargetType::FilterCutoff;
+}
+
+void ModulationMatrix::setLFORate(int lfoIndex, float rateHz)
+{
+    if (lfoIndex < 0 || lfoIndex > 3) return;
+    rateHz = std::clamp(rateHz, 0.01f, 100.0f);
+    switch (lfoIndex)
+    {
+        case 0: lfo1Rate = rateHz; break;
+        case 1: lfo2Rate = rateHz; break;
+        case 2: lfo3Rate = rateHz; break;
+        case 3: lfo4Rate = rateHz; break;
+    }
+}
+
+float ModulationMatrix::getLFORate(int lfoIndex) const
+{
+    if (lfoIndex < 0 || lfoIndex > 3) return 1.0f;
+    switch (lfoIndex)
+    {
+        case 0: return lfo1Rate;
+        case 1: return lfo2Rate;
+        case 2: return lfo3Rate;
+        case 3: return lfo4Rate;
+    }
+    return 1.0f;
+}
+
+void ModulationMatrix::advanceLFOs()
+{
+    constexpr double twoPi = 6.283185307179586;
+    double sr = sampleRate > 0 ? sampleRate : 44100.0;
+
+    // LFO1
+    float val = static_cast<float>(std::sin(lfo1Phase));
+    sourceValues[static_cast<int>(ModSourceType::LFO1)].value = val;
+    lfo1Phase += twoPi * lfo1Rate / sr;
+    if (lfo1Phase >= twoPi) lfo1Phase -= twoPi;
+
+    // LFO2
+    val = static_cast<float>(std::sin(lfo2Phase));
+    sourceValues[static_cast<int>(ModSourceType::LFO2)].value = val;
+    lfo2Phase += twoPi * lfo2Rate / sr;
+    if (lfo2Phase >= twoPi) lfo2Phase -= twoPi;
+
+    // LFO3
+    val = static_cast<float>(std::sin(lfo3Phase));
+    sourceValues[static_cast<int>(ModSourceType::LFO3)].value = val;
+    lfo3Phase += twoPi * lfo3Rate / sr;
+    if (lfo3Phase >= twoPi) lfo3Phase -= twoPi;
+
+    // LFO4
+    val = static_cast<float>(std::sin(lfo4Phase));
+    sourceValues[static_cast<int>(ModSourceType::LFO4)].value = val;
+    lfo4Phase += twoPi * lfo4Rate / sr;
+    if (lfo4Phase >= twoPi) lfo4Phase -= twoPi;
+}
+
+void ModulationMatrix::computeModulationSums(float* outSums) const
+{
+    // Zero all targets
+    for (int t = 0; t < MAX_MOD_TARGETS; ++t)
+        outSums[t] = 0.0f;
+
+    // Sum contributions from each enabled connection
+    for (const auto& conn : connections)
+    {
+        if (!conn.enabled) continue;
+        int srcIdx = static_cast<int>(conn.source);
+        if (srcIdx < 0 || srcIdx >= MAX_MOD_SOURCES) continue;
+        float srcVal = sourceValues[srcIdx].value;
+        int tgtIdx = static_cast<int>(conn.target);
+        if (tgtIdx < 0 || tgtIdx >= MAX_MOD_TARGETS) continue;
+        outSums[tgtIdx] += srcVal * conn.amount;
+    }
+}
+
+juce::ValueTree ModulationMatrix::getState() const
+{
+    juce::ValueTree v("ModulationMatrix");
+    v.setProperty("lfo1Rate", lfo1Rate, nullptr);
+    v.setProperty("lfo2Rate", lfo2Rate, nullptr);
+    v.setProperty("lfo3Rate", lfo3Rate, nullptr);
+    v.setProperty("lfo4Rate", lfo4Rate, nullptr);
+
+    auto conns = juce::ValueTree("Connections");
+    for (const auto& c : connections)
+    {
+        juce::ValueTree conn("Conn");
+        conn.setProperty("source", static_cast<int>(c.source), nullptr);
+        conn.setProperty("target", static_cast<int>(c.target), nullptr);
+        conn.setProperty("amount", c.amount, nullptr);
+        conn.setProperty("enabled", c.enabled, nullptr);
+        conn.setProperty("sourceIndex", c.sourceIndex, nullptr);
+        conn.setProperty("targetIndex", c.targetIndex, nullptr);
+        conns.appendChild(conn, nullptr);
+    }
+    v.appendChild(conns, nullptr);
+    return v;
+}
+
+void ModulationMatrix::setState(const juce::ValueTree& state)
+{
+    if (!state.hasType("ModulationMatrix"))
+        return;
+
+    if (state.hasProperty("lfo1Rate")) lfo1Rate = (float)state.getProperty("lfo1Rate");
+    if (state.hasProperty("lfo2Rate")) lfo2Rate = (float)state.getProperty("lfo2Rate");
+    if (state.hasProperty("lfo3Rate")) lfo3Rate = (float)state.getProperty("lfo3Rate");
+    if (state.hasProperty("lfo4Rate")) lfo4Rate = (float)state.getProperty("lfo4Rate");
+
+    connections.clear();
+    for (auto child : state)
+    {
+        if (child.hasType("Connections"))
+        {
+            for (auto conn : child)
+            {
+                if (conn.hasType("Conn"))
+                {
+                    ModConnection c;
+                    c.source = static_cast<ModSourceType>((int)conn.getProperty("source"));
+                    c.target = static_cast<ModTargetType>((int)conn.getProperty("target"));
+                    c.amount = (float)conn.getProperty("amount");
+                    c.enabled = conn.getProperty("enabled");
+                    c.sourceIndex = (int)conn.getProperty("sourceIndex");
+                    c.targetIndex = (int)conn.getProperty("targetIndex");
+                    connections.push_back(c);
+                }
+            }
+        }
+    }
 }

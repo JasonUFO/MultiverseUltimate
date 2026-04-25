@@ -387,3 +387,161 @@ float DrumSequencer::getTrackLevel (int track) const
         return trackLevels[track].load();
     return 0.0f;
 }
+
+juce::ValueTree DrumSequencer::getState() const
+{
+    juce::ValueTree v("DrumSequencer");
+    v.setProperty("bpm", bpm, nullptr);
+    v.setProperty("currentPatternSlot", currentPatternSlot, nullptr);
+    v.setProperty("sampleRate", sampleRate, nullptr);
+
+    // Tracks
+    juce::ValueTree tracksNode("Tracks");
+    for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
+    {
+        juce::ValueTree trackNode("Track");
+        trackNode.setProperty("index", t, nullptr);
+        trackNode.setProperty("name", tracks[t].name, nullptr);
+        trackNode.setProperty("volume", tracks[t].volume, nullptr);
+        trackNode.setProperty("rootNote", tracks[t].rootNote, nullptr);
+        trackNode.setProperty("muted", tracks[t].muted, nullptr);
+        trackNode.setProperty("solo", tracks[t].solo, nullptr);
+        tracksNode.appendChild(trackNode, nullptr);
+    }
+    v.appendChild(tracksNode, nullptr);
+
+    // Current pattern steps
+    juce::ValueTree patternNode("CurrentPattern");
+    for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
+    {
+        for (int s = 0; s < DRUM_STEPS; ++s)
+        {
+            const auto& step = currentPattern.tracks[t][s];
+            juce::ValueTree stepNode("Step");
+            stepNode.setProperty("track", t, nullptr);
+            stepNode.setProperty("step", s, nullptr);
+            stepNode.setProperty("active", step.active, nullptr);
+            stepNode.setProperty("velocity", step.velocity, nullptr);
+            patternNode.appendChild(stepNode, nullptr);
+        }
+    }
+    v.appendChild(patternNode, nullptr);
+
+    // Saved patterns
+    juce::ValueTree savedNode("SavedPatterns");
+    for (int slot = 0; slot < MAX_DRUM_PATTERNS; ++slot)
+    {
+        juce::ValueTree patNode("Pattern");
+        patNode.setProperty("slot", slot, nullptr);
+        for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
+        {
+            for (int s = 0; s < DRUM_STEPS; ++s)
+            {
+                const auto& step = savedPatterns[slot].tracks[t][s];
+                juce::ValueTree stepNode("Step");
+                stepNode.setProperty("track", t, nullptr);
+                stepNode.setProperty("step", s, nullptr);
+                stepNode.setProperty("active", step.active, nullptr);
+                stepNode.setProperty("velocity", step.velocity, nullptr);
+                patNode.appendChild(stepNode, nullptr);
+            }
+        }
+        savedNode.appendChild(patNode, nullptr);
+    }
+    v.appendChild(savedNode, nullptr);
+
+    return v;
+}
+
+void DrumSequencer::setState(const juce::ValueTree& state)
+{
+    if (!state.hasType("DrumSequencer"))
+        return;
+
+    if (state.hasProperty("bpm"))
+        setBPM((float)state.getProperty("bpm"));
+    if (state.hasProperty("currentPatternSlot"))
+        currentPatternSlot = (int)state.getProperty("currentPatternSlot");
+
+    // Load tracks
+    auto tracksNode = state.getChildWithName("Tracks");
+    if (tracksNode.isValid())
+    {
+        for (auto trackNode : tracksNode)
+        {
+            if (trackNode.hasType("Track"))
+            {
+                int idx = (int)trackNode.getProperty("index");
+                if (idx >= 0 && idx < DRUM_TRACK_COUNT)
+                {
+                    tracks[idx].name = trackNode.getProperty("name").toString();
+                    tracks[idx].volume = (float)trackNode.getProperty("volume");
+                    tracks[idx].rootNote = (int)trackNode.getProperty("rootNote");
+                    tracks[idx].muted = (bool)trackNode.getProperty("muted", false);
+                    tracks[idx].solo = (bool)trackNode.getProperty("solo", false);
+                }
+            }
+        }
+    }
+
+    // Clear current pattern before loading
+    for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
+        for (int s = 0; s < DRUM_STEPS; ++s)
+        {
+            currentPattern.tracks[t][s].active = false;
+            currentPattern.tracks[t][s].velocity = 1.0f;
+        }
+    auto patternNode = state.getChildWithName("CurrentPattern");
+    if (patternNode.isValid())
+    {
+        for (auto stepNode : patternNode)
+        {
+            if (stepNode.hasType("Step"))
+            {
+                int t = (int)stepNode.getProperty("track");
+                int s = (int)stepNode.getProperty("step");
+                if (t >= 0 && t < DRUM_TRACK_COUNT && s >= 0 && s < DRUM_STEPS)
+                {
+                    currentPattern.tracks[t][s].active = (bool)stepNode.getProperty("active");
+                    currentPattern.tracks[t][s].velocity = (float)stepNode.getProperty("velocity");
+                }
+            }
+        }
+    }
+
+    // Load saved patterns
+    auto savedNode = state.getChildWithName("SavedPatterns");
+    if (savedNode.isValid())
+    {
+        for (auto patNode : savedNode)
+        {
+            if (patNode.hasType("Pattern"))
+            {
+                int slot = (int)patNode.getProperty("slot");
+                if (slot >= 0 && slot < MAX_DRUM_PATTERNS)
+                {
+                    auto& pat = savedPatterns[slot];
+                    for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
+                        for (int s = 0; s < DRUM_STEPS; ++s)
+                        {
+                            pat.tracks[t][s].active = false;
+                            pat.tracks[t][s].velocity = 1.0f;
+                        }
+                    for (auto stepNode : patNode)
+                    {
+                        if (stepNode.hasType("Step"))
+                        {
+                            int t = (int)stepNode.getProperty("track");
+                            int s = (int)stepNode.getProperty("step");
+                            if (t >= 0 && t < DRUM_TRACK_COUNT && s >= 0 && s < DRUM_STEPS)
+                            {
+                                pat.tracks[t][s].active = (bool)stepNode.getProperty("active");
+                                pat.tracks[t][s].velocity = (float)stepNode.getProperty("velocity");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

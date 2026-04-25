@@ -93,7 +93,11 @@ public:
 
     DrumPattern& getCurrentPattern() { return currentPattern; }
 
-private:
+    // State persistence
+    juce::ValueTree getState() const;
+    void setState(const juce::ValueTree& state);
+
+ private:
     struct ActiveVoice
     {
         DrumVoice voice;

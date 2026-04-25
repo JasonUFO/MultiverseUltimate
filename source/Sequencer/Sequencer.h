@@ -62,7 +62,11 @@ public:
 
     juce::MidiFile exportMidi() const;
 
-private:
+    // State persistence
+    juce::ValueTree getState() const;
+    void setState(const juce::ValueTree& state);
+
+ private:
     SeqPattern currentPattern;
     std::array<SeqPattern, MAX_PATTERNS> savedPatterns {};
     int currentPatternSlot = 0;

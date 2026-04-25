@@ -4,6 +4,8 @@
 #include <functional>
 #include <cstdint>
 
+namespace juce { class ValueTree; }
+
 constexpr int MAX_MOD_SOURCES = 16;
 constexpr int MAX_MOD_TARGETS = 16;
 constexpr int MAX_MOD_CONNECTIONS = 32;
@@ -69,8 +71,23 @@ public:
 
     void prepare(double sampleRate, int samplesPerBlock);
 
+    // LFO rate control (index 0=LFO1, 1=LFO2, 2=LFO3, 3=LFO4)
+    void setLFORate(int lfoIndex, float rateHz);
+    float getLFORate(int lfoIndex) const;
+
+    // Advance all LFOs by one sample and update sourceValues; call per audio sample
+    void advanceLFOs();
+
+    // Compute modulation sums for all targets based on current source values
+    // outSums must point to array of size at least MAX_MOD_TARGETS
+    void computeModulationSums(float* outSums) const;
+
     const std::vector<ModConnection>& getConnections() const { return connections; }
     std::vector<ModConnection> getActiveConnectionsForTarget(ModTargetType target, int index) const;
+
+    // State persistence
+    juce::ValueTree getState() const;
+    void setState(const juce::ValueTree& state);
 
     ModSourceType getSourceType(int index) const;
     ModTargetType getTargetType(int index) const;
@@ -140,6 +157,11 @@ private:
     float lfo2Phase = 0.0f;
     float lfo3Phase = 0.0f;
     float lfo4Phase = 0.0f;
+
+    float lfo1Rate = 1.0f;  // Hz
+    float lfo2Rate = 1.0f;
+    float lfo3Rate = 1.0f;
+    float lfo4Rate = 1.0f;
 
     int nextConnectionId = 0;
 };

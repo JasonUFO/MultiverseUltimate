@@ -3,8 +3,9 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "DrumSequencer/DrumSequencerPanel.h"
-#include "Synth/ModulationMatrix.h"
 #include "Synth/ModulationMatrixPanel.h"
+#include "Sampler/SamplerPanel.h"
+#include "Sequencer/SequencerPanel.h"
 
 class PluginEditor : public juce::AudioProcessorEditor
 {
@@ -17,9 +18,13 @@ public:
     void resized() override;
 
  private:
-     PluginProcessor& processorRef;
-     DrumSequencerPanel drumSequencerPanel;
-     ModulationMatrix modulationMatrix;
-     ModulationMatrixPanel modulationMatrixPanel;
+    PluginProcessor& processorRef;
+    DrumSequencerPanel drumSequencerPanel;
+    ModulationMatrixPanel modulationMatrixPanel;
+    SamplerPanel samplerPanel;
+    SequencerPanel sequencerPanel;
+    juce::TabbedComponent tabs;
+
+    void setupTabs();
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
 };
