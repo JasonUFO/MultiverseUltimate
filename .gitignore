@@ -1,2 +1,5 @@
-pamplejuce/
-Builds/
+pamplejuce/Builds/
+pamplejuce/*.vcxproj
+pamplejuce/*.xcodeproj
+Multiverse Ultimate/Builds/
+Multiverse Ultimate/*.vcxproj
