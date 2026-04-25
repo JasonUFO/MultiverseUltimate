@@ -63,6 +63,10 @@ private:
     float baseFilterResonance = 0.707f;
     float baseLfoRates[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
+    // Sustain pedal state (CC 64)
+    bool sustainPedalDown = false;
+    bool sustainedNoteHeld[128] = {};
+
 public:
     DrumSequencer& getDrumSequencer() { return drumSequencer; }
     ModulationMatrix& getModulationMatrix() { return modulationMatrix; }

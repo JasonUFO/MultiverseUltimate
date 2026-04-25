@@ -144,19 +144,62 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         {
             int note = message.getNoteNumber();
             float vel = message.getVelocity() / 127.0f;
+            sustainedNoteHeld[note] = false;
             synthEngine.noteOn (note, vel);
             samplerEngine.noteOn (note, vel);
         }
         else if (message.isNoteOff())
         {
-            synthEngine.noteOff (message.getNoteNumber());
-            samplerEngine.noteOff (message.getNoteNumber());
+            int note = message.getNoteNumber();
+            if (sustainPedalDown)
+            {
+                sustainedNoteHeld[note] = true;
+            }
+            else
+            {
+                synthEngine.noteOff (note);
+                samplerEngine.noteOff (note);
+            }
         }
         else if (message.isPitchWheel())
         {
             // MIDI pitch wheel: 0–16383, center = 8192; map to ±2 semitones
             float semitones = ((message.getPitchWheelValue() - 8192) / 8192.0f) * 2.0f;
             synthEngine.setPitchBend (semitones);
+        }
+        else if (message.isController())
+        {
+            int cc  = message.getControllerNumber();
+            int val = message.getControllerValue();
+
+            if (cc == 64)  // sustain pedal
+            {
+                if (val >= 64)
+                {
+                    sustainPedalDown = true;
+                }
+                else
+                {
+                    sustainPedalDown = false;
+                    for (int n = 0; n < 128; ++n)
+                    {
+                        if (sustainedNoteHeld[n])
+                        {
+                            synthEngine.noteOff (n);
+                            samplerEngine.noteOff (n);
+                            sustainedNoteHeld[n] = false;
+                        }
+                    }
+                }
+            }
+            else if (cc == 123)  // all notes off
+            {
+                synthEngine.allNotesOff();
+                samplerEngine.allNotesOff();
+                for (int n = 0; n < 128; ++n)
+                    sustainedNoteHeld[n] = false;
+                sustainPedalDown = false;
+            }
         }
     }
 

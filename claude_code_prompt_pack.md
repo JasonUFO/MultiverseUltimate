@@ -38,6 +38,8 @@ Include:
 
 Keep it concise. Do not scan the full repo.
 
+- Full Backup to github
+
 
 
 ---
