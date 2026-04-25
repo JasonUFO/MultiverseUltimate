@@ -4,6 +4,7 @@
 #include "PluginProcessor.h"
 #include "DrumSequencer/DrumSequencerPanel.h"
 #include "Synth/ModulationMatrixPanel.h"
+#include "Synth/SynthPanel.h"
 #include "Sampler/SamplerPanel.h"
 #include "Sequencer/SequencerPanel.h"
 
@@ -23,6 +24,7 @@ public:
     ModulationMatrixPanel modulationMatrixPanel;
     SamplerPanel samplerPanel;
     SequencerPanel sequencerPanel;
+    SynthPanel synthPanel;
     juce::TabbedComponent tabs;
 
     void setupTabs();

@@ -72,6 +72,12 @@ public:
     ModulationMatrix& getModulationMatrix() { return modulationMatrix; }
     SamplerEngine& getSamplerEngine() { return samplerEngine; }
     Sequencer& getSequencer() { return sequencer; }
+    SynthEngine& getSynthEngine() { return synthEngine; }
+
+    float getBaseFilterCutoff() const { return baseFilterCutoff; }
+    float getBaseFilterResonance() const { return baseFilterResonance; }
+    void setBaseFilterCutoff(float v) { baseFilterCutoff = juce::jlimit(20.0f, 20000.0f, v); }
+    void setBaseFilterResonance(float v) { baseFilterResonance = juce::jlimit(0.1f, 10.0f, v); }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

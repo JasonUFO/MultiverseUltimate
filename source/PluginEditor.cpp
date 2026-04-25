@@ -6,6 +6,7 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       modulationMatrixPanel (p.getModulationMatrix()),
       samplerPanel (p.getSamplerEngine()),
       sequencerPanel (p.getSequencer()),
+      synthPanel (p),
       tabs (juce::TabbedButtonBar::TabsAtTop)
 {
     setupTabs();
@@ -19,10 +20,11 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::setupTabs()
 {
-    tabs.addTab ("Drums", juce::Colours::darkgrey, &drumSequencerPanel, false);
+    tabs.addTab ("Synth",      juce::Colours::darkgrey, &synthPanel,            false);
+    tabs.addTab ("Drums",      juce::Colours::darkgrey, &drumSequencerPanel,    false);
     tabs.addTab ("Modulation", juce::Colours::darkgrey, &modulationMatrixPanel, false);
-    tabs.addTab ("Sampler", juce::Colours::darkgrey, &samplerPanel, false);
-    tabs.addTab ("Sequencer", juce::Colours::darkgrey, &sequencerPanel, false);
+    tabs.addTab ("Sampler",    juce::Colours::darkgrey, &samplerPanel,          false);
+    tabs.addTab ("Sequencer",  juce::Colours::darkgrey, &sequencerPanel,        false);
 }
 
 void PluginEditor::paint (juce::Graphics& g)
