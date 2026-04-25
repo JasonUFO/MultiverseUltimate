@@ -19,10 +19,10 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::setupTabs()
 {
-    tabs.addTab ("Drums", juce::Colours::darkgrey, &drumSequencerPanel, true);
-    tabs.addTab ("Modulation", juce::Colours::darkgrey, &modulationMatrixPanel, true);
-    tabs.addTab ("Sampler", juce::Colours::darkgrey, &samplerPanel, true);
-    tabs.addTab ("Sequencer", juce::Colours::darkgrey, &sequencerPanel, true);
+    tabs.addTab ("Drums", juce::Colours::darkgrey, &drumSequencerPanel, false);
+    tabs.addTab ("Modulation", juce::Colours::darkgrey, &modulationMatrixPanel, false);
+    tabs.addTab ("Sampler", juce::Colours::darkgrey, &samplerPanel, false);
+    tabs.addTab ("Sequencer", juce::Colours::darkgrey, &sequencerPanel, false);
 }
 
 void PluginEditor::paint (juce::Graphics& g)

@@ -18,6 +18,6 @@ public:
 private:
     juce::dsp::StateVariableTPTFilter<float> filter;
     float cutoff = 20000.0f;
-    float resonance = 0.0f;
+    float resonance = 0.707f;
     float sampleRate = 44100.0f;
 };

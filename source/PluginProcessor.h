@@ -60,7 +60,7 @@ private:
 
     // Base parameters for modulation
     float baseFilterCutoff = 20000.0f;
-    float baseFilterResonance = 0.0f;
+    float baseFilterResonance = 0.707f;
     float baseLfoRates[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 public:

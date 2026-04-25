@@ -12,7 +12,6 @@
 //==============================================================================
 PluginProcessor::PluginProcessor()
      : AudioProcessor (BusesProperties()
-                      .withInput  ("MIDI",  juce::AudioChannelSet::disabled(), true)
                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                         )
 {
@@ -182,7 +181,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         float effCutoff = baseFilterCutoff + modSums[static_cast<int>(ModTargetType::FilterCutoff)];
         effCutoff = juce::jlimit(20.0f, 20000.0f, effCutoff);
         float effRes = baseFilterResonance + modSums[static_cast<int>(ModTargetType::FilterResonance)];
-        effRes = juce::jlimit(0.0f, 1.0f, effRes);
+        effRes = juce::jlimit(0.1f, 10.0f, effRes);
         synthEngine.setFilterParams(effCutoff, effRes);
 
         // 4. Compute and apply volume modulation

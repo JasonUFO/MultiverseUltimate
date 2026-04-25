@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="Multivrs" projectType="audioplug" version="1.0.0" name="MultiverseUltimate"
               companyName="Multiphase Audio" companyCopyright="Multiphase Audio"
-              pluginFormats="buildAU,buildVST3" pluginCharacteristicsValue="pluginIsSynth"
+              pluginFormats="buildAU,buildVST3" pluginCharacteristicsValue="pluginIsSynth pluginWantsMidiInput"
               pluginName="MultiverseUltimate" pluginDesc="Multiverse Synth"
               pluginManufacturerCode="MpAu" pluginCode="MvUl"
               jucerFormatVersion="1">

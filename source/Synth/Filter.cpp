@@ -4,7 +4,7 @@ Filter::Filter()
 {
     filter.setType(juce::dsp::StateVariableTPTFilter<float>::Type::lowpass);
     filter.setCutoffFrequency(20000.0f);
-    filter.setResonance(0.0f);
+    filter.setResonance(0.707f);
 }
 
 void Filter::setCutoff(float c)
@@ -15,7 +15,7 @@ void Filter::setCutoff(float c)
 
 void Filter::setResonance(float r)
 {
-    resonance = juce::jlimit(0.0f, 1.0f, r);
+    resonance = juce::jlimit(0.1f, 10.0f, r);
     filter.setResonance(resonance);
 }
 
