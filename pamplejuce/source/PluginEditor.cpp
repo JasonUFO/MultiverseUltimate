@@ -1,13 +1,12 @@
 #include "PluginEditor.h"
 
 PluginEditor::PluginEditor (PluginProcessor& p)
-    : AudioProcessorEditor (p), processorRef (p)
+    : AudioProcessorEditor (p), processorRef (p),
+      drumSequencerPanel (p.getDrumSequencer())
 {
-    juce::ignoreUnused (processorRef);
-
+    addAndMakeVisible (drumSequencerPanel);
     addAndMakeVisible (inspectButton);
 
-    // this chunk of code instantiates and opens the melatonin inspector
     inspectButton.onClick = [&] {
         if (!inspector)
         {
@@ -18,9 +17,7 @@ PluginEditor::PluginEditor (PluginProcessor& p)
         inspector->setVisible (true);
     };
 
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    setSize (800, 600);
 }
 
 PluginEditor::~PluginEditor()
@@ -41,8 +38,6 @@ void PluginEditor::paint (juce::Graphics& g)
 
 void PluginEditor::resized()
 {
-    // layout the positions of your child components here
-    auto area = getLocalBounds();
-    area.removeFromBottom(50);
-    inspectButton.setBounds (getLocalBounds().withSizeKeepingCentre(100, 50));
+    auto area = getLocalBounds().reduced (6);
+    drumSequencerPanel.setBounds (area);
 }

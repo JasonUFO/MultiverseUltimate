@@ -10,6 +10,7 @@
 #include "Effects/Delay.h"
 #include "Effects/Reverb.h"
 #include "Presets/PresetManager.h"
+#include "DrumSequencer/DrumSequencer.h"
 
 class PluginProcessor : public juce::AudioProcessor
 {
@@ -48,7 +49,11 @@ private:
     DelayEffect delay;
     ReverbEffect reverb;
     PresetManager presetManager;
+    DrumSequencer drumSequencer;
     float masterVolume = 0.7f;
+
+public:
+    DrumSequencer& getDrumSequencer() { return drumSequencer; }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

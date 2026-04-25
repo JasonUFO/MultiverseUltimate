@@ -1,0 +1,135 @@
+#pragma once
+#include <juce_audio_basics/juce_audio_basics.h>
+#include <juce_audio_utils/juce_audio_utils.h>
+#include <juce_core/juce_core.h>
+#include <array>
+#include <atomic>
+#include <memory>
+#include <vector>
+
+constexpr int DRUM_TRACK_COUNT = 8;
+constexpr int DRUM_STEPS = 16;
+constexpr int MAX_DRUM_PATTERNS = 8;
+
+struct DrumStep
+{
+    bool active = false;
+    float velocity = 1.0f;
+};
+
+struct DrumPattern
+{
+    std::array<std::array<DrumStep, DRUM_STEPS>, DRUM_TRACK_COUNT> tracks {};
+};
+
+struct DrumTrack
+{
+    juce::String name = "Track";
+    juce::AudioBuffer<float> sampleBuffer;
+    double sampleRate = 44100.0;
+    int rootNote = 36;
+    float volume = 1.0f;
+    bool muted = false;
+    bool solo = false;
+};
+
+class DrumVoice
+{
+public:
+    DrumVoice();
+    void prepare (double sr);
+    void trigger (const DrumTrack& track, float velocity);
+    void release();
+    float process();
+    bool isActive() const { return playing; }
+    void forceStop();
+
+private:
+    double sampleRate = 44100.0;
+    double position = 0.0;
+    double speed = 1.0;
+    float volume = 1.0f;
+    bool playing = false;
+    const float* sampleData = nullptr;
+    int sampleLength = 0;
+};
+
+class DrumSequencer
+{
+public:
+    DrumSequencer();
+    ~DrumSequencer();
+
+    void prepare (double sampleRate, int samplesPerBlock);
+    void process (juce::AudioBuffer<float>& buffer, int numSamples);
+
+    void start();
+    void stop();
+    bool isPlaying() const { return playing.load(); }
+
+    void setBPM (float newBPM);
+    float getBPM() const { return bpm; }
+
+    void setStepActive (int track, int step, bool active);
+    bool getStepActive (int track, int step) const;
+    void setStepVelocity (int track, int step, float velocity);
+    float getStepVelocity (int track, int step) const;
+
+    int getCurrentStep() const { return currentStep.load(); }
+
+    void savePattern (int slot);
+    void loadPattern (int slot);
+    int getCurrentPatternSlot() const { return currentPatternSlot; }
+
+    void setTrackName (int track, const juce::String& name);
+    juce::String getTrackName (int track) const;
+    void setTrackVolume (int track, float volume);
+    float getTrackVolume (int track) const;
+    void setTrackMuted (int track, bool muted);
+    bool getTrackMuted (int track) const;
+    void setTrackSolo (int track, bool solo);
+    bool getTrackSolo (int track) const;
+    void setTrackRootNote (int track, int note);
+    int getTrackRootNote (int track) const;
+
+    bool loadSample (int track, const juce::File& file);
+    void clearTrackSample (int track);
+
+    float getTrackLevel (int track) const;
+
+    DrumPattern& getCurrentPattern() { return currentPattern; }
+
+private:
+    struct ActiveVoice
+    {
+        DrumVoice voice;
+        int trackIndex = 0;
+        bool inUse = false;
+    };
+
+    void triggerTrack (int track, float velocity);
+    void updateSamplesPerStep();
+    void handleStep (int step);
+    bool anySoloActive() const;
+    float mixVoices (float sample, int track);
+
+    double sampleRate = 44100.0;
+    int samplesPerBlock = 512;
+    float bpm = 120.0f;
+    double samplesPerStep = 0.0;
+    double sampleCounter = 0.0;
+
+    std::atomic<int> currentStep { 0 };
+    std::atomic<bool> playing { false };
+
+    DrumPattern currentPattern;
+    std::array<DrumPattern, MAX_DRUM_PATTERNS> savedPatterns {};
+    int currentPatternSlot = 0;
+
+    std::array<DrumTrack, DRUM_TRACK_COUNT> tracks;
+    std::array<ActiveVoice, DRUM_TRACK_COUNT * 4> voices;
+
+    juce::AudioFormatManager formatManager;
+
+    std::atomic<float> trackLevels[DRUM_TRACK_COUNT] = {};
+};

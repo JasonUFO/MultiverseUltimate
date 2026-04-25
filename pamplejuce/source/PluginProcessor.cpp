@@ -95,6 +95,7 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     }
 
     synthEngine.prepare (sampleRate, samplesPerBlock);
+    drumSequencer.prepare (sampleRate, samplesPerBlock);
     delay.prepare (sampleRate, samplesPerBlock);
     delay.reset();
     reverb.prepare (sampleRate, samplesPerBlock);
@@ -140,6 +141,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    drumSequencer.process (buffer, buffer.getNumSamples());
+
     for (const auto& metadata : midiMessages)
     {
         auto message = metadata.getMessage();
@@ -167,7 +170,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             float sample = synthEngine.process();
             sample = delay.process (sample);
             sample = reverb.process (sample);
-            data[i] = sample;
+            data[i] += sample;
         }
     }
 }
