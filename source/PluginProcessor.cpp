@@ -10,10 +10,70 @@
 #endif
 
 //==============================================================================
+juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParameterLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"masterVolume", 1}, "Master Volume",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.7f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"attack", 1}, "Attack",
+        juce::NormalisableRange<float>(0.001f, 5.0f, 0.0f, 0.4f), 0.01f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"decay", 1}, "Decay",
+        juce::NormalisableRange<float>(0.001f, 5.0f, 0.0f, 0.4f), 0.1f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"sustain", 1}, "Sustain",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.7f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"release", 1}, "Release",
+        juce::NormalisableRange<float>(0.001f, 10.0f, 0.0f, 0.4f), 0.5f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"filterCutoff", 1}, "Filter Cutoff",
+        juce::NormalisableRange<float>(20.0f, 20000.0f, 0.0f, 0.3f), 20000.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"filterResonance", 1}, "Filter Resonance",
+        juce::NormalisableRange<float>(0.1f, 10.0f, 0.0f, 0.5f), 0.707f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"delayTime", 1}, "Delay Time",
+        juce::NormalisableRange<float>(0.0f, 2.0f, 0.0f, 0.4f), 0.5f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"delayFeedback", 1}, "Delay Feedback",
+        juce::NormalisableRange<float>(0.0f, 0.95f), 0.3f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"delayMix", 1}, "Delay Mix",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"reverbRoom", 1}, "Reverb Room",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"reverbDamp", 1}, "Reverb Damp",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"reverbWet", 1}, "Reverb Wet",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.33f));
+
+    return layout;
+}
+
+//==============================================================================
 PluginProcessor::PluginProcessor()
      : AudioProcessor (BusesProperties()
-                      .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                        )
+                      .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
+       apvts(*this, nullptr, "APVTSState", createParameterLayout())
 {
 }
 
@@ -134,6 +194,26 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     buffer.clear();
 
+    // Read automatable parameters from APVTS (atomic loads — safe on audio thread)
+    const float masterVolume        = *apvts.getRawParameterValue("masterVolume");
+    const float baseFilterCutoff    = *apvts.getRawParameterValue("filterCutoff");
+    const float baseFilterResonance = *apvts.getRawParameterValue("filterResonance");
+    const float baseDelayTime       = *apvts.getRawParameterValue("delayTime");
+    const float baseDelayFeedback   = *apvts.getRawParameterValue("delayFeedback");
+    const float baseDelayMix        = *apvts.getRawParameterValue("delayMix");
+    const float baseReverbRoom      = *apvts.getRawParameterValue("reverbRoom");
+    const float baseReverbDamp      = *apvts.getRawParameterValue("reverbDamp");
+    const float baseReverbWet       = *apvts.getRawParameterValue("reverbWet");
+
+    // Apply envelope and reverb damping once per block
+    synthEngine.setEnvelopeParams(
+        *apvts.getRawParameterValue("attack"),
+        *apvts.getRawParameterValue("decay"),
+        *apvts.getRawParameterValue("sustain"),
+        *apvts.getRawParameterValue("release")
+    );
+    reverb.setDamping(baseReverbDamp);
+
     drumSequencer.process (buffer, buffer.getNumSamples());
 
     for (const auto metadata : midiMessages)
@@ -201,9 +281,6 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             }
         }
     }
-
-    synthEngine.setMasterVolume (masterVolume);
-    samplerEngine.setMasterVolume (masterVolume);
 
     const int numSamples = buffer.getNumSamples();
     const int numChannels = buffer.getNumChannels();
@@ -274,7 +351,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             buffer.getWritePointer(ch)[i] = mixed * panGain;
         }
 
-        // 7. Advance LFOs for next sample
+        // 9. Advance LFOs for next sample
         modulationMatrix.advanceLFOs();
     }
 }
@@ -295,59 +372,37 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     juce::ValueTree root("Multiverse");
 
-    // Parameters from PluginProcessor
-    juce::ValueTree params("Parameters");
-    params.setProperty("masterVolume", masterVolume, nullptr);
-    params.setProperty("baseFilterCutoff", baseFilterCutoff, nullptr);
-    params.setProperty("baseFilterResonance", baseFilterResonance, nullptr);
+    // All APVTS parameters (masterVolume, ADSR, filter, delay, reverb)
+    root.appendChild(apvts.copyState(), nullptr);
+
+    // Non-APVTS synth params: mode, waveform, FM algorithm + operators, LFO rates
+    juce::ValueTree synthParams("SynthParams");
+    synthParams.setProperty("waveform",    static_cast<int>(synthEngine.getWaveform()),  nullptr);
+    synthParams.setProperty("synthMode",   static_cast<int>(synthEngine.getSynthMode()), nullptr);
+    synthParams.setProperty("fmAlgorithm", synthEngine.getFMAlgorithm(),                 nullptr);
     for (int i = 0; i < 4; ++i)
-    {
-        juce::String propName = "lfoRate" + juce::String(i+1);
-        params.setProperty(propName, baseLfoRates[i], nullptr);
-    }
-    // Envelope from SynthEngine
-    float envA, envD, envS, envR;
-    synthEngine.getEnvelopeParams(envA, envD, envS, envR);
-    params.setProperty("envA", envA, nullptr);
-    params.setProperty("envD", envD, nullptr);
-    params.setProperty("envS", envS, nullptr);
-    params.setProperty("envR", envR, nullptr);
-    // Waveform and mode
-    params.setProperty("waveform", static_cast<int>(synthEngine.getWaveform()), nullptr);
-    params.setProperty("synthMode", static_cast<int>(synthEngine.getSynthMode()), nullptr);
-    params.setProperty("fmAlgorithm", synthEngine.getFMAlgorithm(), nullptr);
-    // FM operator params
+        synthParams.setProperty("lfoRate" + juce::String(i + 1), baseLfoRates[i], nullptr);
     for (int op = 0; op < 4; ++op)
     {
         float ratio, level, fb, att, dec, sus, rel;
         synthEngine.getFMOperatorParams(op, ratio, level, fb, att, dec, sus, rel);
         juce::ValueTree opNode("FmOp");
-        opNode.setProperty("index", op, nullptr);
-        opNode.setProperty("ratio", ratio, nullptr);
-        opNode.setProperty("level", level, nullptr);
-        opNode.setProperty("feedback", fb, nullptr);
-        opNode.setProperty("attack", att, nullptr);
-        opNode.setProperty("decay", dec, nullptr);
-        opNode.setProperty("sustain", sus, nullptr);
-        opNode.setProperty("release", rel, nullptr);
-        params.appendChild(opNode, nullptr);
+        opNode.setProperty("index",    op,    nullptr);
+        opNode.setProperty("ratio",    ratio, nullptr);
+        opNode.setProperty("level",    level, nullptr);
+        opNode.setProperty("feedback", fb,    nullptr);
+        opNode.setProperty("attack",   att,   nullptr);
+        opNode.setProperty("decay",    dec,   nullptr);
+        opNode.setProperty("sustain",  sus,   nullptr);
+        opNode.setProperty("release",  rel,   nullptr);
+        synthParams.appendChild(opNode, nullptr);
     }
-    root.appendChild(params, nullptr);
+    root.appendChild(synthParams, nullptr);
 
-    // Effects: Delay and Reverb
-    juce::ValueTree effects("Effects");
-    juce::ValueTree delayNode("Delay");
-    delayNode.setProperty("time",     baseDelayTime,     nullptr);
-    delayNode.setProperty("feedback", baseDelayFeedback, nullptr);
-    delayNode.setProperty("mix",      baseDelayMix,      nullptr);
-    effects.appendChild(delayNode, nullptr);
-    juce::ValueTree reverbNode("Reverb");
-    reverbNode.setProperty("roomSize", baseReverbRoom, nullptr);
-    reverbNode.setProperty("damping",  baseReverbDamp, nullptr);
-    reverbNode.setProperty("wet",      baseReverbWet,  nullptr);
-    reverbNode.setProperty("dry",      reverb.getDryLevel(), nullptr);
-    effects.appendChild(reverbNode, nullptr);
-    root.appendChild(effects, nullptr);
+    // Reverb dry level has no UI and is not automated — preserve current value
+    juce::ValueTree reverbExtra("ReverbExtra");
+    reverbExtra.setProperty("dry", reverb.getDryLevel(), nullptr);
+    root.appendChild(reverbExtra, nullptr);
 
     // Subsystem states
     root.appendChild(drumSequencer.getState(), nullptr);
@@ -373,115 +428,49 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 
     juce::ValueTree root = juce::ValueTree::fromXml(*xml);
 
-    // Parameters
-    auto params = root.getChildWithName("Parameters");
-    if (params.isValid())
+    // Restore APVTS parameters
+    auto apvtsState = root.getChildWithName("APVTSState");
+    if (apvtsState.isValid())
+        apvts.replaceState(apvtsState);
+
+    // Restore non-APVTS synth params
+    auto synthParams = root.getChildWithName("SynthParams");
+    if (synthParams.isValid())
     {
-        if (params.hasProperty("masterVolume"))
-            masterVolume = (float)params.getProperty("masterVolume");
-        if (params.hasProperty("baseFilterCutoff"))
-            baseFilterCutoff = (float)params.getProperty("baseFilterCutoff");
-        if (params.hasProperty("baseFilterResonance"))
-            baseFilterResonance = (float)params.getProperty("baseFilterResonance");
+        if (synthParams.hasProperty("waveform"))
+            synthEngine.setWaveform(static_cast<WaveformType>((int)synthParams.getProperty("waveform")));
+        if (synthParams.hasProperty("synthMode"))
+            synthEngine.setSynthMode(static_cast<SynthMode>((int)synthParams.getProperty("synthMode")));
+        if (synthParams.hasProperty("fmAlgorithm"))
+            synthEngine.setFMAlgorithm((int)synthParams.getProperty("fmAlgorithm"));
         for (int i = 0; i < 4; ++i)
         {
-            juce::String propName = "lfoRate" + juce::String(i+1);
-            if (params.hasProperty(propName))
-                baseLfoRates[i] = (float)params.getProperty(propName);
+            juce::String propName = "lfoRate" + juce::String(i + 1);
+            if (synthParams.hasProperty(propName))
+                baseLfoRates[i] = (float)synthParams.getProperty(propName);
         }
-        // Envelope
-        if (params.hasProperty("envA"))
-        {
-            float a = (float)params.getProperty("envA");
-            float d = (float)params.getProperty("envD");
-            float s = (float)params.getProperty("envS");
-            float r = (float)params.getProperty("envR");
-            synthEngine.setEnvelopeParams(a, d, s, r);
-        }
-        // Waveform
-        if (params.hasProperty("waveform"))
-        {
-            WaveformType wf = static_cast<WaveformType>((int)params.getProperty("waveform"));
-            synthEngine.setWaveform(wf);
-        }
-        // Synth mode
-        if (params.hasProperty("synthMode"))
-        {
-            SynthMode mode = static_cast<SynthMode>((int)params.getProperty("synthMode"));
-            synthEngine.setSynthMode(mode);
-        }
-        // FM Algorithm
-        if (params.hasProperty("fmAlgorithm"))
-        {
-            int alg = (int)params.getProperty("fmAlgorithm");
-            synthEngine.setFMAlgorithm(alg);
-        }
-        // FM operator params
-        for (auto opNode : params)
+        for (auto opNode : synthParams)
         {
             if (opNode.hasType("FmOp"))
             {
                 int idx = (int)opNode.getProperty("index");
                 if (idx >= 0 && idx < 4)
-                {
-                    float ratio = (float)opNode.getProperty("ratio");
-                    float level = (float)opNode.getProperty("level");
-                    float fb = (float)opNode.getProperty("feedback");
-                    float att = (float)opNode.getProperty("attack");
-                    float dec = (float)opNode.getProperty("decay");
-                    float sus = (float)opNode.getProperty("sustain");
-                    float rel = (float)opNode.getProperty("release");
-                    synthEngine.setFMOperatorParams(idx, ratio, level, fb, att, dec, sus, rel);
-                }
+                    synthEngine.setFMOperatorParams(idx,
+                        (float)opNode.getProperty("ratio"),
+                        (float)opNode.getProperty("level"),
+                        (float)opNode.getProperty("feedback"),
+                        (float)opNode.getProperty("attack"),
+                        (float)opNode.getProperty("decay"),
+                        (float)opNode.getProperty("sustain"),
+                        (float)opNode.getProperty("release"));
             }
         }
     }
 
-    // Effects
-    auto effects = root.getChildWithName("Effects");
-    if (effects.isValid())
-    {
-        auto delayNode = effects.getChildWithName("Delay");
-        if (delayNode.isValid())
-        {
-            if (delayNode.hasProperty("time"))
-            {
-                baseDelayTime = (float)delayNode.getProperty("time");
-                delay.setTime(baseDelayTime);
-            }
-            if (delayNode.hasProperty("feedback"))
-            {
-                baseDelayFeedback = (float)delayNode.getProperty("feedback");
-                delay.setFeedback(baseDelayFeedback);
-            }
-            if (delayNode.hasProperty("mix"))
-            {
-                baseDelayMix = (float)delayNode.getProperty("mix");
-                delay.setMix(baseDelayMix);
-            }
-        }
-        auto reverbNode = effects.getChildWithName("Reverb");
-        if (reverbNode.isValid())
-        {
-            if (reverbNode.hasProperty("roomSize"))
-            {
-                baseReverbRoom = (float)reverbNode.getProperty("roomSize");
-                reverb.setRoomSize(baseReverbRoom);
-            }
-            if (reverbNode.hasProperty("damping"))
-            {
-                baseReverbDamp = (float)reverbNode.getProperty("damping");
-                reverb.setDamping(baseReverbDamp);
-            }
-            if (reverbNode.hasProperty("wet"))
-            {
-                baseReverbWet = (float)reverbNode.getProperty("wet");
-                reverb.setWetLevel(baseReverbWet);
-            }
-            if (reverbNode.hasProperty("dry"))
-                reverb.setDryLevel((float)reverbNode.getProperty("dry"));
-        }
-    }
+    // Reverb dry level
+    auto reverbExtra = root.getChildWithName("ReverbExtra");
+    if (reverbExtra.isValid() && reverbExtra.hasProperty("dry"))
+        reverb.setDryLevel((float)reverbExtra.getProperty("dry"));
 
     // Subsystems
     auto drumNode = root.getChildWithName("DrumSequencer");
@@ -502,6 +491,21 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 }
 
 //==============================================================================
+void PluginProcessor::saveNamedPreset(const juce::String& name)
+{
+    juce::MemoryBlock state;
+    getStateInformation(state);
+    presetManager.saveState(name, state);
+}
+
+bool PluginProcessor::loadPresetAtIndex(int index)
+{
+    juce::MemoryBlock state;
+    if (!presetManager.loadState(index, state))
+        return false;
+    setStateInformation(state.getData(), (int)state.getSize());
+    return true;
+}
 
 //==============================================================================
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

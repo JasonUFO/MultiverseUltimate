@@ -37,18 +37,10 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     setupLabel(envSectionLabel, "ENVELOPE");
     addAndMakeVisible(envSectionLabel);
 
-    float envA, envD, envS, envR;
-    synthEngine.getEnvelopeParams(envA, envD, envS, envR);
-
-    setupSlider(attackSlider,  0.001, 5.0, envA, 0.4);
-    setupSlider(decaySlider,   0.001, 5.0, envD, 0.4);
-    setupSlider(sustainSlider, 0.0,   1.0, envS);
-    setupSlider(releaseSlider, 0.001, 10.0, envR, 0.4);
-
-    attackSlider.onValueChange  = [this] { applyEnvelope(); };
-    decaySlider.onValueChange   = [this] { applyEnvelope(); };
-    sustainSlider.onValueChange = [this] { applyEnvelope(); };
-    releaseSlider.onValueChange = [this] { applyEnvelope(); };
+    setupSlider(attackSlider,  0.001, 5.0,  0.01, 0.4);
+    setupSlider(decaySlider,   0.001, 5.0,  0.1,  0.4);
+    setupSlider(sustainSlider, 0.0,   1.0,  0.7);
+    setupSlider(releaseSlider, 0.001, 10.0, 0.5,  0.4);
 
     setupLabel(attackLabel,  "Attack");
     setupLabel(decayLabel,   "Decay");
@@ -68,11 +60,8 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     setupLabel(filterSectionLabel, "FILTER");
     addAndMakeVisible(filterSectionLabel);
 
-    setupSlider(cutoffSlider,    20.0, 20000.0, processorRef.getBaseFilterCutoff(),    0.3);
-    setupSlider(resonanceSlider, 0.1,  10.0,    processorRef.getBaseFilterResonance(), 0.5);
-
-    cutoffSlider.onValueChange    = [this] { processorRef.setBaseFilterCutoff((float)cutoffSlider.getValue()); };
-    resonanceSlider.onValueChange = [this] { processorRef.setBaseFilterResonance((float)resonanceSlider.getValue()); };
+    setupSlider(cutoffSlider,    20.0, 20000.0, 20000.0, 0.3);
+    setupSlider(resonanceSlider, 0.1,  10.0,    0.707,   0.5);
 
     setupLabel(cutoffLabel,    "Cutoff");
     setupLabel(resonanceLabel, "Resonance");
@@ -81,6 +70,15 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     addAndMakeVisible(resonanceSlider);
     addAndMakeVisible(cutoffLabel);
     addAndMakeVisible(resonanceLabel);
+
+    // APVTS attachments — connect sliders to automatable parameters
+    auto& apvts = processorRef.apvts;
+    attackAttach    = std::make_unique<SliderAttachment>(apvts, "attack",           attackSlider);
+    decayAttach     = std::make_unique<SliderAttachment>(apvts, "decay",            decaySlider);
+    sustainAttach   = std::make_unique<SliderAttachment>(apvts, "sustain",          sustainSlider);
+    releaseAttach   = std::make_unique<SliderAttachment>(apvts, "release",          releaseSlider);
+    cutoffAttach    = std::make_unique<SliderAttachment>(apvts, "filterCutoff",     cutoffSlider);
+    resonanceAttach = std::make_unique<SliderAttachment>(apvts, "filterResonance",  resonanceSlider);
 }
 
 void SynthPanel::setupSlider(juce::Slider& s, double min, double max, double value, double skew)
@@ -96,16 +94,6 @@ void SynthPanel::setupLabel(juce::Label& l, const juce::String& text)
 {
     l.setText(text, juce::dontSendNotification);
     l.setJustificationType(juce::Justification::centred);
-}
-
-void SynthPanel::applyEnvelope()
-{
-    synthEngine.setEnvelopeParams(
-        (float)attackSlider.getValue(),
-        (float)decaySlider.getValue(),
-        (float)sustainSlider.getValue(),
-        (float)releaseSlider.getValue()
-    );
 }
 
 void SynthPanel::paint(juce::Graphics& g)

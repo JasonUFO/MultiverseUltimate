@@ -47,6 +47,23 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+
+    // Public so panels can attach sliders/buttons directly
+    juce::AudioProcessorValueTreeState apvts;
+
+    DrumSequencer& getDrumSequencer() { return drumSequencer; }
+    ModulationMatrix& getModulationMatrix() { return modulationMatrix; }
+    SamplerEngine& getSamplerEngine() { return samplerEngine; }
+    Sequencer& getSequencer() { return sequencer; }
+    SynthEngine& getSynthEngine() { return synthEngine; }
+    DelayEffect& getDelay() { return delay; }
+    ReverbEffect& getReverb() { return reverb; }
+    PresetManager& getPresetManager() { return presetManager; }
+
+    void saveNamedPreset(const juce::String& name);
+    bool loadPresetAtIndex(int index);
+
 private:
     SynthEngine synthEngine;
     SamplerEngine samplerEngine;
@@ -55,51 +72,14 @@ private:
     PresetManager presetManager;
     DrumSequencer drumSequencer;
     ModulationMatrix modulationMatrix;
-    Sequencer sequencer;  // melodic sequencer
-    float masterVolume = 0.7f;
+    Sequencer sequencer;
 
-    // Base parameters for modulation
-    float baseFilterCutoff = 20000.0f;
-    float baseFilterResonance = 0.707f;
+    // LFO base rates — not yet automated (no UI knobs)
     float baseLfoRates[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     float basePitchBend = 0.0f;
-    float baseDelayTime = 0.5f;
-    float baseDelayFeedback = 0.3f;
-    float baseDelayMix = 0.5f;
-    float baseReverbRoom = 0.5f;
-    float baseReverbDamp = 0.5f;
-    float baseReverbWet = 0.33f;
 
-    // Sustain pedal state (CC 64)
     bool sustainPedalDown = false;
     bool sustainedNoteHeld[128] = {};
-
-public:
-    DrumSequencer& getDrumSequencer() { return drumSequencer; }
-    ModulationMatrix& getModulationMatrix() { return modulationMatrix; }
-    SamplerEngine& getSamplerEngine() { return samplerEngine; }
-    Sequencer& getSequencer() { return sequencer; }
-    SynthEngine& getSynthEngine() { return synthEngine; }
-    DelayEffect& getDelay() { return delay; }
-    ReverbEffect& getReverb() { return reverb; }
-
-    float getBaseFilterCutoff() const { return baseFilterCutoff; }
-    float getBaseFilterResonance() const { return baseFilterResonance; }
-    void setBaseFilterCutoff(float v) { baseFilterCutoff = juce::jlimit(20.0f, 20000.0f, v); }
-    void setBaseFilterResonance(float v) { baseFilterResonance = juce::jlimit(0.1f, 10.0f, v); }
-
-    float getBaseDelayTime() const { return baseDelayTime; }
-    float getBaseDelayFeedback() const { return baseDelayFeedback; }
-    float getBaseDelayMix() const { return baseDelayMix; }
-    float getBaseReverbRoom() const { return baseReverbRoom; }
-    float getBaseReverbDamp() const { return baseReverbDamp; }
-    float getBaseReverbWet() const { return baseReverbWet; }
-    void setBaseDelayTime(float v)     { baseDelayTime     = juce::jlimit(0.0f,  2.0f,  v); }
-    void setBaseDelayFeedback(float v) { baseDelayFeedback = juce::jlimit(0.0f,  0.95f, v); }
-    void setBaseDelayMix(float v)      { baseDelayMix      = juce::jlimit(0.0f,  1.0f,  v); }
-    void setBaseReverbRoom(float v)    { baseReverbRoom     = juce::jlimit(0.0f,  1.0f,  v); }
-    void setBaseReverbDamp(float v)    { baseReverbDamp     = juce::jlimit(0.0f,  1.0f,  v); }
-    void setBaseReverbWet(float v)     { baseReverbWet      = juce::jlimit(0.0f,  1.0f,  v); }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

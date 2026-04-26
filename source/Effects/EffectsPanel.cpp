@@ -8,13 +8,9 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     setupLabel(delaySectionLabel, "DELAY");
     addAndMakeVisible(delaySectionLabel);
 
-    setupSlider(delayTimeSlider,     0.0, 2.0,  processorRef.getBaseDelayTime(),     0.4);
-    setupSlider(delayFeedbackSlider, 0.0, 0.95, processorRef.getBaseDelayFeedback());
-    setupSlider(delayMixSlider,      0.0, 1.0,  processorRef.getBaseDelayMix());
-
-    delayTimeSlider.onValueChange     = [this] { processorRef.setBaseDelayTime    ((float)delayTimeSlider.getValue()); };
-    delayFeedbackSlider.onValueChange = [this] { processorRef.setBaseDelayFeedback((float)delayFeedbackSlider.getValue()); };
-    delayMixSlider.onValueChange      = [this] { processorRef.setBaseDelayMix     ((float)delayMixSlider.getValue()); };
+    setupSlider(delayTimeSlider,     0.0, 2.0,  0.5, 0.4);
+    setupSlider(delayFeedbackSlider, 0.0, 0.95, 0.3);
+    setupSlider(delayMixSlider,      0.0, 1.0,  0.5);
 
     setupLabel(delayTimeLabel,     "Time");
     setupLabel(delayFeedbackLabel, "Feedback");
@@ -31,13 +27,9 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     setupLabel(reverbSectionLabel, "REVERB");
     addAndMakeVisible(reverbSectionLabel);
 
-    setupSlider(reverbRoomSlider, 0.0, 1.0, processorRef.getBaseReverbRoom());
-    setupSlider(reverbDampSlider, 0.0, 1.0, processorRef.getBaseReverbDamp());
-    setupSlider(reverbWetSlider,  0.0, 1.0, processorRef.getBaseReverbWet());
-
-    reverbRoomSlider.onValueChange = [this] { processorRef.setBaseReverbRoom((float)reverbRoomSlider.getValue()); };
-    reverbDampSlider.onValueChange = [this] { processorRef.setBaseReverbDamp((float)reverbDampSlider.getValue()); };
-    reverbWetSlider.onValueChange  = [this] { processorRef.setBaseReverbWet ((float)reverbWetSlider.getValue()); };
+    setupSlider(reverbRoomSlider, 0.0, 1.0, 0.5);
+    setupSlider(reverbDampSlider, 0.0, 1.0, 0.5);
+    setupSlider(reverbWetSlider,  0.0, 1.0, 0.33);
 
     setupLabel(reverbRoomLabel, "Room");
     setupLabel(reverbDampLabel, "Damp");
@@ -49,6 +41,15 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     addAndMakeVisible(reverbRoomLabel);
     addAndMakeVisible(reverbDampLabel);
     addAndMakeVisible(reverbWetLabel);
+
+    // APVTS attachments — connect sliders to automatable parameters
+    auto& apvts = processorRef.apvts;
+    delayTimeAttach     = std::make_unique<SliderAttachment>(apvts, "delayTime",     delayTimeSlider);
+    delayFeedbackAttach = std::make_unique<SliderAttachment>(apvts, "delayFeedback", delayFeedbackSlider);
+    delayMixAttach      = std::make_unique<SliderAttachment>(apvts, "delayMix",      delayMixSlider);
+    reverbRoomAttach    = std::make_unique<SliderAttachment>(apvts, "reverbRoom",    reverbRoomSlider);
+    reverbDampAttach    = std::make_unique<SliderAttachment>(apvts, "reverbDamp",    reverbDampSlider);
+    reverbWetAttach     = std::make_unique<SliderAttachment>(apvts, "reverbWet",     reverbWetSlider);
 }
 
 void EffectsPanel::setupSlider(juce::Slider& s, double min, double max, double value, double skew)
