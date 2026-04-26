@@ -16,6 +16,9 @@ public:
     
     void nextPreset();
     void previousPreset();
+
+    void saveState(const juce::String& name, const juce::MemoryBlock& state);
+    bool loadState(int index, juce::MemoryBlock& state);
     
     std::vector<Preset> getPresets() const { return presets; }
     

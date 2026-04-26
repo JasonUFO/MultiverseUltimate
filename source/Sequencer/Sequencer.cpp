@@ -147,7 +147,13 @@ void Sequencer::addArpNote (int noteNumber)
     if (arpNoteCount < 16)
     {
         arpNotes[arpNoteCount++] = noteNumber;
-        std::sort (arpNotes.begin(), arpNotes.begin() + arpNoteCount);
+        for (int i = arpNoteCount - 1; i > 0; --i)
+        {
+            if (arpNotes[i] < arpNotes[i - 1])
+                std::swap(arpNotes[i], arpNotes[i - 1]);
+            else
+                break;
+        }
     }
 }
 

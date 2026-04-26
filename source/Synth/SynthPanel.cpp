@@ -29,7 +29,7 @@ SynthPanel::SynthPanel(PluginProcessor& p)
                                    juce::dontSendNotification);
     waveformSelector.onChange = [this]
     {
-        synthEngine.setWaveform(static_cast<WaveformType>(waveformSelector.getSelectedId() - 1));
+        processorRef.baseWaveform = static_cast<WaveformType>(waveformSelector.getSelectedId() - 1);
     };
     addAndMakeVisible(waveformSelector);
 

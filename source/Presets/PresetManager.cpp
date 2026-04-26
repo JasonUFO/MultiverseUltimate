@@ -70,3 +70,16 @@ void PresetManager::previousPreset()
         currentPresetIndex = (currentPresetIndex - 1 + (int)presets.size()) % presets.size();
     }
 }
+
+void PresetManager::saveState(const juce::String& name, const juce::MemoryBlock& state)
+{
+    juce::ignoreUnused(name);
+    juce::ignoreUnused(state);
+}
+
+bool PresetManager::loadState(int index, juce::MemoryBlock& state)
+{
+    juce::ignoreUnused(index);
+    juce::ignoreUnused(state);
+    return false;
+}

@@ -64,7 +64,8 @@ public:
     void saveNamedPreset(const juce::String& name);
     bool loadPresetAtIndex(int index);
 
-private:
+public:
+    WaveformType baseWaveform = WaveformType::Saw;
     SynthEngine synthEngine;
     SamplerEngine samplerEngine;
     DelayEffect delay;
@@ -80,6 +81,7 @@ private:
 
     bool sustainPedalDown = false;
     bool sustainedNoteHeld[128] = {};
+    juce::UndoManager undoManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

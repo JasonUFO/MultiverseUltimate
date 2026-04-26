@@ -7,6 +7,8 @@
 - Full state persistence via `juce::ValueTree` + APVTS
 - DAW automation + undo/redo via `AudioProcessorValueTreeState`
 - VST3 + AU builds successfully
+- DAW-synced sequencer (transport + BPM via playhead API)
+- Waveform selector works correctly (non-APVTS member, per-sample with modulation)
 
 ## In Progress
 - None
@@ -15,4 +17,4 @@
 - None
 
 ## Next Step
-Test in DAW: automation, undo/redo, and parameter recall on session reload.
+Test in DAW: sequencer step triggers, waveform changes, automation, and parameter recall on session reload.

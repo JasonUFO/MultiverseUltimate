@@ -222,6 +222,33 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     drumSequencer.process (buffer, buffer.getNumSamples());
 
+    bool dawPlaying = false;
+    double dawBPM = 120.0;
+
+    if (auto* playHead = getPlayHead())
+    {
+        if (auto pos = playHead->getPosition())
+        {
+            dawBPM = pos->getBpm().orFallback(120.0);
+
+            if (pos->getIsPlaying())
+                dawPlaying = true;
+        }
+    }
+
+    if (dawPlaying)
+    {
+        if (!sequencer.isPlaying())
+            sequencer.start();
+
+        sequencer.setBPM(static_cast<float>(dawBPM));
+        sequencer.process (midiMessages, buffer.getNumSamples());
+    }
+    else if (sequencer.isPlaying())
+    {
+        sequencer.stop();
+    }
+
     for (const auto metadata : midiMessages)
     {
         auto message = metadata.getMessage();
@@ -318,6 +345,13 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         // 1. Compute modulation sums from current source values
         modulationMatrix.computeModulationSums(modSums);
 
+        {
+            float waveIdx = static_cast<float>(baseWaveform)
+                        + modSums[static_cast<int>(ModTargetType::OscillatorWaveform)];
+            synthEngine.setWaveform(static_cast<WaveformType>(
+                static_cast<int>(juce::jlimit(0.0f, 4.0f, waveIdx))));
+        }
+
         // 2. Apply modulation to LFO rates
         for (int lfo = 0; lfo < 4; ++lfo)
         {
@@ -343,14 +377,6 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
         // 5. OscillatorPitch modulation (semitone offset added to MIDI pitch wheel base)
         synthEngine.setPitchBend(basePitchBend + modSums[static_cast<int>(ModTargetType::OscillatorPitch)]);
-
-        // 5b. OscillatorWaveform modulation — crossfade handled inside Oscillator
-        {
-            float waveIdx = static_cast<float>(baseWaveformIndex)
-                            + modSums[static_cast<int>(ModTargetType::OscillatorWaveform)];
-            synthEngine.setWaveform(static_cast<WaveformType>(
-                static_cast<int>(juce::jlimit(0.0f, 4.0f, waveIdx))));
-        }
 
         // 6. AmpPan modulation: [-1, 1] — negative = left, positive = right
         const float pan = juce::jlimit(-1.0f, 1.0f, modSums[static_cast<int>(ModTargetType::AmpPan)]);
