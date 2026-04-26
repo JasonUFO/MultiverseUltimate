@@ -112,6 +112,8 @@ void DrumSequencerPanel::updatePatternButtons()
 
 void DrumSequencerPanel::timerCallback()
 {
+    bpmSlider.setValue (sequencer.getBPM(), juce::dontSendNotification);
+
     if (!sequencer.isPlaying())
         return;
 

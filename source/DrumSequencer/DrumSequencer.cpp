@@ -351,6 +351,13 @@ int DrumSequencer::getTrackRootNote (int track) const
     return 36;
 }
 
+void DrumSequencer::syncToStep (int step)
+{
+    int targetStep = (step % DRUM_STEPS + DRUM_STEPS) % DRUM_STEPS;
+    currentStep.store(targetStep);
+    sampleCounter = 0.0;
+}
+
 bool DrumSequencer::loadSample (int track, const juce::File& file)
 {
     if (track < 0 || track >= DRUM_TRACK_COUNT)

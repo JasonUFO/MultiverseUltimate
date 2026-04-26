@@ -72,6 +72,8 @@ public:
     void removeArpNote (int noteNumber);
     void clearArpNotes();
 
+    void syncToStep (int step);
+
     juce::MidiFile exportMidi() const;
 
     juce::ValueTree getState() const;

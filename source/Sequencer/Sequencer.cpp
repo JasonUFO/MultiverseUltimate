@@ -233,6 +233,15 @@ void Sequencer::clearArpNotes()
     arpIndex = 0;
 }
 
+void Sequencer::syncToStep (int step)
+{
+    int targetStep = step % currentPattern.numSteps;
+    if (targetStep < 0)
+        targetStep += currentPattern.numSteps;
+    currentStep.store(targetStep);
+    sampleCounter = 0.0;
+}
+
 juce::MidiFile Sequencer::exportMidi() const
 {
     juce::MidiFile midiFile;

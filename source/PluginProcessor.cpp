@@ -220,9 +220,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     );
     reverb.setDamping(baseReverbDamp);
 
-    drumSequencer.process (buffer, buffer.getNumSamples());
-
-    bool dawPlaying = false;
+bool dawPlaying = false;
     double dawBPM = 120.0;
 
     if (auto* playHead = getPlayHead())
@@ -238,16 +236,65 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     if (dawPlaying)
     {
+        bool dawJustStarted = !dawWasPlaying;
+
+        if (!drumSequencer.isPlaying())
+            drumSequencer.start();
+
+        drumSequencer.setBPM(static_cast<float>(dawBPM));
+
+        if (dawJustStarted)
+        {
+            if (auto ts = getPlayHead()->getPosition()->getTimeInSamples())
+            {
+                int targetStep = 0;
+                double sr = getSampleRate();
+                if (sr > 0.0)
+                {
+                    double beatsPerSecond = dawBPM / 60.0;
+                    double beatsPerSample = beatsPerSecond / sr;
+                    double currentBeat = (*ts) * beatsPerSample;
+                    targetStep = static_cast<int>(currentBeat * 4.0) % 16;
+                }
+                drumSequencer.syncToStep(targetStep);
+            }
+        }
+
         if (!sequencer.isPlaying())
             sequencer.start();
 
         sequencer.setBPM(static_cast<float>(dawBPM));
-        sequencer.process (midiMessages, buffer.getNumSamples());
+
+        if (dawJustStarted)
+        {
+            if (auto ts = getPlayHead()->getPosition()->getTimeInSamples())
+            {
+                int targetStep = 0;
+                double sr = getSampleRate();
+                if (sr > 0.0)
+                {
+                    double beatsPerSecond = dawBPM / 60.0;
+                    double beatsPerSample = beatsPerSecond / sr;
+                    double currentBeat = (*ts) * beatsPerSample;
+                    targetStep = static_cast<int>(currentBeat * 4.0) % 16;
+                }
+                sequencer.syncToStep(targetStep);
+            }
+        }
     }
-    else if (sequencer.isPlaying())
+    else
     {
-        sequencer.stop();
+        if (drumSequencer.isPlaying())
+            drumSequencer.stop();
+
+        if (sequencer.isPlaying())
+            sequencer.stop();
     }
+
+    dawWasPlaying = dawPlaying;
+
+    drumSequencer.process (buffer, buffer.getNumSamples());
+    sequencer.process (midiMessages, buffer.getNumSamples());
 
     for (const auto metadata : midiMessages)
     {

@@ -1,9 +1,8 @@
 # MultiverseUltimate — AI STATE
 
 ## Completed
-- Step sequencer upgraded: gate length per step, velocity per step, playhead via atomic, arp modes (Forward/Reverse/Random), fast real-time-safe RNG
-- SequencerEngine.h/.cpp fully replaced
-- VST3 + AU builds cleanly
+- DAW transport sync: sequencers start/stop with DAW, BPM locked to DAW, step position synced on DAW play
+- BPM displays in drum sequencer and sequencer panels update to match DAW tempo
 
 ## In Progress
 - None
@@ -12,4 +11,4 @@
 - None
 
 ## Next Step
-Test in DAW: gate length audibility, velocity scaling, arp direction changes, step highlighting sync.
+Test in DAW: verify drum sequencer and melodic sequencer stay locked to DAW tempo

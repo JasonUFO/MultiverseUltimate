@@ -83,5 +83,7 @@ public:
     bool sustainedNoteHeld[128] = {};
     juce::UndoManager undoManager;
 
+    bool dawWasPlaying = false;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

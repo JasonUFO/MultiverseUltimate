@@ -86,6 +86,8 @@ public:
     void setTrackRootNote (int track, int note);
     int getTrackRootNote (int track) const;
 
+    void syncToStep (int step);
+
     bool loadSample (int track, const juce::File& file);
     void clearTrackSample (int track);
 
