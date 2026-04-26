@@ -23,7 +23,9 @@
         <FILE id="Cc0002" name="Reverb.h"   compile="0" resource="0" file="source/Effects/Reverb.h"/>
         <FILE id="Cc0003" name="Reverb.cpp" compile="1" resource="0" file="source/Effects/Reverb.cpp"/>
         <FILE id="Cc0004" name="Delay.h"    compile="0" resource="0" file="source/Effects/Delay.h"/>
-        <FILE id="Cc0005" name="Delay.cpp"  compile="1" resource="0" file="source/Effects/Delay.cpp"/>
+        <FILE id="Cc0005" name="Delay.cpp"         compile="1" resource="0" file="source/Effects/Delay.cpp"/>
+        <FILE id="Cc0006" name="EffectsPanel.h"   compile="0" resource="0" file="source/Effects/EffectsPanel.h"/>
+        <FILE id="Cc0007" name="EffectsPanel.cpp" compile="1" resource="0" file="source/Effects/EffectsPanel.cpp"/>
       </GROUP>
       <GROUP id="GrpPst" name="Presets">
         <FILE id="Dd0001" name="Preset.h"          compile="0" resource="0" file="source/Presets/Preset.h"/>

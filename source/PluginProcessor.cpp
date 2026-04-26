@@ -208,12 +208,16 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     const int numSamples = buffer.getNumSamples();
     const int numChannels = buffer.getNumChannels();
 
-    // EffectMix modulation applied once per block to avoid per-sample reverb coefficient recalculation
+    // Per-block modulation: effect params applied here to avoid per-sample coefficient recalculation
     {
         float preSums[MAX_MOD_TARGETS] = {};
         modulationMatrix.computeModulationSums(preSums);
-        delay.setMix(juce::jlimit(0.0f, 1.0f, baseDelayMix + preSums[static_cast<int>(ModTargetType::EffectMix)]));
-        reverb.setWetLevel(juce::jlimit(0.0f, 1.0f, baseReverbWet + preSums[static_cast<int>(ModTargetType::EffectMix)]));
+        const float effectMixMod = preSums[static_cast<int>(ModTargetType::EffectMix)];
+        delay.setTime    (juce::jlimit(0.0f,  2.0f,  baseDelayTime     + preSums[static_cast<int>(ModTargetType::EffectParam1)]));
+        delay.setFeedback(juce::jlimit(0.0f,  0.95f, baseDelayFeedback + preSums[static_cast<int>(ModTargetType::EffectParam2)]));
+        delay.setMix     (juce::jlimit(0.0f,  1.0f,  baseDelayMix      + effectMixMod));
+        reverb.setRoomSize(juce::jlimit(0.0f, 1.0f,  baseReverbRoom    + preSums[static_cast<int>(ModTargetType::EffectParam3)]));
+        reverb.setWetLevel(juce::jlimit(0.0f, 1.0f,  baseReverbWet     + effectMixMod));
     }
 
     float modSums[MAX_MOD_TARGETS];
@@ -243,7 +247,9 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         // 4. Compute and apply volume modulation
         float effVol = masterVolume + modSums[static_cast<int>(ModTargetType::AmpVolume)];
         effVol = juce::jlimit(0.0f, 1.0f, effVol);
-        synthEngine.setMasterVolume(effVol);
+        // OscillatorLevel modulates synth oscillator gain independently of sampler
+        float effSynthVol = juce::jlimit(0.0f, 1.0f, effVol + modSums[static_cast<int>(ModTargetType::OscillatorLevel)]);
+        synthEngine.setMasterVolume(effSynthVol);
         samplerEngine.setMasterVolume(effVol);
 
         // 5. OscillatorPitch modulation (semitone offset added to MIDI pitch wheel base)
@@ -331,15 +337,15 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     // Effects: Delay and Reverb
     juce::ValueTree effects("Effects");
     juce::ValueTree delayNode("Delay");
-    delayNode.setProperty("time", delay.getTime(), nullptr);
-    delayNode.setProperty("feedback", delay.getFeedback(), nullptr);
-    delayNode.setProperty("mix", delay.getMix(), nullptr);
+    delayNode.setProperty("time",     baseDelayTime,     nullptr);
+    delayNode.setProperty("feedback", baseDelayFeedback, nullptr);
+    delayNode.setProperty("mix",      baseDelayMix,      nullptr);
     effects.appendChild(delayNode, nullptr);
     juce::ValueTree reverbNode("Reverb");
-    reverbNode.setProperty("roomSize", reverb.getRoomSize(), nullptr);
-    reverbNode.setProperty("damping", reverb.getDamping(), nullptr);
-    reverbNode.setProperty("wet", reverb.getWetLevel(), nullptr);
-    reverbNode.setProperty("dry", reverb.getDryLevel(), nullptr);
+    reverbNode.setProperty("roomSize", baseReverbRoom, nullptr);
+    reverbNode.setProperty("damping",  baseReverbDamp, nullptr);
+    reverbNode.setProperty("wet",      baseReverbWet,  nullptr);
+    reverbNode.setProperty("dry",      reverb.getDryLevel(), nullptr);
     effects.appendChild(reverbNode, nullptr);
     root.appendChild(effects, nullptr);
 
@@ -347,6 +353,7 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     root.appendChild(drumSequencer.getState(), nullptr);
     root.appendChild(modulationMatrix.getState(), nullptr);
     root.appendChild(sequencer.getState(), nullptr);
+    root.appendChild(samplerEngine.getState(), nullptr);
 
     auto xml = root.createXml();
     if (xml != nullptr)
@@ -438,9 +445,15 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
         if (delayNode.isValid())
         {
             if (delayNode.hasProperty("time"))
-                delay.setTime((float)delayNode.getProperty("time"));
+            {
+                baseDelayTime = (float)delayNode.getProperty("time");
+                delay.setTime(baseDelayTime);
+            }
             if (delayNode.hasProperty("feedback"))
-                delay.setFeedback((float)delayNode.getProperty("feedback"));
+            {
+                baseDelayFeedback = (float)delayNode.getProperty("feedback");
+                delay.setFeedback(baseDelayFeedback);
+            }
             if (delayNode.hasProperty("mix"))
             {
                 baseDelayMix = (float)delayNode.getProperty("mix");
@@ -451,9 +464,15 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
         if (reverbNode.isValid())
         {
             if (reverbNode.hasProperty("roomSize"))
-                reverb.setRoomSize((float)reverbNode.getProperty("roomSize"));
+            {
+                baseReverbRoom = (float)reverbNode.getProperty("roomSize");
+                reverb.setRoomSize(baseReverbRoom);
+            }
             if (reverbNode.hasProperty("damping"))
-                reverb.setDamping((float)reverbNode.getProperty("damping"));
+            {
+                baseReverbDamp = (float)reverbNode.getProperty("damping");
+                reverb.setDamping(baseReverbDamp);
+            }
             if (reverbNode.hasProperty("wet"))
             {
                 baseReverbWet = (float)reverbNode.getProperty("wet");
@@ -476,6 +495,10 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     auto seqNode = root.getChildWithName("Sequencer");
     if (seqNode.isValid())
         sequencer.setState(seqNode);
+
+    auto samplerNode = root.getChildWithName("SamplerEngine");
+    if (samplerNode.isValid())
+        samplerEngine.setState(samplerNode);
 }
 
 //==============================================================================

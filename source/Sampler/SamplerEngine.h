@@ -21,6 +21,9 @@ public:
     void clearZones();
     int getZoneCount() const;
 
+    juce::ValueTree getState() const;
+    void setState (const juce::ValueTree& state);
+
     float process();
 
 private:
@@ -37,6 +40,7 @@ private:
     std::array<VoiceInfo, MAX_SAMPLER_VOICES> voices;
     std::vector<std::shared_ptr<SamplerZone>> zones;
     juce::CriticalSection zoneLock;
+    juce::AudioFormatManager formatManager;
 
     float masterVolume = 0.7f;
     double sampleRate = 44100.0;

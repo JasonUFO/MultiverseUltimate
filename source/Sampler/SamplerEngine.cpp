@@ -1,7 +1,10 @@
 #include "SamplerEngine.h"
 #include <climits>
 
-SamplerEngine::SamplerEngine() {}
+SamplerEngine::SamplerEngine()
+{
+    formatManager.registerBasicFormats();
+}
 
 void SamplerEngine::prepare (double sr, int /*samplesPerBlock*/)
 {
@@ -116,6 +119,74 @@ float SamplerEngine::process()
         output /= static_cast<float> (activeCount);
 
     return output * masterVolume;
+}
+
+juce::ValueTree SamplerEngine::getState() const
+{
+    juce::ValueTree state ("SamplerEngine");
+    const juce::ScopedLock sl (zoneLock);
+    for (const auto& zone : zones)
+    {
+        juce::ValueTree zoneNode ("Zone");
+        zoneNode.setProperty ("filePath",       zone->filePath,                       nullptr);
+        zoneNode.setProperty ("name",           zone->name,                           nullptr);
+        zoneNode.setProperty ("loNote",         zone->loNote,                         nullptr);
+        zoneNode.setProperty ("hiNote",         zone->hiNote,                         nullptr);
+        zoneNode.setProperty ("loVel",          zone->loVel,                          nullptr);
+        zoneNode.setProperty ("hiVel",          zone->hiVel,                          nullptr);
+        zoneNode.setProperty ("rootNote",       zone->rootNote,                       nullptr);
+        zoneNode.setProperty ("loopMode",       static_cast<int> (zone->loopMode),   nullptr);
+        zoneNode.setProperty ("loopStart",      zone->loopStart,                      nullptr);
+        zoneNode.setProperty ("loopEnd",        zone->loopEnd,                        nullptr);
+        zoneNode.setProperty ("crossfadeLength",zone->crossfadeLength,               nullptr);
+        state.appendChild (zoneNode, nullptr);
+    }
+    return state;
+}
+
+void SamplerEngine::setState (const juce::ValueTree& state)
+{
+    clearZones();
+
+    for (int i = 0; i < state.getNumChildren(); ++i)
+    {
+        auto zoneNode = state.getChild (i);
+        if (! zoneNode.hasType ("Zone"))
+            continue;
+
+        juce::String filePath = zoneNode.getProperty ("filePath", "");
+        if (filePath.isEmpty())
+            continue;
+
+        juce::File file (filePath);
+        if (! file.existsAsFile())
+            continue;
+
+        std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor (file));
+        if (reader == nullptr)
+            continue;
+
+        auto zone = std::make_shared<SamplerZone>();
+        zone->filePath       = filePath;
+        zone->name           = zoneNode.getProperty ("name", file.getFileNameWithoutExtension());
+        zone->loNote         = (int) zoneNode.getProperty ("loNote",          0);
+        zone->hiNote         = (int) zoneNode.getProperty ("hiNote",        127);
+        zone->loVel          = (int) zoneNode.getProperty ("loVel",           0);
+        zone->hiVel          = (int) zoneNode.getProperty ("hiVel",         127);
+        zone->rootNote       = (int) zoneNode.getProperty ("rootNote",       60);
+        zone->loopMode       = static_cast<LoopMode> ((int) zoneNode.getProperty ("loopMode", 0));
+        zone->loopStart      = (int) zoneNode.getProperty ("loopStart",       0);
+        zone->loopEnd        = (int) zoneNode.getProperty ("loopEnd",         0);
+        zone->crossfadeLength= (int) zoneNode.getProperty ("crossfadeLength", 0);
+        zone->fileSampleRate = reader->sampleRate;
+
+        int numSamples  = (int) reader->lengthInSamples;
+        int numChannels = (int) reader->numChannels;
+        zone->audioData.setSize (numChannels, numSamples);
+        reader->read (&zone->audioData, 0, numSamples, 0, true, true);
+
+        addZone (std::move (zone));
+    }
 }
 
 SamplerEngine::VoiceInfo* SamplerEngine::findFreeVoice()

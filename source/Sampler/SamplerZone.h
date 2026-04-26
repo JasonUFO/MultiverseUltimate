@@ -11,6 +11,7 @@ enum class LoopMode
 struct SamplerZone
 {
     juce::String name;
+    juce::String filePath;
 
     // Key and velocity range
     int loNote = 0;
