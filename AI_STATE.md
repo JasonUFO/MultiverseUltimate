@@ -1,20 +1,15 @@
 # MultiverseUltimate — AI STATE
 
 ## Completed
-- All three audio engines (Synth, Sampler, Drum) mixed to stereo output with Delay + Reverb applied
-- ModulationMatrix on audio thread; LFOs advance per-sample
-- UI: `TabbedComponent` with Synth, Drums, Modulation, Sampler, Sequencer, Effects tabs
-- Full state persistence via `juce::ValueTree` + APVTS
-- DAW automation + undo/redo via `AudioProcessorValueTreeState`
-- VST3 + AU builds successfully
-- DAW-synced sequencer (transport + BPM via playhead API)
-- Waveform selector works correctly (non-APVTS member, per-sample with modulation)
+- Step sequencer upgraded: gate length per step, velocity per step, playhead via atomic, arp modes (Forward/Reverse/Random), fast real-time-safe RNG
+- SequencerEngine.h/.cpp fully replaced
+- VST3 + AU builds cleanly
 
 ## In Progress
 - None
 
-## Broken / Not Yet Implemented
+## Broken
 - None
 
 ## Next Step
-Test in DAW: sequencer step triggers, waveform changes, automation, and parameter recall on session reload.
+Test in DAW: gate length audibility, velocity scaling, arp direction changes, step highlighting sync.

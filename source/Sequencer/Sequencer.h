@@ -8,9 +8,10 @@ constexpr int MAX_PATTERNS = 8;
 
 struct Step
 {
+    bool active = false;
     int noteNumber = 60;
     float velocity = 0.8f;
-    bool active = false;
+    float gate = 0.5f;
 };
 
 struct SeqPattern
@@ -23,6 +24,13 @@ enum class SequencerMode
 {
     Sequencer,
     Arpeggiator
+};
+
+enum class PlayMode
+{
+    Forward,
+    Reverse,
+    Random
 };
 
 class Sequencer
@@ -43,12 +51,16 @@ public:
     void setMode (SequencerMode m) { mode = m; }
     SequencerMode getMode() const { return mode; }
 
+    void setPlayMode (PlayMode m) { playMode = m; }
+    PlayMode getPlayMode() const { return playMode; }
+
     void setNumSteps (int n);
     int getNumSteps() const { return currentPattern.numSteps; }
 
     void setStepActive (int step, bool active);
     void setStepNote (int step, int noteNumber);
     void setStepVelocity (int step, float velocity);
+    void setStepGate (int step, float gate);
     Step getStep (int step) const;
     int getCurrentStep() const { return currentStep.load(); }
 
@@ -62,30 +74,37 @@ public:
 
     juce::MidiFile exportMidi() const;
 
-    // State persistence
     juce::ValueTree getState() const;
-    void setState(const juce::ValueTree& state);
+    void setState (const juce::ValueTree& state);
 
- private:
+private:
     SeqPattern currentPattern;
     std::array<SeqPattern, MAX_PATTERNS> savedPatterns {};
     int currentPatternSlot = 0;
 
     SequencerMode mode { SequencerMode::Sequencer };
+    PlayMode playMode { PlayMode::Forward };
 
     float bpm = 120.0f;
     double sampleRate = 44100.0;
     double samplesPerStep = 0.0;
     double sampleCounter = 0.0;
 
+    double noteOffCounter = 0.0;
+    int lastNoteOn = -1;
+
     std::atomic<int> currentStep { 0 };
     std::atomic<bool> playing { false };
-    int lastNoteOn = -1;
 
     std::array<int, 16> arpNotes {};
     int arpNoteCount = 0;
     int arpIndex = 0;
 
+    uint32_t rngState = 1;
+
     void updateSamplesPerStep();
-    void triggerStep (juce::MidiBuffer& midi, int sampleOffset);
+    int getNextStepIndex (int current) const;
+    uint32_t fastRand();
+    void triggerNoteOn (juce::MidiBuffer& midi, int sampleOffset, int note, float velocity);
+    void scheduleNoteOff (juce::MidiBuffer& midi, int sampleOffset);
 };
