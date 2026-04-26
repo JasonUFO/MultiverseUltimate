@@ -164,8 +164,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         else if (message.isPitchWheel())
         {
             // MIDI pitch wheel: 0–16383, center = 8192; map to ±2 semitones
-            float semitones = ((message.getPitchWheelValue() - 8192) / 8192.0f) * 2.0f;
-            synthEngine.setPitchBend (semitones);
+            basePitchBend = ((message.getPitchWheelValue() - 8192) / 8192.0f) * 2.0f;
         }
         else if (message.isController())
         {
@@ -209,6 +208,14 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     const int numSamples = buffer.getNumSamples();
     const int numChannels = buffer.getNumChannels();
 
+    // EffectMix modulation applied once per block to avoid per-sample reverb coefficient recalculation
+    {
+        float preSums[MAX_MOD_TARGETS] = {};
+        modulationMatrix.computeModulationSums(preSums);
+        delay.setMix(juce::jlimit(0.0f, 1.0f, baseDelayMix + preSums[static_cast<int>(ModTargetType::EffectMix)]));
+        reverb.setWetLevel(juce::jlimit(0.0f, 1.0f, baseReverbWet + preSums[static_cast<int>(ModTargetType::EffectMix)]));
+    }
+
     float modSums[MAX_MOD_TARGETS];
 
     for (int i = 0; i < numSamples; ++i)
@@ -239,18 +246,26 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         synthEngine.setMasterVolume(effVol);
         samplerEngine.setMasterVolume(effVol);
 
-        // 5. Process synth and sampler (mono)
+        // 5. OscillatorPitch modulation (semitone offset added to MIDI pitch wheel base)
+        synthEngine.setPitchBend(basePitchBend + modSums[static_cast<int>(ModTargetType::OscillatorPitch)]);
+
+        // 6. AmpPan modulation: [-1, 1] — negative = left, positive = right
+        const float pan = juce::jlimit(-1.0f, 1.0f, modSums[static_cast<int>(ModTargetType::AmpPan)]);
+
+        // 7. Process synth and sampler (mono)
         float synthOut = synthEngine.process();
         float samplerOut = samplerEngine.process();
 
-        // 6. Mix per channel with drums, apply effects
+        // 8. Mix per channel with drums, apply effects and pan
         for (int ch = 0; ch < numChannels; ++ch)
         {
             const float drumOut = buffer.getReadPointer(ch)[i];
             float mixed = drumOut + synthOut + samplerOut;
             mixed = delay.process(mixed);
             mixed = reverb.process(mixed);
-            buffer.getWritePointer(ch)[i] = mixed;
+            const float panGain = (ch == 0) ? (1.0f - juce::jmax(0.0f, pan))
+                                            : (1.0f + juce::jmin(0.0f, pan));
+            buffer.getWritePointer(ch)[i] = mixed * panGain;
         }
 
         // 7. Advance LFOs for next sample
@@ -427,7 +442,10 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
             if (delayNode.hasProperty("feedback"))
                 delay.setFeedback((float)delayNode.getProperty("feedback"));
             if (delayNode.hasProperty("mix"))
-                delay.setMix((float)delayNode.getProperty("mix"));
+            {
+                baseDelayMix = (float)delayNode.getProperty("mix");
+                delay.setMix(baseDelayMix);
+            }
         }
         auto reverbNode = effects.getChildWithName("Reverb");
         if (reverbNode.isValid())
@@ -437,7 +455,10 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
             if (reverbNode.hasProperty("damping"))
                 reverb.setDamping((float)reverbNode.getProperty("damping"));
             if (reverbNode.hasProperty("wet"))
-                reverb.setWetLevel((float)reverbNode.getProperty("wet"));
+            {
+                baseReverbWet = (float)reverbNode.getProperty("wet");
+                reverb.setWetLevel(baseReverbWet);
+            }
             if (reverbNode.hasProperty("dry"))
                 reverb.setDryLevel((float)reverbNode.getProperty("dry"));
         }

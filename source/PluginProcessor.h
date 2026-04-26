@@ -62,6 +62,9 @@ private:
     float baseFilterCutoff = 20000.0f;
     float baseFilterResonance = 0.707f;
     float baseLfoRates[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    float basePitchBend = 0.0f;
+    float baseDelayMix = 0.5f;
+    float baseReverbWet = 0.33f;
 
     // Sustain pedal state (CC 64)
     bool sustainPedalDown = false;

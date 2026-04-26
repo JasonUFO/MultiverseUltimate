@@ -1,155 +1,95 @@
 #include "ModulationMatrixPanel.h"
 
-namespace
-{
-    constexpr int SOURCE_COL_WIDTH = 140;
-    constexpr int TARGET_COL_WIDTH = 140;
-    constexpr int ITEM_HEIGHT = 32;
-    constexpr int ITEM_PADDING = 4;
-    constexpr int HEADER_HEIGHT = 40;
-    constexpr int PADDING = 8;
+namespace {
+    constexpr int HEADER_H  = 36;
+    constexpr int COL_HDR_H = 20;
+    constexpr int ROW_H     = 36;
+    constexpr int ROW_GAP   = 3;
+    constexpr int PADDING   = 8;
+    constexpr int SRC_W     = 140;
+    constexpr int TGT_W     = 140;
+    constexpr int DEL_W     = 28;
+    constexpr int INNER_GAP = 4;
 }
 
-ModulationMatrixPanel::SourceComponent::SourceComponent (ModulationMatrix& m)
-    : matrix (m)
+// ─── Row ────────────────────────────────────────────────────────────────────
+
+ModulationMatrixPanel::Row::Row()
 {
-    setInterceptsMouseClicks (true, true);
-}
+    for (int i = 0; i <= static_cast<int>(ModSourceType::Random); ++i)
+        sourceBox.addItem(ModulationMatrix::getSourceName(static_cast<ModSourceType>(i)), i + 1);
+    sourceBox.setSelectedId(1, juce::dontSendNotification);
 
-void ModulationMatrixPanel::SourceComponent::paint (juce::Graphics& g)
-{
-    auto bounds = getLocalBounds();
-    g.setColour (juce::Colours::cyan.withAlpha (0.3f));
-    g.fillRoundedRectangle (bounds.toFloat(), 4.0f);
+    for (int i = 0; i <= static_cast<int>(ModTargetType::EffectMix); ++i)
+        targetBox.addItem(ModulationMatrix::getTargetName(static_cast<ModTargetType>(i)), i + 1);
+    targetBox.setSelectedId(1, juce::dontSendNotification);
 
-    g.setColour (juce::Colours::white);
-    g.setFont (14.0f);
-    auto text = matrix.getSourceName (sourceType);
-    g.drawText (text, bounds.reduced (8, 0), juce::Justification::centredLeft);
-}
+    amountSlider.setRange(-1.0, 1.0, 0.01);
+    amountSlider.setValue(0.5, juce::dontSendNotification);
+    amountSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    amountSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 44, ROW_H - 6);
 
-void ModulationMatrixPanel::SourceComponent::mouseDown (const juce::MouseEvent& e)
-{
-    if (e.mods.isLeftButtonDown())
-    {
-        if (onDragStarted)
-            onDragStarted();
-    }
-}
+    addAndMakeVisible(sourceBox);
+    addAndMakeVisible(targetBox);
+    addAndMakeVisible(amountSlider);
+    addAndMakeVisible(deleteButton);
 
-void ModulationMatrixPanel::SourceComponent::mouseDrag (const juce::MouseEvent&)
-{
-}
+    sourceBox.onChange = [this]() {
+        if (onChange)
+            onChange(static_cast<ModSourceType>(sourceBox.getSelectedId() - 1),
+                     static_cast<ModTargetType>(targetBox.getSelectedId() - 1),
+                     (float)amountSlider.getValue());
+    };
 
-void ModulationMatrixPanel::SourceComponent::mouseUp (const juce::MouseEvent&)
-{
-    if (onDragEnded)
-        onDragEnded (sourceType, 0.0f);
-}
+    targetBox.onChange = [this]() {
+        if (onChange)
+            onChange(static_cast<ModSourceType>(sourceBox.getSelectedId() - 1),
+                     static_cast<ModTargetType>(targetBox.getSelectedId() - 1),
+                     (float)amountSlider.getValue());
+    };
 
-ModulationMatrixPanel::TargetComponent::TargetComponent (ModulationMatrix& m)
-    : matrix (m)
-{
-    setWantsKeyboardFocus (false);
-}
-
-void ModulationMatrixPanel::TargetComponent::paint (juce::Graphics& g)
-{
-    auto bounds = getLocalBounds();
-    auto color = isDragOver ? juce::Colours::lime : juce::Colours::orange;
-    g.setColour (color.withAlpha (isDragOver ? 0.5f : 0.3f));
-    g.fillRoundedRectangle (bounds.toFloat(), 4.0f);
-
-    g.setColour (juce::Colours::white);
-    g.setFont (14.0f);
-    auto text = matrix.getTargetName (targetType);
-    g.drawText (text, bounds.reduced (8, 0), juce::Justification::centredLeft);
-}
-
-void ModulationMatrixPanel::TargetComponent::mouseDown (const juce::MouseEvent& e)
-{
-    if (onClicked)
-        onClicked();
-}
-
-void ModulationMatrixPanel::TargetComponent::mouseEnter (const juce::MouseEvent&)
-{
-    isDragOver = true;
-    repaint();
-}
-
-void ModulationMatrixPanel::TargetComponent::mouseExit (const juce::MouseEvent&)
-{
-    isDragOver = false;
-    repaint();
-}
-
-ModulationMatrixPanel::ConnectionItem::ConnectionItem (ModulationMatrix& m)
-    : matrix (m)
-{
-    addAndMakeVisible (amountSlider);
-    amountSlider.setRange (-1.0f, 1.0f, 0.01f);
-    amountSlider.setValue (currentAmount);
-    amountSlider.addListener (this);
-
-    addAndMakeVisible (sourceLabel);
-    addAndMakeVisible (targetLabel);
-    addAndMakeVisible (deleteButton);
+    amountSlider.onValueChange = [this]() {
+        if (onChange)
+            onChange(static_cast<ModSourceType>(sourceBox.getSelectedId() - 1),
+                     static_cast<ModTargetType>(targetBox.getSelectedId() - 1),
+                     (float)amountSlider.getValue());
+    };
 
     deleteButton.onClick = [this]() { if (onDelete) onDelete(); };
 }
 
-void ModulationMatrixPanel::ConnectionItem::paint (juce::Graphics& g)
+void ModulationMatrixPanel::Row::resized()
 {
-    auto bounds = getLocalBounds();
-
-    g.setColour (juce::Colours::darkgrey.withAlpha (0.5f));
-    g.fillRoundedRectangle (bounds.toFloat(), 4.0f);
-
-    g.setColour (juce::Colours::lightgrey);
-    g.setFont (12.0f);
-    g.drawText (sourceLabel.getText(), bounds.removeFromLeft (SOURCE_COL_WIDTH).reduced (4, 0), juce::Justification::centredLeft);
-    g.drawText (targetLabel.getText(), bounds.removeFromLeft (TARGET_COL_WIDTH).reduced (4, 0), juce::Justification::centredLeft);
+    auto b = getLocalBounds().reduced(2, 2);
+    deleteButton.setBounds(b.removeFromRight(DEL_W));
+    b.removeFromRight(INNER_GAP);
+    sourceBox.setBounds(b.removeFromLeft(SRC_W));
+    b.removeFromLeft(INNER_GAP);
+    targetBox.setBounds(b.removeFromLeft(TGT_W));
+    b.removeFromLeft(INNER_GAP);
+    amountSlider.setBounds(b);
 }
 
-void ModulationMatrixPanel::ConnectionItem::mouseDown (const juce::MouseEvent& e)
+// ─── Panel ──────────────────────────────────────────────────────────────────
+
+ModulationMatrixPanel::ModulationMatrixPanel(ModulationMatrix& m)
+    : matrix(m)
 {
-    if (e.mods.isRightButtonDown())
-    {
-        if (onDelete)
-            onDelete();
-    }
-}
+    titleLabel.setText("Modulation Matrix", juce::dontSendNotification);
+    titleLabel.setFont(juce::Font(16.0f, juce::Font::bold));
+    titleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+    addAndMakeVisible(titleLabel);
 
-void ModulationMatrixPanel::ConnectionItem::resized()
-{
-    auto bounds = getLocalBounds();
-    bounds.reduce (4, 4);
+    addButton.onClick = [this]() {
+        matrix.addConnection(ModSourceType::LFO1, ModTargetType::FilterCutoff, 0.5f);
+        rebuild();
+        resized();
+        repaint();
+    };
+    addAndMakeVisible(addButton);
 
-    auto sliderWidth = 80;
-    deleteButton.setBounds (bounds.removeFromRight (20));
-    amountSlider.setBounds (bounds.removeFromRight (sliderWidth));
-}
-
-void ModulationMatrixPanel::ConnectionItem::sliderValueChanged (juce::Slider* slider)
-{
-    currentAmount = slider->getValue();
-    if (onAmountChanged)
-        onAmountChanged (currentAmount);
-}
-
-ModulationMatrixPanel::ModulationMatrixPanel (ModulationMatrix& m)
-    : matrix (m)
-{
-    addAndMakeVisible (titleLabel);
-    titleLabel.setText ("Modulation Matrix", juce::dontSendNotification);
-    titleLabel.setFont (18.0f);
-    titleLabel.setColour (juce::Label::textColourId, juce::Colours::white);
-
-    addAndMakeVisible (addConnectionButton);
-    addConnectionButton.onClick = [this]() { createConnection (0, 0); };
-
-    startTimer (100);
+    rebuild();
+    startTimer(200);
 }
 
 ModulationMatrixPanel::~ModulationMatrixPanel()
@@ -157,139 +97,90 @@ ModulationMatrixPanel::~ModulationMatrixPanel()
     stopTimer();
 }
 
-void ModulationMatrixPanel::paint (juce::Graphics& g)
+void ModulationMatrixPanel::paint(juce::Graphics& g)
 {
-    auto bounds = getLocalBounds();
-    g.setColour (juce::Colour (0xFF1A1A1A));
-    g.fillRect (bounds);
+    g.fillAll(juce::Colour(0xFF1A1A1A));
 
-    g.setColour (juce::Colours::grey);
-    g.setFont (14.0f);
-    g.drawText ("SOURCES", PADDING, PADDING, SOURCE_COL_WIDTH, 20, juce::Justification::centredLeft);
-    g.drawText ("TARGETS", getWidth() - PADDING - TARGET_COL_WIDTH, PADDING, TARGET_COL_WIDTH, 20, juce::Justification::centredLeft);
+    // Column headers — x positions mirror Row::resized() with PADDING offset
+    const int rowLeft = PADDING + 2;
+    g.setColour(juce::Colours::grey);
+    g.setFont(juce::Font(11.0f));
+    g.drawText("SOURCE", rowLeft,                                              HEADER_H, SRC_W,  COL_HDR_H, juce::Justification::centredLeft);
+    g.drawText("TARGET", rowLeft + SRC_W + INNER_GAP,                         HEADER_H, TGT_W,  COL_HDR_H, juce::Justification::centredLeft);
+    g.drawText("AMOUNT", rowLeft + SRC_W + INNER_GAP + TGT_W + INNER_GAP,    HEADER_H, 80,     COL_HDR_H, juce::Justification::centredLeft);
 
-    auto& connections = matrix.getConnections();
-
-    for (int i = 0; i < connections.size(); ++i)
+    if (rows.empty())
     {
-        auto& conn = connections[i];
-
-        auto sourceY = HEADER_HEIGHT + conn.sourceIndex * (ITEM_HEIGHT + ITEM_PADDING) + ITEM_PADDING;
-        auto targetY = HEADER_HEIGHT + conn.targetIndex * (ITEM_HEIGHT + ITEM_PADDING) + ITEM_PADDING;
-
-        auto sourceX = PADDING;
-        auto targetX = getWidth() - PADDING - TARGET_COL_WIDTH;
-
-        auto colour = conn.enabled ? juce::Colours::cyan : juce::Colours::grey;
-        g.setColour (colour.withAlpha (0.6f));
-
-        juce::Path path;
-        path.startNewSubPath (sourceX + SOURCE_COL_WIDTH, (float)sourceY + ITEM_HEIGHT / 2);
-
-        auto cp1x = sourceX + SOURCE_COL_WIDTH + 30;
-        auto cp2x = targetX - 30;
-        path.cubicTo (cp1x, (float)sourceY + ITEM_HEIGHT / 2,
-                     cp2x, (float)targetY + ITEM_HEIGHT / 2,
-                     (float)targetX, (float)targetY + ITEM_HEIGHT / 2);
-
-        g.strokePath (path, juce::PathStrokeType (2.0f));
+        g.setColour(juce::Colours::darkgrey);
+        g.setFont(13.0f);
+        g.drawText("No connections — press + to add one",
+                   getLocalBounds().withTrimmedTop(HEADER_H + COL_HDR_H + 16),
+                   juce::Justification::centredTop);
     }
 }
 
 void ModulationMatrixPanel::resized()
 {
-    updateLayout();
+    auto b = getLocalBounds().reduced(PADDING);
+
+    auto headerRow = b.removeFromTop(HEADER_H - 8);
+    titleLabel.setBounds(headerRow.withTrimmedRight(36));
+    addButton.setBounds(headerRow.removeFromRight(28));
+
+    b.removeFromTop(COL_HDR_H + 4);
+
+    for (auto& row : rows)
+    {
+        row->setBounds(b.removeFromTop(ROW_H));
+        b.removeFromTop(ROW_GAP);
+    }
 }
 
 void ModulationMatrixPanel::timerCallback()
 {
-    refreshConnections();
+    int count = static_cast<int>(matrix.getConnections().size());
+    if (count != lastConnectionCount)
+    {
+        rebuild();
+        resized();
+        repaint();
+    }
 }
 
-void ModulationMatrixPanel::updateLayout()
+void ModulationMatrixPanel::rebuild()
 {
-    auto bounds = getLocalBounds();
-    bounds.reduce (PADDING, PADDING);
+    for (auto& row : rows)
+        removeChildComponent(row.get());
+    rows.clear();
 
-    titleLabel.setBounds (bounds.removeFromTop (30));
-    addConnectionButton.setBounds (bounds.removeFromTop (30).removeFromRight (30));
-
-    sourceArea = bounds.removeFromLeft (SOURCE_COL_WIDTH);
-    targetArea = bounds.removeFromRight (TARGET_COL_WIDTH);
-    connectionArea = bounds;
-
-    sourceArea.removeFromTop (HEADER_HEIGHT - PADDING);
-    targetArea.removeFromTop (HEADER_HEIGHT - PADDING);
-}
-
-void ModulationMatrixPanel::createConnection(int sourceIndex, int targetIndex)
-{
-    auto sourceType = matrix.getSourceType (sourceIndex);
-    auto targetType = matrix.getTargetType (targetIndex);
-
-    matrix.addConnection (sourceType, targetType, 0.5f);
-    refreshConnections();
-}
-
-void ModulationMatrixPanel::refreshConnections()
-{
     auto& connections = matrix.getConnections();
-
-    if (static_cast<int>(connectionItems.size()) != connections.size())
+    for (int i = 0; i < static_cast<int>(connections.size()); ++i)
     {
-        connectionItems.clear();
+        const auto& conn = connections[i];
+        auto row = std::make_unique<Row>();
 
-        for (int i = 0; i < connections.size(); ++i)
-        {
-            auto item = std::make_unique<ConnectionItem> (matrix);
-            item->connectionId = i;
+        row->sourceBox.setSelectedId(static_cast<int>(conn.source) + 1, juce::dontSendNotification);
+        row->targetBox.setSelectedId(static_cast<int>(conn.target) + 1, juce::dontSendNotification);
+        row->amountSlider.setValue(conn.amount, juce::dontSendNotification);
 
-            auto& conn = connections[i];
-            item->sourceLabel.setText (matrix.getSourceName (conn.source), juce::dontSendNotification);
-            item->targetLabel.setText (matrix.getTargetName (conn.target), juce::dontSendNotification);
-            item->currentAmount = conn.amount;
-            item->amountSlider.setValue (conn.amount);
+        const int idx = i;
 
-            item->onDelete = [this, i]() {
-                matrix.removeConnection (i);
-                refreshConnections();
-            };
+        row->onDelete = [this, idx]() {
+            matrix.removeConnection(idx);
+            rebuild();
+            resized();
+            repaint();
+        };
 
-            item->onAmountChanged = [this, i](float amount) {
-                matrix.updateConnection (i, amount);
-            };
+        row->onChange = [this, idx](ModSourceType src, ModTargetType tgt, float amount) {
+            matrix.updateConnectionSource(idx, src, 0);
+            matrix.updateConnectionTarget(idx, tgt, 0);
+            matrix.updateConnection(idx, amount);
+        };
 
-            addAndMakeVisible (*item);
-            connectionItems.push_back (std::move (item));
-        }
+        addAndMakeVisible(*row);
+        rows.push_back(std::move(row));
     }
 
-    auto y = HEADER_HEIGHT + PADDING;
-    for (auto& item : connectionItems)
-    {
-        item->setBounds (PADDING, y, getWidth() - PADDING * 2, ITEM_HEIGHT);
-        y += ITEM_HEIGHT + ITEM_PADDING;
-    }
-}
-
-int ModulationMatrixPanel::countConnectionsForSource (ModSourceType source) const
-{
-    int count = 0;
-    for (auto& conn : matrix.getConnections())
-    {
-        if (conn.source == source && conn.enabled)
-            ++count;
-    }
-    return count;
-}
-
-int ModulationMatrixPanel::countConnectionsForTarget (ModTargetType target) const
-{
-    int count = 0;
-    for (auto& conn : matrix.getConnections())
-    {
-        if (conn.target == target && conn.enabled)
-            ++count;
-    }
-    return count;
+    lastConnectionCount = static_cast<int>(connections.size());
 }
