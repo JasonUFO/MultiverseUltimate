@@ -45,7 +45,8 @@ void Voice::setFilterParams(float cutoff, float resonance)
 
 void Voice::setWaveform(WaveformType type)
 {
-    oscillator.setWaveform(type);
+    if (type != oscillator.getWaveform())
+        oscillator.setWaveform(type);
 }
 
 void Voice::setSampleRate(float sr)

@@ -11,7 +11,12 @@ void Oscillator::setFrequency(float freq)
 
 void Oscillator::setWaveform(WaveformType type)
 {
-    waveform = type;
+    if (type != waveform)
+    {
+        prevWaveform = waveform;
+        waveform = type;
+        crossfadeAlpha = 0.0f;
+    }
 }
 
 void Oscillator::setPulseWidth(float width)
@@ -24,45 +29,45 @@ void Oscillator::setSampleRate(float sr)
     sampleRate = sr;
 }
 
-float Oscillator::process()
+float Oscillator::generateSample(WaveformType t, float ph, float pw)
 {
-    float output = 0.0f;
-    float phaseIncrement = frequency / sampleRate;
-    
-    switch (waveform)
+    switch (t)
     {
-        case WaveformType::Sine:
-            output = std::sin(phase * 2.0f * M_PI);
-            break;
-            
-        case WaveformType::Saw:
-            output = 2.0f * (phase - 0.5f);
-            break;
-            
-        case WaveformType::Square:
-            output = phase < pulseWidth ? 1.0f : -1.0f;
-            break;
-            
-        case WaveformType::Triangle:
-            output = 4.0f * std::abs(phase - 0.5f) - 1.0f;
-            break;
-            
+        case WaveformType::Sine:     return std::sin(ph * 2.0f * M_PI);
+        case WaveformType::Saw:      return 2.0f * (ph - 0.5f);
+        case WaveformType::Square:   return ph < pw ? 1.0f : -1.0f;
+        case WaveformType::Triangle: return 4.0f * std::abs(ph - 0.5f) - 1.0f;
         case WaveformType::Noise:
         {
             static thread_local std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
             static thread_local std::mt19937 gen;
-            output = dist(gen);
-            break;
+            return dist(gen);
         }
-            
-        case WaveformType::Sample:
-            output = phase < 0.5f ? 1.0f : -1.0f;
-            break;
+        case WaveformType::Sample:   return ph < 0.5f ? 1.0f : -1.0f;
     }
-    
+    return 0.0f;
+}
+
+float Oscillator::process()
+{
+    float output;
+    const float phaseIncrement = frequency / sampleRate;
+
+    if (crossfadeAlpha < 1.0f)
+    {
+        const float a = generateSample(prevWaveform, phase, pulseWidth);
+        const float b = generateSample(waveform,     phase, pulseWidth);
+        output = a + crossfadeAlpha * (b - a);
+        crossfadeAlpha = juce::jmin(1.0f, crossfadeAlpha + crossfadeRate);
+    }
+    else
+    {
+        output = generateSample(waveform, phase, pulseWidth);
+    }
+
     phase += phaseIncrement;
     if (phase >= 1.0f) phase -= 1.0f;
-    
+
     return output;
 }
 

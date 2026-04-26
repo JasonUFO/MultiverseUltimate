@@ -66,6 +66,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         juce::ParameterID{"reverbWet", 1}, "Reverb Wet",
         juce::NormalisableRange<float>(0.0f, 1.0f), 0.33f));
 
+    for (int i = 1; i <= 4; ++i)
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"lfo" + juce::String(i) + "Rate", 1},
+            "LFO " + juce::String(i) + " Rate",
+            juce::NormalisableRange<float>(0.01f, 20.0f, 0.0f, 0.3f), 1.0f));
+
     return layout;
 }
 
@@ -73,7 +79,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
 PluginProcessor::PluginProcessor()
      : AudioProcessor (BusesProperties()
                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
-       apvts(*this, nullptr, "APVTSState", createParameterLayout())
+       apvts(*this, &undoManager, "APVTSState", createParameterLayout())
 {
 }
 
@@ -285,6 +291,14 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     const int numSamples = buffer.getNumSamples();
     const int numChannels = buffer.getNumChannels();
 
+    // Read LFO base rates once per block (atomic loads, safe on audio thread)
+    const float lfoBaseRates[4] = {
+        *apvts.getRawParameterValue("lfo1Rate"),
+        *apvts.getRawParameterValue("lfo2Rate"),
+        *apvts.getRawParameterValue("lfo3Rate"),
+        *apvts.getRawParameterValue("lfo4Rate"),
+    };
+
     // Per-block modulation: effect params applied here to avoid per-sample coefficient recalculation
     {
         float preSums[MAX_MOD_TARGETS] = {};
@@ -304,14 +318,12 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         // 1. Compute modulation sums from current source values
         modulationMatrix.computeModulationSums(modSums);
 
-        // 2. Apply modulation to LFO rates (target indices: LFO1Rate=7, LFO2Rate=8, LFO3Rate=9, LFO4Rate=10)
+        // 2. Apply modulation to LFO rates
         for (int lfo = 0; lfo < 4; ++lfo)
         {
             ModTargetType lfoRateTarget = static_cast<ModTargetType>(static_cast<int>(ModTargetType::LFO1Rate) + lfo);
-            float mod = modSums[static_cast<int>(lfoRateTarget)];
-            float newRate = baseLfoRates[lfo] + mod;
-            newRate = juce::jlimit(0.01f, 100.0f, newRate);
-            modulationMatrix.setLFORate(lfo, newRate);
+            float newRate = lfoBaseRates[lfo] + modSums[static_cast<int>(lfoRateTarget)];
+            modulationMatrix.setLFORate(lfo, juce::jlimit(0.01f, 100.0f, newRate));
         }
 
         // 3. Compute and apply filter modulation
@@ -331,6 +343,14 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
         // 5. OscillatorPitch modulation (semitone offset added to MIDI pitch wheel base)
         synthEngine.setPitchBend(basePitchBend + modSums[static_cast<int>(ModTargetType::OscillatorPitch)]);
+
+        // 5b. OscillatorWaveform modulation — crossfade handled inside Oscillator
+        {
+            float waveIdx = static_cast<float>(baseWaveformIndex)
+                            + modSums[static_cast<int>(ModTargetType::OscillatorWaveform)];
+            synthEngine.setWaveform(static_cast<WaveformType>(
+                static_cast<int>(juce::jlimit(0.0f, 4.0f, waveIdx))));
+        }
 
         // 6. AmpPan modulation: [-1, 1] — negative = left, positive = right
         const float pan = juce::jlimit(-1.0f, 1.0f, modSums[static_cast<int>(ModTargetType::AmpPan)]);
@@ -380,8 +400,6 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     synthParams.setProperty("waveform",    static_cast<int>(synthEngine.getWaveform()),  nullptr);
     synthParams.setProperty("synthMode",   static_cast<int>(synthEngine.getSynthMode()), nullptr);
     synthParams.setProperty("fmAlgorithm", synthEngine.getFMAlgorithm(),                 nullptr);
-    for (int i = 0; i < 4; ++i)
-        synthParams.setProperty("lfoRate" + juce::String(i + 1), baseLfoRates[i], nullptr);
     for (int op = 0; op < 4; ++op)
     {
         float ratio, level, fb, att, dec, sus, rel;
@@ -428,10 +446,27 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 
     juce::ValueTree root = juce::ValueTree::fromXml(*xml);
 
-    // Restore APVTS parameters
-    auto apvtsState = root.getChildWithName("APVTSState");
-    if (apvtsState.isValid())
-        apvts.replaceState(apvtsState);
+    // Restore APVTS parameters one-by-one so each change is recorded in undo history
+    {
+        auto apvtsState = apvts.state;
+        auto savedState = root.getChildWithName("APVTSState");
+        const int numParams = apvtsState.getNumChildren();
+        const int numSaved = savedState.getNumChildren();
+        for (int i = 0; i < numParams; ++i)
+        {
+            auto paramId = apvtsState.getChild(i).getProperty("id").toString();
+            for (int j = 0; j < numSaved; ++j)
+            {
+                auto savedParam = savedState.getChild(j);
+                if (savedParam.getProperty("id").toString() == paramId)
+                {
+                    if (savedParam.hasProperty("value"))
+                        apvts.getParameter(paramId)->setValueNotifyingHost(savedParam.getProperty("value"));
+                    break;
+                }
+            }
+        }
+    }
 
     // Restore non-APVTS synth params
     auto synthParams = root.getChildWithName("SynthParams");
@@ -443,12 +478,6 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
             synthEngine.setSynthMode(static_cast<SynthMode>((int)synthParams.getProperty("synthMode")));
         if (synthParams.hasProperty("fmAlgorithm"))
             synthEngine.setFMAlgorithm((int)synthParams.getProperty("fmAlgorithm"));
-        for (int i = 0; i < 4; ++i)
-        {
-            juce::String propName = "lfoRate" + juce::String(i + 1);
-            if (synthParams.hasProperty(propName))
-                baseLfoRates[i] = (float)synthParams.getProperty(propName);
-        }
         for (auto opNode : synthParams)
         {
             if (opNode.hasType("FmOp"))
