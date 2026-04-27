@@ -76,6 +76,48 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
             "LFO " + juce::String(i) + " Rate",
             juce::NormalisableRange<float>(0.01f, 20.0f, 0.0f, 0.3f), 1.0f));
 
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"fmAlgorithm", 1}, "FM Algorithm",
+        juce::StringArray{"1", "2", "3", "4", "5", "6", "7", "8"}, 0));
+
+    for (int op = 1; op <= 4; ++op)
+    {
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"fmOp" + juce::String(op) + "Ratio", 1},
+            "FM Op " + juce::String(op) + " Ratio",
+            juce::NormalisableRange<float>(0.5f, 32.0f, 0.0f, 0.5f), 1.0f));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"fmOp" + juce::String(op) + "Level", 1},
+            "FM Op " + juce::String(op) + " Level",
+            juce::NormalisableRange<float>(0.0f, 1.0f), 1.0f));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"fmOp" + juce::String(op) + "Feedback", 1},
+            "FM Op " + juce::String(op) + " Feedback",
+            juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"fmOp" + juce::String(op) + "Attack", 1},
+            "FM Op " + juce::String(op) + " Attack",
+            juce::NormalisableRange<float>(0.001f, 5.0f, 0.0f, 0.4f), 0.01f));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"fmOp" + juce::String(op) + "Decay", 1},
+            "FM Op " + juce::String(op) + " Decay",
+            juce::NormalisableRange<float>(0.001f, 5.0f, 0.0f, 0.4f), 0.1f));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"fmOp" + juce::String(op) + "Sustain", 1},
+            "FM Op " + juce::String(op) + " Sustain",
+            juce::NormalisableRange<float>(0.0f, 1.0f), 0.7f));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"fmOp" + juce::String(op) + "Release", 1},
+            "FM Op " + juce::String(op) + " Release",
+            juce::NormalisableRange<float>(0.001f, 10.0f, 0.0f, 0.4f), 0.3f));
+    }
+
     return layout;
 }
 
@@ -218,6 +260,26 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         *apvts.getRawParameterValue("sustain"),
         *apvts.getRawParameterValue("release")
     );
+
+    synthEngine.setFMAlgorithm(
+        static_cast<int>(*apvts.getRawParameterValue("fmAlgorithm")) + 1
+    );
+
+    for (int op = 0; op < 4; ++op)
+    {
+        const int opIdx = op + 1;
+        synthEngine.setFMOperatorParams(
+            opIdx,
+            *apvts.getRawParameterValue("fmOp" + juce::String(opIdx) + "Ratio"),
+            *apvts.getRawParameterValue("fmOp" + juce::String(opIdx) + "Level"),
+            *apvts.getRawParameterValue("fmOp" + juce::String(opIdx) + "Feedback"),
+            *apvts.getRawParameterValue("fmOp" + juce::String(opIdx) + "Attack"),
+            *apvts.getRawParameterValue("fmOp" + juce::String(opIdx) + "Decay"),
+            *apvts.getRawParameterValue("fmOp" + juce::String(opIdx) + "Sustain"),
+            *apvts.getRawParameterValue("fmOp" + juce::String(opIdx) + "Release")
+        );
+    }
+
     reverb.setDamping(baseReverbDamp);
 
     bool   dawPlaying = false;
