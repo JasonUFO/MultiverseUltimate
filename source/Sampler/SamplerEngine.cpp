@@ -6,27 +6,49 @@ SamplerEngine::SamplerEngine()
     formatManager.registerBasicFormats();
 }
 
-void SamplerEngine::prepare (double sr, int /*samplesPerBlock*/)
+void SamplerEngine::prepare (double sr, int samplesPerBlock)
 {
     sampleRate = (sr > 0.0 && sr <= 1000000.0) ? sr : 44100.0;
     for (auto& vi : voices)
         vi.voice.prepare (sampleRate);
+
+    zonesVersion.store(0, std::memory_order_relaxed);
+    lastProcessedVersion = 0;
+}
+
+void SamplerEngine::prepareZonesForPlayback()
+{
+    int currentVersion = zonesVersion.load(std::memory_order_acquire);
+    if (currentVersion != lastProcessedVersion)
+    {
+        swapZoneBuffers();
+        lastProcessedVersion = currentVersion;
+    }
+}
+
+void SamplerEngine::swapZoneBuffers()
+{
+    zonesReadOnly.clear();
+    {
+        juce::ScopedLock sl(zoneLock);
+        for (const auto& z : zones)
+            zonesReadOnly.push_back(z);
+    }
 }
 
 void SamplerEngine::noteOn (int midiNote, float velocity)
 {
+    prepareZonesForPlayback();
+
     const SamplerZone* matchedZone = nullptr;
     int velInt = juce::jlimit (0, 127, static_cast<int> (velocity * 127.0f));
 
+    for (const auto& z : zonesReadOnly)
     {
-        const juce::ScopedLock sl (zoneLock);
-        for (const auto& z : zones)
+        if (z->matchesNote (midiNote, velInt))
         {
-            if (z->matchesNote (midiNote, velInt))
-            {
-                matchedZone = z.get();
-                break;
-            }
+            matchedZone = z.get();
+            break;
         }
     }
 
@@ -71,8 +93,11 @@ void SamplerEngine::setMasterVolume (float volume)
 
 void SamplerEngine::addZone (std::shared_ptr<SamplerZone> zone)
 {
-    const juce::ScopedLock sl (zoneLock);
-    zones.push_back (std::move (zone));
+    {
+        juce::ScopedLock sl (zoneLock);
+        zones.push_back (std::move (zone));
+    }
+    zonesVersion.fetch_add(1, std::memory_order_release);
 }
 
 void SamplerEngine::clearZones()
@@ -84,13 +109,17 @@ void SamplerEngine::clearZones()
         vi.inUse = false;
     }
 
-    const juce::ScopedLock sl (zoneLock);
-    zones.clear();
+    {
+        juce::ScopedLock sl (zoneLock);
+        zones.clear();
+    }
+    zonesVersion.fetch_add(1, std::memory_order_release);
 }
 
 int SamplerEngine::getZoneCount() const
 {
-    const juce::ScopedLock sl (zoneLock);
+    // This is only for UI - can use lock
+    juce::ScopedLock sl (zoneLock);
     return static_cast<int> (zones.size());
 }
 
@@ -123,6 +152,8 @@ float SamplerEngine::process()
 
 int SamplerEngine::processBuffer(juce::AudioBuffer<float>& buffer, int numSamples)
 {
+    prepareZonesForPlayback();
+
     int activeCount = 0;
     auto* left = buffer.getWritePointer(0);
     auto* right = buffer.getWritePointer(1);

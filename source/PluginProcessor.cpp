@@ -361,6 +361,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             int   note = message.getNoteNumber();
             float vel  = message.getVelocity() / 127.0f;
             sustainedNoteHeld[note] = false;
+            if (sostenutoPedalDown)
+                sostenutoNoteHeld[note] = true;
             synthEngine.noteOn (note, vel);
             samplerEngine.noteOn (note, vel);
         }
@@ -405,6 +407,31 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                         }
                     }
                 }
+            }
+            else if (cc == 66)  // sostenuto pedal
+            {
+                if (val >= 64)
+                {
+                    sostenutoPedalDown = true;
+                }
+                else
+                {
+                    sostenutoPedalDown = false;
+                    for (int n = 0; n < 128; ++n)
+                    {
+                        if (sostenutoNoteHeld[n])
+                        {
+                            synthEngine.noteOff (n);
+                            samplerEngine.noteOff (n);
+                            sostenutoNoteHeld[n] = false;
+                        }
+                    }
+                }
+            }
+            else if (cc == 1)  // modulation wheel -> filter cutoff mod
+            {
+                float modWheel = val / 127.0f;
+                baseFilterModAmount = modWheel * 10000.0f;
             }
             else if (cc == 123)  // all notes off
             {
@@ -491,7 +518,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     }
 
     float effCutoff = juce::jlimit(20.0f, 20000.0f,
-        baseFilterCutoff + modSums[static_cast<int>(ModTargetType::FilterCutoff)]);
+        baseFilterCutoff + baseFilterModAmount + modSums[static_cast<int>(ModTargetType::FilterCutoff)]);
     float effRes = juce::jlimit(0.1f, 10.0f,
         baseFilterResonance + modSums[static_cast<int>(ModTargetType::FilterResonance)]);
     synthEngine.setFilterParams(effCutoff, effRes);

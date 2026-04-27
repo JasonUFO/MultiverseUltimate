@@ -83,6 +83,9 @@ void DrumSequencer::process (juce::AudioBuffer<float>& buffer, int numSamples)
     if (!playing.load())
         return;
 
+    auto* left = buffer.getWritePointer (0);
+    auto* right = buffer.getNumChannels() > 1 ? buffer.getWritePointer (1) : left;
+
     for (int i = 0; i < numSamples; ++i)
     {
         if (sampleCounter >= samplesPerStep)
@@ -107,7 +110,6 @@ void DrumSequencer::process (juce::AudioBuffer<float>& buffer, int numSamples)
                 mixR += s;
                 ++activeCount;
 
-                // Peak-hold level tracking per track
                 float absS = std::abs(s);
                 float prev = trackLevels[av.trackIndex].load(std::memory_order_relaxed);
                 if (absS > prev)
@@ -119,7 +121,6 @@ void DrumSequencer::process (juce::AudioBuffer<float>& buffer, int numSamples)
             }
         }
 
-        // Slow decay so the meter is visible at 50 ms timer rate
         for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
         {
             float lv = trackLevels[t].load(std::memory_order_relaxed);
@@ -133,8 +134,6 @@ void DrumSequencer::process (juce::AudioBuffer<float>& buffer, int numSamples)
             mixR /= static_cast<float> (activeCount);
         }
 
-        auto* left = buffer.getWritePointer (0);
-        auto* right = buffer.getNumChannels() > 1 ? buffer.getWritePointer (1) : left;
         if (left != nullptr) left[i] = mixL;
         if (right != nullptr) right[i] = mixR;
 

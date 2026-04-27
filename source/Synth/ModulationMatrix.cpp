@@ -1,6 +1,7 @@
 #include "ModulationMatrix.h"
 #include <cmath>
 #include <algorithm>
+#include <memory>
 #include "JuceHeader.h"
 
 ModulationMatrix::ModulationMatrix()
@@ -9,9 +10,13 @@ ModulationMatrix::ModulationMatrix()
     {
         sourceValues[i].type = static_cast<ModSourceType>(i);
         sourceValues[i].index = 0;
-        sourceValues[i].value = 0.0f;
+        sourceValues[i].value.store(0.0f, std::memory_order_relaxed);
         sourceValues[i].phase = 0.0f;
     }
+
+    for (int b = 0; b < 2; ++b)
+        for (int t = 0; t < MAX_MOD_TARGETS; ++t)
+            modSumsBuffer[b][t] = 0.0f;
 }
 
 int ModulationMatrix::addConnection(ModSourceType source, ModTargetType target, float amount)
@@ -78,7 +83,7 @@ float ModulationMatrix::getModulationValue(ModSourceType source, int index)
     int sourceIndex = static_cast<int>(source);
     if (sourceIndex >= 0 && sourceIndex < MAX_MOD_SOURCES)
     {
-        return sourceValues[sourceIndex].value;
+        return sourceValues[sourceIndex].value.load(std::memory_order_relaxed);
     }
     return 0.0f;
 }
@@ -88,7 +93,7 @@ void ModulationMatrix::setModulationValue(ModSourceType source, int index, float
     int sourceIndex = static_cast<int>(source);
     if (sourceIndex >= 0 && sourceIndex < MAX_MOD_SOURCES)
     {
-        sourceValues[sourceIndex].value = value;
+        sourceValues[sourceIndex].value.store(value, std::memory_order_relaxed);
     }
 }
 
@@ -96,15 +101,41 @@ void ModulationMatrix::prepare(double sampleRate_, int samplesPerBlock_)
 {
     sampleRate = sampleRate_;
     samplesPerBlock = samplesPerBlock_;
+
+    for (int b = 0; b < 2; ++b)
+        for (int t = 0; t < MAX_MOD_TARGETS; ++t)
+            modSumsBuffer[b][t] = 0.0f;
+    currentModSumsBuffer.store(0, std::memory_order_relaxed);
+}
+
+void ModulationMatrix::prepareForBlock()
+{
+    swapModSumsBuffers();
+}
+
+void ModulationMatrix::swapModSumsBuffers()
+{
+    int prev = currentModSumsBuffer.load(std::memory_order_relaxed);
+    int next = 1 - prev;
+    for (int t = 0; t < MAX_MOD_TARGETS; ++t)
+        modSumsBuffer[next][t] = 0.0f;
+    currentModSumsBuffer.store(next, std::memory_order_relaxed);
 }
 
 std::vector<ModConnection> ModulationMatrix::getActiveConnectionsForTarget(ModTargetType target, int index) const
 {
     std::vector<ModConnection> result;
+    juce::ScopedLock lock(connectionLock);
     for (const auto& conn : connections)
         if (conn.target == target && conn.targetIndex == index && conn.enabled)
             result.push_back(conn);
     return result;
+}
+
+std::vector<ModConnection> ModulationMatrix::getConnections() const
+{
+    juce::ScopedLock lock(connectionLock);
+    return connections;
 }
 
 ModSourceType ModulationMatrix::getSourceType(int index) const
@@ -156,44 +187,50 @@ void ModulationMatrix::advanceLFOs()
     constexpr double twoPi = 6.283185307179586;
     double sr = sampleRate > 0 ? sampleRate : 44100.0;
 
-    // LFO1
-    float val = static_cast<float>(std::sin(lfo1Phase));
-    sourceValues[static_cast<int>(ModSourceType::LFO1)].value = val;
-    lfo1Phase += twoPi * lfo1Rate / sr;
-    if (lfo1Phase >= twoPi) lfo1Phase -= twoPi;
+    float currPhase1 = lfo1Phase.load(std::memory_order_relaxed);
+    float val = static_cast<float>(std::sin(currPhase1));
+    sourceValues[static_cast<int>(ModSourceType::LFO1)].value.store(val, std::memory_order_relaxed);
+    float newPhase1 = currPhase1 + static_cast<float>(twoPi * lfo1Rate / sr);
+    lfo1Phase.store(newPhase1 >= twoPi ? newPhase1 - twoPi : newPhase1, std::memory_order_relaxed);
 
-    // LFO2
-    val = static_cast<float>(std::sin(lfo2Phase));
-    sourceValues[static_cast<int>(ModSourceType::LFO2)].value = val;
-    lfo2Phase += twoPi * lfo2Rate / sr;
-    if (lfo2Phase >= twoPi) lfo2Phase -= twoPi;
+    float currPhase2 = lfo2Phase.load(std::memory_order_relaxed);
+    val = static_cast<float>(std::sin(currPhase2));
+    sourceValues[static_cast<int>(ModSourceType::LFO2)].value.store(val, std::memory_order_relaxed);
+    float newPhase2 = currPhase2 + static_cast<float>(twoPi * lfo2Rate / sr);
+    lfo2Phase.store(newPhase2 >= twoPi ? newPhase2 - twoPi : newPhase2, std::memory_order_relaxed);
 
-    // LFO3
-    val = static_cast<float>(std::sin(lfo3Phase));
-    sourceValues[static_cast<int>(ModSourceType::LFO3)].value = val;
-    lfo3Phase += twoPi * lfo3Rate / sr;
-    if (lfo3Phase >= twoPi) lfo3Phase -= twoPi;
+    float currPhase3 = lfo3Phase.load(std::memory_order_relaxed);
+    val = static_cast<float>(std::sin(currPhase3));
+    sourceValues[static_cast<int>(ModSourceType::LFO3)].value.store(val, std::memory_order_relaxed);
+    float newPhase3 = currPhase3 + static_cast<float>(twoPi * lfo3Rate / sr);
+    lfo3Phase.store(newPhase3 >= twoPi ? newPhase3 - twoPi : newPhase3, std::memory_order_relaxed);
 
-    // LFO4
-    val = static_cast<float>(std::sin(lfo4Phase));
-    sourceValues[static_cast<int>(ModSourceType::LFO4)].value = val;
-    lfo4Phase += twoPi * lfo4Rate / sr;
-    if (lfo4Phase >= twoPi) lfo4Phase -= twoPi;
+    float currPhase4 = lfo4Phase.load(std::memory_order_relaxed);
+    val = static_cast<float>(std::sin(currPhase4));
+    sourceValues[static_cast<int>(ModSourceType::LFO4)].value.store(val, std::memory_order_relaxed);
+    float newPhase4 = currPhase4 + static_cast<float>(twoPi * lfo4Rate / sr);
+    lfo4Phase.store(newPhase4 >= twoPi ? newPhase4 - twoPi : newPhase4, std::memory_order_relaxed);
 }
 
 void ModulationMatrix::computeModulationSums(float* outSums) const
 {
-    // Zero all targets
+    int bufIdx = currentModSumsBuffer.load(std::memory_order_relaxed);
+    const float* src = modSumsBuffer[bufIdx];
     for (int t = 0; t < MAX_MOD_TARGETS; ++t)
-        outSums[t] = 0.0f;
+        outSums[t] = src[t];
 
-    // Sum contributions from each enabled connection
-    for (const auto& conn : connections)
+    std::vector<ModConnection> connSnapshot;
+    {
+        juce::ScopedLock lock(connectionLock);
+        connSnapshot = connections;
+    }
+
+    for (const auto& conn : connSnapshot)
     {
         if (!conn.enabled) continue;
         int srcIdx = static_cast<int>(conn.source);
         if (srcIdx < 0 || srcIdx >= MAX_MOD_SOURCES) continue;
-        float srcVal = sourceValues[srcIdx].value;
+        float srcVal = sourceValues[srcIdx].value.load(std::memory_order_relaxed);
         int tgtIdx = static_cast<int>(conn.target);
         if (tgtIdx < 0 || tgtIdx >= MAX_MOD_TARGETS) continue;
         outSums[tgtIdx] += srcVal * conn.amount;
@@ -209,16 +246,19 @@ juce::ValueTree ModulationMatrix::getState() const
     v.setProperty("lfo4Rate", lfo4Rate, nullptr);
 
     auto conns = juce::ValueTree("Connections");
-    for (const auto& c : connections)
     {
-        juce::ValueTree conn("Conn");
-        conn.setProperty("source", static_cast<int>(c.source), nullptr);
-        conn.setProperty("target", static_cast<int>(c.target), nullptr);
-        conn.setProperty("amount", c.amount, nullptr);
-        conn.setProperty("enabled", c.enabled, nullptr);
-        conn.setProperty("sourceIndex", c.sourceIndex, nullptr);
-        conn.setProperty("targetIndex", c.targetIndex, nullptr);
-        conns.appendChild(conn, nullptr);
+        juce::ScopedLock lock(connectionLock);
+        for (const auto& c : connections)
+        {
+            juce::ValueTree conn("Conn");
+            conn.setProperty("source", static_cast<int>(c.source), nullptr);
+            conn.setProperty("target", static_cast<int>(c.target), nullptr);
+            conn.setProperty("amount", c.amount, nullptr);
+            conn.setProperty("enabled", c.enabled, nullptr);
+            conn.setProperty("sourceIndex", c.sourceIndex, nullptr);
+            conn.setProperty("targetIndex", c.targetIndex, nullptr);
+            conns.appendChild(conn, nullptr);
+        }
     }
     v.appendChild(conns, nullptr);
     return v;
@@ -234,7 +274,7 @@ void ModulationMatrix::setState(const juce::ValueTree& state)
     if (state.hasProperty("lfo3Rate")) lfo3Rate = (float)state.getProperty("lfo3Rate");
     if (state.hasProperty("lfo4Rate")) lfo4Rate = (float)state.getProperty("lfo4Rate");
 
-    connections.clear();
+    std::vector<ModConnection> newConnections;
     for (auto child : state)
     {
         if (child.hasType("Connections"))
@@ -250,9 +290,15 @@ void ModulationMatrix::setState(const juce::ValueTree& state)
                     c.enabled = conn.getProperty("enabled");
                     c.sourceIndex = (int)conn.getProperty("sourceIndex");
                     c.targetIndex = (int)conn.getProperty("targetIndex");
-                    connections.push_back(c);
+                    newConnections.push_back(c);
                 }
             }
         }
+    }
+
+    {
+        juce::ScopedLock lock(connectionLock);
+        connections.clear();
+        connections = std::move(newConnections);
     }
 }

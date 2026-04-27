@@ -87,9 +87,12 @@ public:
     // LFO base rates — not yet automated (no UI knobs)
     float baseLfoRates[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     float basePitchBend = 0.0f;
+    float baseFilterModAmount = 0.0f;
 
     bool sustainPedalDown = false;
+    bool sostenutoPedalDown = false;
     bool sustainedNoteHeld[128] = {};
+    bool sostenutoNoteHeld[128] = {};
     juce::UndoManager undoManager;
 
     bool dawWasPlaying = false;

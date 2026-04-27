@@ -153,7 +153,7 @@ void ModulationMatrixPanel::rebuild()
         removeChildComponent(row.get());
     rows.clear();
 
-    auto& connections = matrix.getConnections();
+    auto connections = matrix.getConnections();
     for (int i = 0; i < static_cast<int>(connections.size()); ++i)
     {
         const auto& conn = connections[i];

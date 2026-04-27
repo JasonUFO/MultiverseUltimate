@@ -1,6 +1,9 @@
 #pragma once
 #include "SamplerVoice.h"
 #include <JuceHeader.h>
+#include <array>
+#include <vector>
+#include <memory>
 
 constexpr int MAX_SAMPLER_VOICES = 16;
 
@@ -41,7 +44,16 @@ private:
 
     std::array<VoiceInfo, MAX_SAMPLER_VOICES> voices;
     std::vector<std::shared_ptr<SamplerZone>> zones;
+
     juce::CriticalSection zoneLock;
+
+    std::vector<std::shared_ptr<SamplerZone>> zonesReadOnly;
+    std::atomic<int> zonesVersion{0};
+    int lastProcessedVersion = 0;
+
+    void prepareZonesForPlayback();
+    void swapZoneBuffers();
+
     juce::AudioFormatManager formatManager;
 
     float masterVolume = 0.7f;

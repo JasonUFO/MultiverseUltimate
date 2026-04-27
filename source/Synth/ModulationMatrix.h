@@ -3,8 +3,8 @@
 #include <vector>
 #include <functional>
 #include <cstdint>
-
-namespace juce { class ValueTree; }
+#include <atomic>
+#include "JuceHeader.h"
 
 constexpr int MAX_MOD_SOURCES = 16;
 constexpr int MAX_MOD_TARGETS = 16;
@@ -70,6 +70,7 @@ public:
     void setModulationValue(ModSourceType source, int index, float value);
 
     void prepare(double sampleRate, int samplesPerBlock);
+    void prepareForBlock();
 
     // LFO rate control (index 0=LFO1, 1=LFO2, 2=LFO3, 3=LFO4)
     void setLFORate(int lfoIndex, float rateHz);
@@ -82,7 +83,8 @@ public:
     // outSums must point to array of size at least MAX_MOD_TARGETS
     void computeModulationSums(float* outSums) const;
 
-    const std::vector<ModConnection>& getConnections() const { return connections; }
+    // Deprecated: returns copy with lock protection
+    std::vector<ModConnection> getConnections() const;
     std::vector<ModConnection> getActiveConnectionsForTarget(ModTargetType target, int index) const;
 
     // State persistence
@@ -142,7 +144,7 @@ private:
     {
         ModSourceType type;
         int index = 0;
-        float value = 0.0f;
+        std::atomic<float> value{0.0f};
         float phase = 0.0f;
         bool keyDown = false;
     };
@@ -150,13 +152,10 @@ private:
     std::vector<ModConnection> connections;
     std::array<SourceValue, MAX_MOD_SOURCES> sourceValues;
 
-    double sampleRate = 44100.0;
-    int samplesPerBlock = 512;
-
-    float lfo1Phase = 0.0f;
-    float lfo2Phase = 0.0f;
-    float lfo3Phase = 0.0f;
-    float lfo4Phase = 0.0f;
+    std::atomic<float> lfo1Phase{0.0f};
+    std::atomic<float> lfo2Phase{0.0f};
+    std::atomic<float> lfo3Phase{0.0f};
+    std::atomic<float> lfo4Phase{0.0f};
 
     float lfo1Rate = 1.0f;  // Hz
     float lfo2Rate = 1.0f;
@@ -164,4 +163,14 @@ private:
     float lfo4Rate = 1.0f;
 
     int nextConnectionId = 0;
+
+    double sampleRate = 44100.0;
+    int samplesPerBlock = 512;
+
+    juce::CriticalSection connectionLock;
+
+    float modSumsBuffer[2][MAX_MOD_TARGETS];
+    std::atomic<int> currentModSumsBuffer{0};
+
+    void swapModSumsBuffers();
 };
