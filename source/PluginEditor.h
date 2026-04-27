@@ -24,6 +24,7 @@ public:
     void resized() override;
     void buttonClicked (juce::Button*) override;
     void comboBoxChanged (juce::ComboBox*) override;
+    bool keyPressed (const juce::KeyPress& key) override;
 
 private:
     PluginProcessor& processorRef;

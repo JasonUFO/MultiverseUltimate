@@ -777,6 +777,8 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 
     // Load MIDI mappings from state
     loadMidiMappingsFromState(root);
+
+    undoManager.clearUndoHistory();
 }
 
 //==============================================================================

@@ -130,3 +130,18 @@ void PluginEditor::updateMidiLearnUI()
         midiLearnLabel.setText ("", juce::dontSendNotification);
     }
 }
+
+bool PluginEditor::keyPressed (const juce::KeyPress& key)
+{
+    if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier, 0))
+    {
+        processorRef.undoManager.undo();
+        return true;
+    }
+    if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier, 0))
+    {
+        processorRef.undoManager.redo();
+        return true;
+    }
+    return false;
+}

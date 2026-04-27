@@ -16,6 +16,7 @@
 - MidiLearnSlider: drop-in juce::Slider subclass with orange "L" badge and right-click unlearn menu
 - EffectsPanel: all 6 knobs (delay + reverb) use MidiLearnSlider
 - Fixed: duplicate getStateInformation, missing createPluginFilter, ReferenceCountedArray → std::vector, parameter index lookup, hasTagName → hasType, channel omni check
+- Undo/Redo: APVTS already wired to undoManager; added Cmd+Z / Cmd+Shift+Z key handlers in PluginEditor; setStateInformation now calls undoManager.clearUndoHistory() on preset load
 
 ## In Progress
 - None
