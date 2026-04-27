@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include <array>
+#include <cstdint>
 
 static constexpr int PRO_SEQ_LANES = 4;
 static constexpr int PRO_SEQ_STEPS = 32;
@@ -15,6 +16,7 @@ struct ProStep
     float gate        = 0.5f;
     float probability = 1.0f;
     int   ratchet     = 1;
+    float microTiming = 0.0f;  // -1.0 (early) to +1.0 (late); offset = microTiming * samplesPerStep * 0.5
 };
 
 struct ProLane
@@ -36,7 +38,8 @@ public:
     void stop();
     bool isPlaying() const { return playing; }
 
-    void setBPM (float newBpm);
+    void setBPM        (float newBpm);
+    void setSwingAmount (float swing);   // 0.0 – 1.0
     void syncToDAWPosition (double ppqStepPos);
 
     ProLane&       getLane (int lane)       { return lanes[lane]; }
@@ -48,8 +51,10 @@ public:
     void setStepGate        (int lane, int step, float gate);
     void setStepProbability (int lane, int step, float prob);
     void setStepRatchet     (int lane, int step, int   ratchet);
+    void setStepMicroTiming (int lane, int step, float mt);
 
-    int getCurrentStep (int lane) const { return stepIndex[lane]; }
+    int   getCurrentStep (int lane) const { return stepIndex[lane]; }
+    float getSwingAmount ()         const { return swingAmount; }
 
     juce::ValueTree getState() const;
     void setState (const juce::ValueTree& state);
@@ -59,16 +64,21 @@ private:
 
     double sampleRate     = 44100.0;
     float  bpm            = 120.0f;
+    float  swingAmount    = 0.0f;
     double samplesPerStep = 0.0;
-    double sampleCounter  = 0.0;   // counts DOWN; fires when <= 0
+
+    // Timeline-based position tracking (replaces count-down sampleCounter)
+    int64_t currentSamplePos = 0;
+    std::array<double, PRO_SEQ_LANES> nextStepSample {};  // absolute sample of next trigger (with groove)
+    std::array<double, PRO_SEQ_LANES> nextGridSample {};  // pure grid position (no groove offsets)
 
     bool playing = false;
 
     std::array<int,    PRO_SEQ_LANES> stepIndex       {};
-    std::array<int,    PRO_SEQ_LANES> activeNote       {};  // -1 = none
-    std::array<double, PRO_SEQ_LANES> noteOffCountdown {};  // counts DOWN to noteOff
-    std::array<int,    PRO_SEQ_LANES> ratchetCount     {};  // re-fires remaining
-    std::array<double, PRO_SEQ_LANES> ratchetSubPhase  {};  // samples per ratchet sub-step
+    std::array<int,    PRO_SEQ_LANES> activeNote       {};
+    std::array<double, PRO_SEQ_LANES> noteOffCountdown {};
+    std::array<int,    PRO_SEQ_LANES> ratchetCount     {};
+    std::array<double, PRO_SEQ_LANES> ratchetSubPhase  {};
     std::array<int,    PRO_SEQ_LANES> currentNote      {};
     std::array<float,  PRO_SEQ_LANES> currentVelocity  {};
     std::array<float,  PRO_SEQ_LANES> currentGate      {};
@@ -76,9 +86,12 @@ private:
     mutable uint32_t rngState = 12345u;
 
     void  updateSamplesPerStep();
+    // Compute and store nextStepSample[lane] from a grid position.
+    // afterSampleOffset: index within current block just used; pass -1 when called outside process().
+    void  scheduleNextStep (int lane, double fromGridSample, int afterSampleOffset);
     float fastRand01() const;
-    int   getNextStep (int lane) const;
-    void  triggerStep (juce::MidiBuffer& midi, int lane, int sampleOffset);
-    void  sendNoteOff (juce::MidiBuffer& midi, int lane, int sampleOffset);
+    int   getNextStep  (int lane) const;
+    void  triggerStep  (juce::MidiBuffer& midi, int lane, int sampleOffset);
+    void  sendNoteOff  (juce::MidiBuffer& midi, int lane, int sampleOffset);
     void  retriggerNote (juce::MidiBuffer& midi, int lane, int sampleOffset);
 };

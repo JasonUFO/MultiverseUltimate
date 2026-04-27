@@ -1,5 +1,6 @@
 #include "ProSequencer.h"
 #include <cmath>
+#include <algorithm>
 
 ProSequencer::ProSequencer()
 {
@@ -11,6 +12,8 @@ ProSequencer::ProSequencer()
     currentNote.fill (60);
     currentVelocity.fill (0.8f);
     currentGate.fill (0.5f);
+    nextStepSample.fill (0.0);
+    nextGridSample.fill (0.0);
 
     // Test pattern: lane 0, quarter notes (16th-note steps 0, 4, 8, 12), MIDI note 36
     for (int s : {0, 4, 8, 12})
@@ -28,13 +31,17 @@ void ProSequencer::prepare (double sr, float bpmIn)
     bpm        = bpmIn;
     updateSamplesPerStep();
 
-    // Fire on the very first sample when start() has not been overridden by sync
-    sampleCounter = 0.0;
-
+    currentSamplePos = 0;
     activeNote.fill (-1);
     noteOffCountdown.fill (0.0);
     ratchetCount.fill (0);
     stepIndex.fill (0);
+
+    for (int lane = 0; lane < PRO_SEQ_LANES; ++lane)
+    {
+        nextGridSample[lane] = 0.0;
+        scheduleNextStep (lane, 0.0, -1);
+    }
 }
 
 void ProSequencer::process (juce::MidiBuffer& midi, int numSamples)
@@ -43,7 +50,9 @@ void ProSequencer::process (juce::MidiBuffer& midi, int numSamples)
 
     for (int i = 0; i < numSamples; ++i)
     {
-        // --- Gate-based noteOff and ratchet re-trigger (per lane) ---
+        const int64_t absPos = currentSamplePos + i;
+
+        // --- Gate-based noteOff and ratchet re-trigger ---
         for (int lane = 0; lane < PRO_SEQ_LANES; ++lane)
         {
             if (noteOffCountdown[lane] > 0.0)
@@ -64,43 +73,48 @@ void ProSequencer::process (juce::MidiBuffer& midi, int numSamples)
             }
         }
 
-        // --- Step clock (count-down; fires when counter reaches 0) ---
-        sampleCounter -= 1.0;
-
-        if (sampleCounter <= 0.0)
+        // --- Groove-aware step triggers (per lane, independent) ---
+        for (int lane = 0; lane < PRO_SEQ_LANES; ++lane)
         {
-            sampleCounter += samplesPerStep;
-
-            for (int lane = 0; lane < PRO_SEQ_LANES; ++lane)
+            if (absPos >= static_cast<int64_t> (nextStepSample[lane]))
             {
-                // Cancel any note that hasn't hit its gate deadline yet
+                // Kill any held note and cancel gate countdown
                 sendNoteOff (midi, lane, i);
                 noteOffCountdown[lane] = 0.0;
                 ratchetCount[lane]     = 0;
 
-                // Play the current step, then advance
                 triggerStep (midi, lane, i);
                 stepIndex[lane] = getNextStep (lane);
+
+                // Advance the pure grid by one step, then apply groove to find next trigger
+                nextGridSample[lane] += samplesPerStep;
+                scheduleNextStep (lane, nextGridSample[lane], i);
             }
         }
     }
+
+    currentSamplePos += numSamples;
 }
 
 void ProSequencer::start()
 {
-    sampleCounter = 0.0;   // fires on first sample
+    currentSamplePos = 0;
     stepIndex.fill (0);
     activeNote.fill (-1);
     noteOffCountdown.fill (0.0);
     ratchetCount.fill (0);
     playing = true;
+
+    for (int lane = 0; lane < PRO_SEQ_LANES; ++lane)
+    {
+        nextGridSample[lane] = 0.0;
+        scheduleNextStep (lane, 0.0, -1);
+    }
 }
 
 void ProSequencer::stop()
 {
     playing = false;
-    // activeNote held-state is left so that allNotesOff logic in the processor
-    // (synthEngine.allNotesOff) covers any ringing voices.
     activeNote.fill (-1);
     noteOffCountdown.fill (0.0);
     ratchetCount.fill (0);
@@ -112,26 +126,31 @@ void ProSequencer::setBPM (float newBpm)
     updateSamplesPerStep();
 }
 
+void ProSequencer::setSwingAmount (float swing)
+{
+    swingAmount = juce::jlimit (0.0f, 1.0f, swing);
+}
+
 void ProSequencer::syncToDAWPosition (double ppqStepPos)
 {
     // ppqStepPos = PPQ * 4  (1 unit = one 16th note)
     double intPart  = 0.0;
     double fracPart = std::modf (ppqStepPos, &intPart);
 
-    // Samples until the next step boundary
     double samplesUntilNext = (1.0 - fracPart) * samplesPerStep;
-
-    // If we are right at a boundary (frac ≈ 0) treat as "fire now"
     if (samplesUntilNext >= samplesPerStep)
         samplesUntilNext = 0.0;
 
-    sampleCounter = samplesUntilNext;
-
-    // The step that fires at the next boundary
     int baseStep = static_cast<int> (intPart) + (fracPart > 1.0e-9 ? 1 : 0);
 
     for (int lane = 0; lane < PRO_SEQ_LANES; ++lane)
+    {
         stepIndex[lane] = baseStep % lanes[lane].numSteps;
+
+        double gridPos = static_cast<double> (currentSamplePos) + samplesUntilNext;
+        nextGridSample[lane] = gridPos;
+        scheduleNextStep (lane, gridPos, -1);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -144,6 +163,7 @@ void ProSequencer::setStepVelocity    (int l, int s, float v) { if (l>=0&&l<PRO_
 void ProSequencer::setStepGate        (int l, int s, float v) { if (l>=0&&l<PRO_SEQ_LANES&&s>=0&&s<PRO_SEQ_STEPS) lanes[l].steps[s].gate        = v; }
 void ProSequencer::setStepProbability (int l, int s, float v) { if (l>=0&&l<PRO_SEQ_LANES&&s>=0&&s<PRO_SEQ_STEPS) lanes[l].steps[s].probability = v; }
 void ProSequencer::setStepRatchet     (int l, int s, int   v) { if (l>=0&&l<PRO_SEQ_LANES&&s>=0&&s<PRO_SEQ_STEPS) lanes[l].steps[s].ratchet     = juce::jmax (1, v); }
+void ProSequencer::setStepMicroTiming (int l, int s, float v) { if (l>=0&&l<PRO_SEQ_LANES&&s>=0&&s<PRO_SEQ_STEPS) lanes[l].steps[s].microTiming = juce::jlimit (-1.0f, 1.0f, v); }
 
 // ---------------------------------------------------------------------------
 // State persistence
@@ -152,6 +172,7 @@ void ProSequencer::setStepRatchet     (int l, int s, int   v) { if (l>=0&&l<PRO_
 juce::ValueTree ProSequencer::getState() const
 {
     juce::ValueTree root ("ProSequencer");
+    root.setProperty ("swingAmount", swingAmount, nullptr);
 
     for (int lane = 0; lane < PRO_SEQ_LANES; ++lane)
     {
@@ -171,6 +192,7 @@ juce::ValueTree ProSequencer::getState() const
             stepNode.setProperty ("gate",        st.gate,         nullptr);
             stepNode.setProperty ("probability", st.probability,  nullptr);
             stepNode.setProperty ("ratchet",     st.ratchet,      nullptr);
+            stepNode.setProperty ("microTiming", st.microTiming,  nullptr);
             laneNode.appendChild (stepNode, nullptr);
         }
 
@@ -183,6 +205,8 @@ juce::ValueTree ProSequencer::getState() const
 void ProSequencer::setState (const juce::ValueTree& state)
 {
     if (!state.hasType ("ProSequencer")) return;
+
+    swingAmount = juce::jlimit (0.0f, 1.0f, (float) state.getProperty ("swingAmount", 0.0f));
 
     for (auto laneNode : state)
     {
@@ -206,6 +230,7 @@ void ProSequencer::setState (const juce::ValueTree& state)
             st.gate        = (float)        stepNode.getProperty ("gate",        0.5f);
             st.probability = (float)        stepNode.getProperty ("probability", 1.0f);
             st.ratchet     = juce::jmax (1, (int) stepNode.getProperty ("ratchet", 1));
+            st.microTiming = juce::jlimit (-1.0f, 1.0f, (float) stepNode.getProperty ("microTiming", 0.0f));
         }
     }
 }
@@ -218,6 +243,36 @@ void ProSequencer::updateSamplesPerStep()
 {
     // 16th notes: 4 steps per beat
     samplesPerStep = (sampleRate * 60.0) / (static_cast<double> (bpm) * 4.0);
+}
+
+void ProSequencer::scheduleNextStep (int lane, double fromGridSample, int afterSampleOffset)
+{
+    const int ns = stepIndex[lane];
+
+    // Swing: delay odd-indexed steps by swingAmount * 50% of a step
+    const double swingOffset = (ns % 2 == 1)
+                               ? static_cast<double> (swingAmount) * samplesPerStep * 0.5
+                               : 0.0;
+
+    // Microtiming: per-step nudge, capped at ±50% of a step
+    const double microOffset = static_cast<double> (lanes[lane].steps[ns].microTiming)
+                               * samplesPerStep * 0.5;
+
+    double scheduled = fromGridSample + swingOffset + microOffset;
+
+    if (afterSampleOffset >= 0)
+    {
+        // When called from inside process(), must fire strictly after the current sample
+        const double minNext = static_cast<double> (currentSamplePos) + afterSampleOffset + 1.0;
+        scheduled = std::max (scheduled, minNext);
+    }
+    else
+    {
+        // When called outside process() (sync / start / prepare), don't schedule in the past
+        scheduled = std::max (scheduled, static_cast<double> (currentSamplePos));
+    }
+
+    nextStepSample[lane] = scheduled;
 }
 
 float ProSequencer::fastRand01() const
@@ -252,8 +307,8 @@ void ProSequencer::triggerStep (juce::MidiBuffer& midi, int lane, int sampleOffs
 {
     const auto& step = lanes[lane].steps[stepIndex[lane]];
 
-    if (!step.active)                      return;
-    if (fastRand01() > step.probability)   return;
+    if (!step.active)                    return;
+    if (fastRand01() > step.probability) return;
 
     const int    R    = juce::jmax (1, step.ratchet);
     const double sub  = samplesPerStep / static_cast<double> (R);
