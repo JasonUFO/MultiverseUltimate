@@ -10,6 +10,10 @@
 #include "Sampler/SamplerEngine.h"
 #include "Effects/Delay.h"
 #include "Effects/Reverb.h"
+#include "Effects/Chorus.h"
+#include "Effects/Distortion.h"
+#include "Effects/EQ.h"
+#include "Effects/Compressor.h"
 #include "Presets/PresetManager.h"
 #include "DrumSequencer/DrumSequencer.h"
 #include "Synth/ModulationMatrix.h"
@@ -17,6 +21,8 @@
 #include "Sequencer/ProSequencer.h"
 #include "Sequencer/Arpeggiator.h"
 #include "Sequencer/PatternEngine.h"
+
+enum class EffectID { Chorus = 0, Distortion = 1, EQ = 2, Compressor = 3, Delay = 4, Reverb = 5 };
 
 class PluginProcessor : public juce::AudioProcessor
 {
@@ -67,6 +73,13 @@ public:
     ReverbEffect&   getReverb()          { return reverb; }
     PresetManager&  getPresetManager()   { return presetManager; }
 
+    // Effect chain ordering (6 effects, packed as nibbles in a uint32)
+    int  getChainSlot(int pos) const noexcept
+    {
+        return static_cast<int>((effectChainOrder.load(std::memory_order_relaxed) >> (pos * 4)) & 0xFu);
+    }
+    void swapChainSlots(int a, int b) noexcept;
+
     void saveNamedPreset (const juce::String& name);
     bool loadPresetAtIndex (int index);
 
@@ -76,6 +89,12 @@ public:
     SamplerEngine     samplerEngine;
     DelayEffect       delay;
     ReverbEffect      reverb;
+    ChorusEffect      chorus[2];
+    DistortionEffect  distortion[2];
+    EQEffect          eq[2];
+    CompressorEffect  compressor[2];
+    // Effect chain order: 6 nibbles packed in uint32, default Chorus→Distortion→EQ→Compressor→Delay→Reverb
+    std::atomic<uint32_t> effectChainOrder { 0x543210u };
     PresetManager     presetManager;
     DrumSequencer     drumSequencer;
     ModulationMatrix  modulationMatrix;
@@ -118,6 +137,9 @@ public:
     void loadMidiMappingsFromState(const juce::ValueTree& stateTree);
 
     bool dawWasPlaying = false;
+
+private:
+    float applyChainEffect(int effectID, float sample, int ch);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

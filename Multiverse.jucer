@@ -28,6 +28,14 @@
         <FILE id="Cc0005" name="Delay.cpp"         compile="1" resource="0" file="source/Effects/Delay.cpp"/>
         <FILE id="Cc0006" name="EffectsPanel.h"   compile="0" resource="0" file="source/Effects/EffectsPanel.h"/>
         <FILE id="Cc0007" name="EffectsPanel.cpp" compile="1" resource="0" file="source/Effects/EffectsPanel.cpp"/>
+        <FILE id="Cc0008" name="Chorus.h"         compile="0" resource="0" file="source/Effects/Chorus.h"/>
+        <FILE id="Cc0009" name="Chorus.cpp"       compile="1" resource="0" file="source/Effects/Chorus.cpp"/>
+        <FILE id="Cc0010" name="Distortion.h"     compile="0" resource="0" file="source/Effects/Distortion.h"/>
+        <FILE id="Cc0011" name="Distortion.cpp"   compile="1" resource="0" file="source/Effects/Distortion.cpp"/>
+        <FILE id="Cc0012" name="EQ.h"             compile="0" resource="0" file="source/Effects/EQ.h"/>
+        <FILE id="Cc0013" name="EQ.cpp"           compile="1" resource="0" file="source/Effects/EQ.cpp"/>
+        <FILE id="Cc0014" name="Compressor.h"     compile="0" resource="0" file="source/Effects/Compressor.h"/>
+        <FILE id="Cc0015" name="Compressor.cpp"   compile="1" resource="0" file="source/Effects/Compressor.cpp"/>
       </GROUP>
       <GROUP id="GrpPst" name="Presets">
         <FILE id="Dd0001" name="Preset.h"          compile="0" resource="0" file="source/Presets/Preset.h"/>

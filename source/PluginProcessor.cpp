@@ -85,6 +85,52 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
     layout.add(std::make_unique<juce::AudioParameterBool>(
         juce::ParameterID{"reverbFreeze", 1}, "Reverb Freeze", false));
 
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"chorusRate",  1}, "Chorus Rate",
+        juce::NormalisableRange<float>(0.1f, 5.0f), 0.5f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"chorusDepth", 1}, "Chorus Depth",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"chorusMix",   1}, "Chorus Mix",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"distDrive", 1}, "Distortion Drive",
+        juce::NormalisableRange<float>(1.0f, 100.0f, 0.0f, 0.3f), 10.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"distTone",  1}, "Distortion Tone",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.7f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"distMix",   1}, "Distortion Mix",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"eqLowGain",  1}, "EQ Low Gain",
+        juce::NormalisableRange<float>(-12.0f, 12.0f), 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"eqMidGain",  1}, "EQ Mid Gain",
+        juce::NormalisableRange<float>(-12.0f, 12.0f), 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"eqHighGain", 1}, "EQ High Gain",
+        juce::NormalisableRange<float>(-12.0f, 12.0f), 0.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"compThreshold", 1}, "Comp Threshold",
+        juce::NormalisableRange<float>(-60.0f, 0.0f), -20.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"compRatio",     1}, "Comp Ratio",
+        juce::NormalisableRange<float>(1.0f, 20.0f, 0.0f, 0.4f), 4.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"compAttack",    1}, "Comp Attack",
+        juce::NormalisableRange<float>(0.1f, 100.0f, 0.0f, 0.5f), 10.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"compRelease",   1}, "Comp Release",
+        juce::NormalisableRange<float>(10.0f, 1000.0f, 0.0f, 0.4f), 100.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"compMakeup",    1}, "Comp Makeup",
+        juce::NormalisableRange<float>(0.0f, 24.0f), 0.0f));
+
     for (int i = 1; i <= 4; ++i)
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"lfo" + juce::String(i) + "Rate", 1},
@@ -222,6 +268,13 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     delay.reset();
     reverb.prepare (sampleRate, samplesPerBlock);
     reverb.reset();
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        chorus[ch].prepare    (sampleRate, samplesPerBlock); chorus[ch].reset();
+        distortion[ch].prepare(sampleRate, samplesPerBlock); distortion[ch].reset();
+        eq[ch].prepare        (sampleRate, samplesPerBlock); eq[ch].reset();
+        compressor[ch].prepare(sampleRate, samplesPerBlock); compressor[ch].reset();
+    }
     modulationMatrix.prepare (sampleRate, samplesPerBlock);
 }
 
@@ -272,6 +325,20 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     const float baseReverbLFDamp    = *apvts.getRawParameterValue("reverbLFDamp");
     const float baseReverbWidth     = *apvts.getRawParameterValue("reverbWidth");
     const bool  baseReverbFreeze    = *apvts.getRawParameterValue("reverbFreeze") > 0.5f;
+    const float baseChorusRate  = *apvts.getRawParameterValue("chorusRate");
+    const float baseChorusDepth = *apvts.getRawParameterValue("chorusDepth");
+    const float baseChorusMix   = *apvts.getRawParameterValue("chorusMix");
+    const float baseDistDrive   = *apvts.getRawParameterValue("distDrive");
+    const float baseDistTone    = *apvts.getRawParameterValue("distTone");
+    const float baseDistMix     = *apvts.getRawParameterValue("distMix");
+    const float baseEQLow       = *apvts.getRawParameterValue("eqLowGain");
+    const float baseEQMid       = *apvts.getRawParameterValue("eqMidGain");
+    const float baseEQHigh      = *apvts.getRawParameterValue("eqHighGain");
+    const float baseCompThresh  = *apvts.getRawParameterValue("compThreshold");
+    const float baseCompRatio   = *apvts.getRawParameterValue("compRatio");
+    const float baseCompAttack  = *apvts.getRawParameterValue("compAttack");
+    const float baseCompRelease = *apvts.getRawParameterValue("compRelease");
+    const float baseCompMakeup  = *apvts.getRawParameterValue("compMakeup");
 
     synthEngine.setEnvelopeParams(
         *apvts.getRawParameterValue("attack"),
@@ -591,6 +658,25 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         reverb.setLFDamping(baseReverbLFDamp);
         reverb.setWidth(baseReverbWidth);
         reverb.setFreeze(baseReverbFreeze);
+
+        // Apply parameters to the two stereo instances of each new effect
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            chorus[ch].setRate (baseChorusRate);
+            chorus[ch].setDepth(baseChorusDepth);
+            chorus[ch].setMix  (baseChorusMix);
+            distortion[ch].setDrive(baseDistDrive);
+            distortion[ch].setTone (baseDistTone);
+            distortion[ch].setMix  (baseDistMix);
+            eq[ch].setLowGain (baseEQLow);
+            eq[ch].setMidGain (baseEQMid);
+            eq[ch].setHighGain(baseEQHigh);
+            compressor[ch].setThreshold(baseCompThresh);
+            compressor[ch].setRatio    (baseCompRatio);
+            compressor[ch].setAttack   (baseCompAttack);
+            compressor[ch].setRelease  (baseCompRelease);
+            compressor[ch].setMakeup   (baseCompMakeup);
+        }
     }
 
     float modSums[MAX_MOD_TARGETS];
@@ -632,26 +718,52 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     synthEngine.processBuffer(synthBuffer, numSamples);
     samplerEngine.processBuffer(samplerBuffer, numSamples);
 
-    // Sum sources + delay (per-sample, per-channel)
+    // Load effect chain order once per block (6 nibbles → slot 0..5 each holds an EffectID)
+    const uint32_t chainPacked = effectChainOrder.load(std::memory_order_relaxed);
+    int chain[6];
+    for (int s = 0; s < 6; ++s)
+        chain[s] = static_cast<int>((chainPacked >> (s * 4)) & 0xFu);
+
+    // Find where Reverb sits so we can split the loop around it
+    int reverbPos = 5;
+    for (int s = 0; s < 6; ++s)
+        if (chain[s] == static_cast<int>(EffectID::Reverb)) { reverbPos = s; break; }
+
+    // Mix sources + apply all chain effects that come before Reverb
     for (int i = 0; i < numSamples; ++i)
     {
         for (int ch = 0; ch < numChannels; ++ch)
         {
-            const float drumOut    = buffer.getReadPointer(ch)[i];
-            const float synthOut   = synthBuffer.getReadPointer(ch)[i];
-            const float samplerOut = samplerBuffer.getReadPointer(ch)[i];
-            float mixed = drumOut + synthOut + samplerOut;
-            mixed = delay.process(mixed);
-            buffer.getWritePointer(ch)[i] = mixed;
+            float s = buffer.getReadPointer(ch)[i]
+                    + synthBuffer .getReadPointer(ch)[i]
+                    + samplerBuffer.getReadPointer(ch)[i];
+            for (int slot = 0; slot < reverbPos; ++slot)
+                s = applyChainEffect(chain[slot], s, ch);
+            buffer.getWritePointer(ch)[i] = s;
         }
     }
 
-    // Stereo reverb at block level (pre-delay, LF damping, width, freeze all applied inside)
+    // Reverb: stereo block-level (pre-delay, LF damp, width, freeze all inside)
     if (numChannels >= 2)
         reverb.processBlock(buffer.getWritePointer(0), buffer.getWritePointer(1), numSamples);
     else if (numChannels == 1)
         for (int i = 0; i < numSamples; ++i)
             buffer.getWritePointer(0)[i] = reverb.process(buffer.getReadPointer(0)[i]);
+
+    // Apply chain effects that come after Reverb
+    if (reverbPos < 5)
+    {
+        for (int i = 0; i < numSamples; ++i)
+        {
+            for (int ch = 0; ch < numChannels; ++ch)
+            {
+                float s = buffer.getReadPointer(ch)[i];
+                for (int slot = reverbPos + 1; slot < 6; ++slot)
+                    s = applyChainEffect(chain[slot], s, ch);
+                buffer.getWritePointer(ch)[i] = s;
+            }
+        }
+    }
 
     // Pan
     const float panGainL = 1.0f - juce::jmax(0.0f, pan);
@@ -714,6 +826,11 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     root.appendChild(proSequencer.getState(), nullptr);
     root.appendChild(arpeggiator.getState(),  nullptr);
     root.appendChild(samplerEngine.getState(), nullptr);
+
+    // Effect chain order
+    juce::ValueTree chainState("EffectChain");
+    chainState.setProperty("order", static_cast<int>(effectChainOrder.load(std::memory_order_relaxed)), nullptr);
+    root.appendChild(chainState, nullptr);
 
     // Add MIDI mappings to state
     updateMidiMappingsInState(root);
@@ -812,6 +929,12 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     if (samplerNode.isValid())
         samplerEngine.setState(samplerNode);
 
+    // Effect chain order
+    auto chainNode = root.getChildWithName("EffectChain");
+    if (chainNode.isValid() && chainNode.hasProperty("order"))
+        effectChainOrder.store(static_cast<uint32_t>(static_cast<int>(chainNode.getProperty("order"))),
+                               std::memory_order_relaxed);
+
     // Load MIDI mappings from state
     loadMidiMappingsFromState(root);
 
@@ -833,6 +956,37 @@ bool PluginProcessor::loadPresetAtIndex(int index)
         return false;
     setStateInformation(state.getData(), (int)state.getSize());
     return true;
+}
+
+//==============================================================================
+// Effect chain helpers
+
+void PluginProcessor::swapChainSlots(int a, int b) noexcept
+{
+    if (a == b || a < 0 || b < 0 || a >= 6 || b >= 6) return;
+    uint32_t old = effectChainOrder.load(std::memory_order_relaxed);
+    const int va = (old >> (a * 4)) & 0xF;
+    const int vb = (old >> (b * 4)) & 0xF;
+    uint32_t updated = old;
+    updated &= ~(0xFu << (a * 4));
+    updated &= ~(0xFu << (b * 4));
+    updated |= static_cast<uint32_t>(vb) << (a * 4);
+    updated |= static_cast<uint32_t>(va) << (b * 4);
+    effectChainOrder.store(updated, std::memory_order_relaxed);
+}
+
+float PluginProcessor::applyChainEffect(int effectID, float sample, int ch)
+{
+    const int c = juce::jmin(ch, 1);
+    switch (effectID)
+    {
+        case static_cast<int>(EffectID::Chorus):     return chorus[c].process(sample);
+        case static_cast<int>(EffectID::Distortion): return distortion[c].process(sample);
+        case static_cast<int>(EffectID::EQ):         return eq[c].process(sample);
+        case static_cast<int>(EffectID::Compressor): return compressor[c].process(sample);
+        case static_cast<int>(EffectID::Delay):      return delay.process(sample);
+        default:                                     return sample; // Reverb handled separately
+    }
 }
 
 //==============================================================================

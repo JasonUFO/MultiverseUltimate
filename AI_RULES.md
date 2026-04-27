@@ -1,53 +1,62 @@
 # MultiverseUltimate — AI RULES
 
+## Current Phase
+**Feature Expansion** — integration is complete. New features and improvements are in scope.
+
+---
+
 ## Core Behaviour
 
 1. Do NOT scan the entire repository unless explicitly instructed.
-2. Only inspect relevant files.
+2. Only inspect files relevant to the task.
 3. Do NOT rewrite large systems unnecessarily.
-4. Do NOT introduce new architecture.
-5. Do NOT add new features during Integration Phase.
+4. Do NOT introduce new architecture without justification.
+5. Keep changes minimal and targeted.
 
 ---
 
 ## Coding Rules
 
-- Make minimal changes
-- Preserve structure
-- Avoid renaming files/classes
-- Keep DSP real-time safe
+- Minimal changes — don't refactor beyond the task
+- Preserve existing structure and naming
+- Keep DSP real-time safe (no alloc, no locks in processBlock)
+- New effects follow the `Effect` base class pattern
+- New stereo effects: use `effect[2]` (L/R instances)
+- After editing `.jucer`, run Projucer `--resave` before building
 
 ---
 
 ## Task Execution
 
-1. Identify exact files
-2. Modify only those
-3. Explain briefly
-4. Avoid unnecessary improvements
+1. Read relevant files first
+2. Identify exact change points
+3. Modify only those files
+4. Build and verify — fix errors before reporting done
 
 ---
 
 ## Performance Rules
 
-- No allocations in audio thread
-- No locks in processBlock
-- Prefer stability over complexity
+- No heap allocations in audio thread
+- No locks in `processBlock`
+- One-time setup in `prepare()`, not per-sample
+- Coefficient updates per-block (setters called from processBlock) are acceptable
 
 ---
 
 ## Context Rules
 
-- Use AI_HANDOFF.md for project context
-- Use AI_STATE.md for current task
+- Use `AI_HANDOFF.md` for project/architecture context
+- Use `AI_STATE.md` for current task status and next steps
 - Ignore unrelated systems
 
 ---
 
 ## Priority
 
-1. Audio output works
+1. Audio output works and is stable
 2. Signal flow correct
-3. Modulation works
-4. UI integration
-5. Feature expansion later
+3. Modulation applies correctly
+4. UI controls are wired to DSP
+5. State persistence (presets save/load correctly)
+6. Feature quality and polish
