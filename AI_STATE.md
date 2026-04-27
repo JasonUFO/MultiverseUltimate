@@ -1,7 +1,7 @@
 # MultiverseUltimate — AI STATE
 
 ## Completed
-- PatternEngine wired into processBlock with selection parameter across ProSequencer/Arpeggiator/Pattern
+- Delay + Reverb wired into processBlock and audible
 
 ## In Progress
 - None
@@ -10,4 +10,4 @@
 - None
 
 ## Next Step
-Full Backup to GitHub
+- Full Backup to GitHub
