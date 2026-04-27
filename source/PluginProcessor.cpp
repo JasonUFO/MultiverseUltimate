@@ -220,75 +220,48 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     );
     reverb.setDamping(baseReverbDamp);
 
-bool dawPlaying = false;
+    bool dawPlaying = false;
     double dawBPM = 120.0;
+    double dawPpqPos = -1.0;
 
     if (auto* playHead = getPlayHead())
     {
         if (auto pos = playHead->getPosition())
         {
             dawBPM = pos->getBpm().orFallback(120.0);
-
-            if (pos->getIsPlaying())
-                dawPlaying = true;
+            dawPlaying = pos->getIsPlaying();
+            if (auto ppqOpt = pos->getPpqPosition())
+                dawPpqPos = *ppqOpt;
         }
     }
 
     if (dawPlaying)
     {
-        bool dawJustStarted = !dawWasPlaying;
+        drumSequencer.setBPM(static_cast<float>(dawBPM));
+        sequencer.setBPM(static_cast<float>(dawBPM));
 
         if (!drumSequencer.isPlaying())
             drumSequencer.start();
-
-        drumSequencer.setBPM(static_cast<float>(dawBPM));
-
-        if (dawJustStarted)
-        {
-            if (auto ts = getPlayHead()->getPosition()->getTimeInSamples())
-            {
-                int targetStep = 0;
-                double sr = getSampleRate();
-                if (sr > 0.0)
-                {
-                    double beatsPerSecond = dawBPM / 60.0;
-                    double beatsPerSample = beatsPerSecond / sr;
-                    double currentBeat = (*ts) * beatsPerSample;
-                    targetStep = static_cast<int>(currentBeat * 4.0) % 16;
-                }
-                drumSequencer.syncToStep(targetStep);
-            }
-        }
-
         if (!sequencer.isPlaying())
             sequencer.start();
 
-        sequencer.setBPM(static_cast<float>(dawBPM));
-
-        if (dawJustStarted)
+        if (dawPpqPos >= 0.0)
         {
-            if (auto ts = getPlayHead()->getPosition()->getTimeInSamples())
-            {
-                int targetStep = 0;
-                double sr = getSampleRate();
-                if (sr > 0.0)
-                {
-                    double beatsPerSecond = dawBPM / 60.0;
-                    double beatsPerSample = beatsPerSecond / sr;
-                    double currentBeat = (*ts) * beatsPerSample;
-                    targetStep = static_cast<int>(currentBeat * 4.0) % 16;
-                }
-                sequencer.syncToStep(targetStep);
-            }
+            const double ppqStepPos = dawPpqPos * 4.0;
+            drumSequencer.syncToDAWPosition(ppqStepPos);
+            sequencer.syncToDAWPosition(ppqStepPos);
         }
     }
     else
     {
+        if (sequencer.isPlaying())
+        {
+            synthEngine.allNotesOff();
+            samplerEngine.allNotesOff();
+            sequencer.stop();
+        }
         if (drumSequencer.isPlaying())
             drumSequencer.stop();
-
-        if (sequencer.isPlaying())
-            sequencer.stop();
     }
 
     dawWasPlaying = dawPlaying;

@@ -87,6 +87,7 @@ public:
     int getTrackRootNote (int track) const;
 
     void syncToStep (int step);
+    void syncToDAWPosition (double ppqStepPos);
 
     bool loadSample (int track, const juce::File& file);
     void clearTrackSample (int track);

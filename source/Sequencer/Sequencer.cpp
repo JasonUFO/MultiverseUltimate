@@ -242,6 +242,24 @@ void Sequencer::syncToStep (int step)
     sampleCounter = 0.0;
 }
 
+void Sequencer::syncToDAWPosition (double ppqStepPos)
+{
+    const int numSteps = currentPattern.numSteps;
+    const int stepIndex = ((static_cast<int>(std::floor(ppqStepPos)) % numSteps) + numSteps) % numSteps;
+    const double phase = ppqStepPos - std::floor(ppqStepPos);
+
+    if (phase < 1e-6)
+    {
+        currentStep.store(stepIndex);
+        sampleCounter = 0.0;
+    }
+    else
+    {
+        currentStep.store((stepIndex + 1) % numSteps);
+        sampleCounter = (1.0 - phase) * samplesPerStep;
+    }
+}
+
 juce::MidiFile Sequencer::exportMidi() const
 {
     juce::MidiFile midiFile;

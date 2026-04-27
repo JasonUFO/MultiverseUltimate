@@ -145,7 +145,7 @@ void DrumSequencer::process (juce::AudioBuffer<float>& buffer, int numSamples)
 void DrumSequencer::start()
 {
     currentStep.store (0);
-    sampleCounter = 0.0;
+    sampleCounter = samplesPerStep;  // fire step 0 at sample 0
     playing.store (true);
 }
 
@@ -355,7 +355,24 @@ void DrumSequencer::syncToStep (int step)
 {
     int targetStep = (step % DRUM_STEPS + DRUM_STEPS) % DRUM_STEPS;
     currentStep.store(targetStep);
-    sampleCounter = 0.0;
+    sampleCounter = samplesPerStep;
+}
+
+void DrumSequencer::syncToDAWPosition (double ppqStepPos)
+{
+    const int stepIndex = ((static_cast<int>(std::floor(ppqStepPos)) % DRUM_STEPS) + DRUM_STEPS) % DRUM_STEPS;
+    const double phase = ppqStepPos - std::floor(ppqStepPos);
+
+    if (phase < 1e-6)
+    {
+        currentStep.store(stepIndex);
+        sampleCounter = samplesPerStep;
+    }
+    else
+    {
+        currentStep.store((stepIndex + 1) % DRUM_STEPS);
+        sampleCounter = phase * samplesPerStep;
+    }
 }
 
 bool DrumSequencer::loadSample (int track, const juce::File& file)

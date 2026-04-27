@@ -73,6 +73,7 @@ public:
     void clearArpNotes();
 
     void syncToStep (int step);
+    void syncToDAWPosition (double ppqStepPos);
 
     juce::MidiFile exportMidi() const;
 
