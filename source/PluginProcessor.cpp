@@ -70,6 +70,21 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         juce::ParameterID{"reverbWet", 1}, "Reverb Wet",
         juce::NormalisableRange<float>(0.0f, 1.0f), 0.33f));
 
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"reverbPreDelay", 1}, "Reverb Pre-Delay",
+        juce::NormalisableRange<float>(0.0f, 200.0f), 0.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"reverbLFDamp", 1}, "Reverb LF Damping",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"reverbWidth", 1}, "Reverb Width",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 1.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"reverbFreeze", 1}, "Reverb Freeze", false));
+
     for (int i = 1; i <= 4; ++i)
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"lfo" + juce::String(i) + "Rate", 1},
@@ -253,6 +268,10 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     const float baseReverbRoom      = *apvts.getRawParameterValue("reverbRoom");
     const float baseReverbDamp      = *apvts.getRawParameterValue("reverbDamp");
     const float baseReverbWet       = *apvts.getRawParameterValue("reverbWet");
+    const float baseReverbPreDelay  = *apvts.getRawParameterValue("reverbPreDelay");
+    const float baseReverbLFDamp    = *apvts.getRawParameterValue("reverbLFDamp");
+    const float baseReverbWidth     = *apvts.getRawParameterValue("reverbWidth");
+    const bool  baseReverbFreeze    = *apvts.getRawParameterValue("reverbFreeze") > 0.5f;
 
     synthEngine.setEnvelopeParams(
         *apvts.getRawParameterValue("attack"),
@@ -568,6 +587,10 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         delay.setMix     (juce::jlimit(0.0f,  1.0f,  baseDelayMix      + effectMixMod));
         reverb.setRoomSize(juce::jlimit(0.0f, 1.0f,  baseReverbRoom    + preSums[static_cast<int>(ModTargetType::EffectParam3)]));
         reverb.setWetLevel(juce::jlimit(0.0f, 1.0f,  baseReverbWet     + effectMixMod));
+        reverb.setPreDelay(baseReverbPreDelay);
+        reverb.setLFDamping(baseReverbLFDamp);
+        reverb.setWidth(baseReverbWidth);
+        reverb.setFreeze(baseReverbFreeze);
     }
 
     float modSums[MAX_MOD_TARGETS];
@@ -609,20 +632,34 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     synthEngine.processBuffer(synthBuffer, numSamples);
     samplerEngine.processBuffer(samplerBuffer, numSamples);
 
+    // Sum sources + delay (per-sample, per-channel)
     for (int i = 0; i < numSamples; ++i)
     {
         for (int ch = 0; ch < numChannels; ++ch)
         {
-            const float drumOut = buffer.getReadPointer(ch)[i];
-            const float synthOut = synthBuffer.getReadPointer(ch)[i];
+            const float drumOut    = buffer.getReadPointer(ch)[i];
+            const float synthOut   = synthBuffer.getReadPointer(ch)[i];
             const float samplerOut = samplerBuffer.getReadPointer(ch)[i];
             float mixed = drumOut + synthOut + samplerOut;
             mixed = delay.process(mixed);
-            mixed = reverb.process(mixed);
-            const float panGain = (ch == 0) ? (1.0f - juce::jmax(0.0f, pan))
-                                            : (1.0f + juce::jmin(0.0f, pan));
-            buffer.getWritePointer(ch)[i] = mixed * panGain;
+            buffer.getWritePointer(ch)[i] = mixed;
         }
+    }
+
+    // Stereo reverb at block level (pre-delay, LF damping, width, freeze all applied inside)
+    if (numChannels >= 2)
+        reverb.processBlock(buffer.getWritePointer(0), buffer.getWritePointer(1), numSamples);
+    else if (numChannels == 1)
+        for (int i = 0; i < numSamples; ++i)
+            buffer.getWritePointer(0)[i] = reverb.process(buffer.getReadPointer(0)[i]);
+
+    // Pan
+    const float panGainL = 1.0f - juce::jmax(0.0f, pan);
+    const float panGainR = 1.0f + juce::jmin(0.0f, pan);
+    for (int i = 0; i < numSamples; ++i)
+    {
+        if (numChannels > 0) buffer.getWritePointer(0)[i] *= panGainL;
+        if (numChannels > 1) buffer.getWritePointer(1)[i] *= panGainR;
     }
 
     modulationMatrix.advanceLFOs(numSamples);

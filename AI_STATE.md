@@ -11,13 +11,14 @@
 - DAW transport sync (BPM, playing, PPQ) connected to sequencers
 - Full state persistence: APVTS + engine states (synth, drum, modulation, sequencers, sampler, reverb extra) saved/restored via XML
 - MIDI handling: note on/off, pitch bend, sustain (CC64), sostenuto (CC66), mod wheel (CC1 → filter), all-notes-off (CC123)
-- LFO phase advancement fixed: advanceLFOs now called once per block with proper increment
+- LFO phase advancement fixed: advanceLFOs called once per block with proper increment
 - MIDI Learn system: toggle button + parameter selector in header, CC/pitch-bend/channel-pressure → any APVTS param, mappings persist in preset state
 - MidiLearnSlider: drop-in juce::Slider subclass with orange "L" badge and right-click unlearn menu
-- EffectsPanel: all 6 knobs (delay + reverb) use MidiLearnSlider
+- EffectsPanel: all delay + reverb knobs use MidiLearnSlider
 - Fixed: duplicate getStateInformation, missing createPluginFilter, ReferenceCountedArray → std::vector, parameter index lookup, hasTagName → hasType, channel omni check
-- Undo/Redo: APVTS already wired to undoManager; added Cmd+Z / Cmd+Shift+Z key handlers in PluginEditor; setStateInformation now calls undoManager.clearUndoHistory() on preset load
-- Filter oversampling (Phase 3.1): OversamplingMode enum (Off/2x/4x/Auto) added to Filter; two additional SVT filter instances prepared at 2×/4× sample rate; zero-insertion upsampling + decimation in process(); Auto mode activates 2× when cutoff > 5kHz; SynthEngine::setOversamplingMode() propagates to all 16 classic voices; "OS" ComboBox added to SynthPanel filter section (Classic mode only)
+- Undo/Redo: Cmd+Z / Cmd+Shift+Z in PluginEditor; setStateInformation clears undo history on preset load
+- Filter oversampling (Phase 3.1): OversamplingMode enum (Off/2x/4x/Auto); Auto activates 2× above 5kHz; "OS" ComboBox in SynthPanel (Classic mode only)
+- Reverb quality (Phase 3.2): pre-delay 0–200ms circular buffer; LF damping one-pole highpass (20–300Hz) on wet only; stereo width via params.width + processStereo(); Freeze mode (infinite reverb); second reverb row in EffectsPanel (PreDelay, LFDamp, Width, Freeze); 4 new APVTS params; reverb refactored from per-sample to block-level
 
 ## In Progress
 - None

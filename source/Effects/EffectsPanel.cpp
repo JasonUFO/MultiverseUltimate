@@ -27,13 +27,23 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     setupLabel(reverbSectionLabel, "REVERB");
     addAndMakeVisible(reverbSectionLabel);
 
-    setupSlider(reverbRoomSlider, 0.0, 1.0, 0.5);
-    setupSlider(reverbDampSlider, 0.0, 1.0, 0.5);
-    setupSlider(reverbWetSlider,  0.0, 1.0, 0.33);
+    setupSlider(reverbRoomSlider,     0.0, 1.0,   0.5);
+    setupSlider(reverbDampSlider,     0.0, 1.0,   0.5);
+    setupSlider(reverbWetSlider,      0.0, 1.0,   0.33);
+    setupSlider(reverbPreDelaySlider, 0.0, 200.0, 0.0);
+    setupSlider(reverbLFDampSlider,   0.0, 1.0,   0.0);
+    setupSlider(reverbWidthSlider,    0.0, 1.0,   1.0);
 
-    setupLabel(reverbRoomLabel, "Room");
-    setupLabel(reverbDampLabel, "Damp");
-    setupLabel(reverbWetLabel,  "Wet");
+    setupLabel(reverbRoomLabel,     "Room");
+    setupLabel(reverbDampLabel,     "HF Damp");
+    setupLabel(reverbWetLabel,      "Wet");
+    setupLabel(reverbPreDelayLabel, "Pre-Delay");
+    setupLabel(reverbLFDampLabel,   "LF Damp");
+    setupLabel(reverbWidthLabel,    "Width");
+    setupLabel(reverbFreezeLabel,   "Freeze");
+
+    reverbFreezeButton.setButtonText("Freeze");
+    reverbFreezeButton.setClickingTogglesState(true);
 
     addAndMakeVisible(reverbRoomSlider);
     addAndMakeVisible(reverbDampSlider);
@@ -41,8 +51,16 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     addAndMakeVisible(reverbRoomLabel);
     addAndMakeVisible(reverbDampLabel);
     addAndMakeVisible(reverbWetLabel);
+    addAndMakeVisible(reverbPreDelaySlider);
+    addAndMakeVisible(reverbLFDampSlider);
+    addAndMakeVisible(reverbWidthSlider);
+    addAndMakeVisible(reverbPreDelayLabel);
+    addAndMakeVisible(reverbLFDampLabel);
+    addAndMakeVisible(reverbWidthLabel);
+    addAndMakeVisible(reverbFreezeButton);
+    addAndMakeVisible(reverbFreezeLabel);
 
-    // APVTS attachments — connect sliders to automatable parameters
+    // APVTS attachments
     auto& apvts = processorRef.apvts;
     delayTimeAttach     = std::make_unique<SliderAttachment>(apvts, "delayTime",     delayTimeSlider);
     delayFeedbackAttach = std::make_unique<SliderAttachment>(apvts, "delayFeedback", delayFeedbackSlider);
@@ -50,14 +68,21 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     reverbRoomAttach    = std::make_unique<SliderAttachment>(apvts, "reverbRoom",    reverbRoomSlider);
     reverbDampAttach    = std::make_unique<SliderAttachment>(apvts, "reverbDamp",    reverbDampSlider);
     reverbWetAttach     = std::make_unique<SliderAttachment>(apvts, "reverbWet",     reverbWetSlider);
+    reverbPreDelayAttach = std::make_unique<SliderAttachment>(apvts, "reverbPreDelay", reverbPreDelaySlider);
+    reverbLFDampAttach  = std::make_unique<SliderAttachment>(apvts, "reverbLFDamp", reverbLFDampSlider);
+    reverbWidthAttach   = std::make_unique<SliderAttachment>(apvts, "reverbWidth",   reverbWidthSlider);
+    reverbFreezeAttach  = std::make_unique<ButtonAttachment>(apvts, "reverbFreeze",  reverbFreezeButton);
 
-    // Enable MIDI Learn indicators — must be called after attachments
+    // MIDI Learn indicators — must be called after attachments
     delayTimeSlider.init    (processorRef, "delayTime");
     delayFeedbackSlider.init(processorRef, "delayFeedback");
     delayMixSlider.init     (processorRef, "delayMix");
     reverbRoomSlider.init   (processorRef, "reverbRoom");
     reverbDampSlider.init   (processorRef, "reverbDamp");
     reverbWetSlider.init    (processorRef, "reverbWet");
+    reverbPreDelaySlider.init(processorRef, "reverbPreDelay");
+    reverbLFDampSlider.init (processorRef, "reverbLFDamp");
+    reverbWidthSlider.init  (processorRef, "reverbWidth");
 }
 
 void EffectsPanel::setupSlider(juce::Slider& s, double min, double max, double value, double skew)
@@ -83,7 +108,6 @@ void EffectsPanel::paint(juce::Graphics& g)
 void EffectsPanel::resized()
 {
     auto area = getLocalBounds().reduced(16);
-    const int rowH   = 30;
     const int knobSz = 90;
     const int labelH = 20;
     const int gap    = 12;
@@ -105,12 +129,23 @@ void EffectsPanel::resized()
 
     area.removeFromTop(gap);
 
-    // Reverb row
-    auto reverbRow = area.removeFromTop(labelH + knobSz + labelH);
-    reverbSectionLabel.setBounds(reverbRow.removeFromTop(labelH));
-    placeKnob(reverbRow, reverbRoomSlider, reverbRoomLabel);
-    placeKnob(reverbRow, reverbDampSlider, reverbDampLabel);
-    placeKnob(reverbRow, reverbWetSlider,  reverbWetLabel);
+    // Reverb row 1: Room, HF Damp, Wet
+    auto reverbRow1 = area.removeFromTop(labelH + knobSz + labelH);
+    reverbSectionLabel.setBounds(reverbRow1.removeFromTop(labelH));
+    placeKnob(reverbRow1, reverbRoomSlider, reverbRoomLabel);
+    placeKnob(reverbRow1, reverbDampSlider, reverbDampLabel);
+    placeKnob(reverbRow1, reverbWetSlider,  reverbWetLabel);
 
-    (void) rowH; // used implicitly via labelH + knobSz
+    area.removeFromTop(gap / 2);
+
+    // Reverb row 2: Pre-Delay, LF Damp, Width, Freeze
+    auto reverbRow2 = area.removeFromTop(knobSz + labelH);
+    placeKnob(reverbRow2, reverbPreDelaySlider, reverbPreDelayLabel);
+    placeKnob(reverbRow2, reverbLFDampSlider,   reverbLFDampLabel);
+    placeKnob(reverbRow2, reverbWidthSlider,    reverbWidthLabel);
+
+    // Freeze button in the remaining space of row 2
+    auto freezeCol = reverbRow2.removeFromLeft(knobSz);
+    reverbFreezeButton.setBounds(freezeCol.removeFromTop(knobSz / 2).reduced(4));
+    reverbFreezeLabel.setBounds(freezeCol.removeFromTop(labelH));
 }
