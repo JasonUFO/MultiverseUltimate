@@ -95,6 +95,28 @@ public:
     bool sostenutoNoteHeld[128] = {};
     juce::UndoManager undoManager;
 
+    // MIDI Learn
+    bool midiLearnActive = false;
+    int learnParameterIndex = -1; // index in apvts parameters, -1 means none selected
+    struct MidiMapping
+    {
+        juce::String paramID;
+        enum Type { None, CC, PitchWheel, ChannelPressure } type = None;
+        int controllerNumber = 0; // for CC: 0-127
+        int midiChannel = 0; // 0-15, 0 means omni
+    };
+    std::vector<MidiMapping> midiMappings;
+
+    // MIDI Learn methods
+    void startMidiLearnForParameter(int parameterIndex);
+    void stopMidiLearn();
+    void handleMidiForLearn(const juce::MidiMessage& message);
+    void applyMidiMapping(const juce::MidiMessage& message);
+    juce::String getParameterIDFromIndex(int index) const;
+    int getParameterIndexFromID(const juce::String& paramID) const;
+    void updateMidiMappingsInState(juce::ValueTree& stateTree) const;
+    void loadMidiMappingsFromState(const juce::ValueTree& stateTree);
+
     bool dawWasPlaying = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)

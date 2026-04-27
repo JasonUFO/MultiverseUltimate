@@ -418,6 +418,12 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     {
         auto message = metadata.getMessage();
 
+        // MIDI Learn / CC-to-parameter mapping
+        if (midiLearnActive)
+            handleMidiForLearn(message);
+        else
+            applyMidiMapping(message);
+
         if (message.isNoteOn())
         {
             int   note = message.getNoteNumber();
@@ -672,6 +678,9 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     root.appendChild(arpeggiator.getState(),  nullptr);
     root.appendChild(samplerEngine.getState(), nullptr);
 
+    // Add MIDI mappings to state
+    updateMidiMappingsInState(root);
+
     auto xml = root.createXml();
     if (xml != nullptr)
     {
@@ -765,6 +774,9 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     auto samplerNode = root.getChildWithName("SamplerEngine");
     if (samplerNode.isValid())
         samplerEngine.setState(samplerNode);
+
+    // Load MIDI mappings from state
+    loadMidiMappingsFromState(root);
 }
 
 //==============================================================================
@@ -782,6 +794,179 @@ bool PluginProcessor::loadPresetAtIndex(int index)
         return false;
     setStateInformation(state.getData(), (int)state.getSize());
     return true;
+}
+
+//==============================================================================
+// MIDI Learn Implementation
+void PluginProcessor::startMidiLearnForParameter(int parameterIndex)
+{
+    midiLearnActive = true;
+    learnParameterIndex = parameterIndex;
+}
+
+void PluginProcessor::stopMidiLearn()
+{
+    midiLearnActive = false;
+    learnParameterIndex = -1;
+}
+
+void PluginProcessor::handleMidiForLearn(const juce::MidiMessage& message)
+{
+    if (!midiLearnActive || learnParameterIndex < 0)
+        return;
+
+    juce::String paramID = getParameterIDFromIndex(learnParameterIndex);
+    if (paramID.isEmpty())
+        return;
+
+    MidiMapping newMapping;
+    newMapping.paramID = paramID;
+    newMapping.midiChannel = message.getChannel(); // 1-16; 0 = omni
+
+    if (message.isController())
+    {
+        newMapping.type = MidiMapping::CC;
+        newMapping.controllerNumber = message.getControllerNumber();
+    }
+    else if (message.isPitchWheel())
+    {
+        newMapping.type = MidiMapping::PitchWheel;
+    }
+    else if (message.isChannelPressure())
+    {
+        newMapping.type = MidiMapping::ChannelPressure;
+    }
+    else
+    {
+        stopMidiLearn();
+        return;
+    }
+
+    // Replace existing mapping for this param, or add new
+    for (auto& m : midiMappings)
+    {
+        if (m.paramID == paramID)
+        {
+            m = newMapping;
+            stopMidiLearn();
+            return;
+        }
+    }
+    midiMappings.push_back(newMapping);
+    stopMidiLearn();
+}
+
+void PluginProcessor::applyMidiMapping(const juce::MidiMessage& message)
+{
+    if (midiLearnActive || midiMappings.empty())
+        return;
+
+    const int msgChannel = message.getChannel(); // 1-16
+
+    auto matchesChannel = [&](const MidiMapping& m) {
+        return m.midiChannel == 0 || m.midiChannel == msgChannel;
+    };
+
+    if (message.isController())
+    {
+        const int cc = message.getControllerNumber();
+        const float value = message.getControllerValue() / 127.0f;
+        for (auto& m : midiMappings)
+        {
+            if (m.type == MidiMapping::CC && m.controllerNumber == cc && matchesChannel(m))
+                if (auto* param = apvts.getParameter(m.paramID))
+                    param->setValueNotifyingHost(value);
+        }
+    }
+    else if (message.isPitchWheel())
+    {
+        // Normalise pitch-bend (-8192..8191) to 0..1
+        const float value = (message.getPitchWheelValue() + 8192) / 16383.0f;
+        for (auto& m : midiMappings)
+        {
+            if (m.type == MidiMapping::PitchWheel && matchesChannel(m))
+                if (auto* param = apvts.getParameter(m.paramID))
+                    param->setValueNotifyingHost(value);
+        }
+    }
+    else if (message.isChannelPressure())
+    {
+        const float value = message.getChannelPressureValue() / 127.0f;
+        for (auto& m : midiMappings)
+        {
+            if (m.type == MidiMapping::ChannelPressure && matchesChannel(m))
+                if (auto* param = apvts.getParameter(m.paramID))
+                    param->setValueNotifyingHost(value);
+        }
+    }
+}
+
+juce::String PluginProcessor::getParameterIDFromIndex(int index) const
+{
+    auto& params = getParameters();
+    if (index < 0 || index >= params.size())
+        return {};
+    if (auto* rp = dynamic_cast<juce::RangedAudioParameter*>(params[index]))
+        return rp->getParameterID();
+    return {};
+}
+
+int PluginProcessor::getParameterIndexFromID(const juce::String& paramID) const
+{
+    auto& params = getParameters();
+    for (int i = 0; i < params.size(); ++i)
+    {
+        if (auto* rp = dynamic_cast<juce::RangedAudioParameter*>(params[i]))
+            if (rp->getParameterID() == paramID)
+                return i;
+    }
+    return -1;
+}
+
+void PluginProcessor::updateMidiMappingsInState(juce::ValueTree& stateTree) const
+{
+    for (int i = stateTree.getNumChildren() - 1; i >= 0; --i)
+        if (stateTree.getChild(i).hasType("MIDIMappings"))
+            stateTree.removeChild(i, nullptr);
+
+    if (midiMappings.empty())
+        return;
+
+    juce::ValueTree midiMappingsTree("MIDIMappings");
+    for (const auto& m : midiMappings)
+    {
+        juce::ValueTree mappingTree("Mapping");
+        mappingTree.setProperty("paramID",           m.paramID,           nullptr);
+        mappingTree.setProperty("type",              (int)m.type,         nullptr);
+        mappingTree.setProperty("controllerNumber",  m.controllerNumber,  nullptr);
+        mappingTree.setProperty("midiChannel",       m.midiChannel,       nullptr);
+        midiMappingsTree.appendChild(mappingTree, nullptr);
+    }
+    stateTree.appendChild(midiMappingsTree, nullptr);
+}
+
+void PluginProcessor::loadMidiMappingsFromState(const juce::ValueTree& stateTree)
+{
+    midiMappings.clear();
+
+    juce::ValueTree midiMappingsTree = stateTree.getChildWithName("MIDIMappings");
+    if (!midiMappingsTree.isValid())
+        return;
+
+    for (const auto& mappingTree : midiMappingsTree)
+    {
+        if (!mappingTree.hasType("Mapping"))
+            continue;
+
+        MidiMapping m;
+        m.paramID          = mappingTree.getProperty("paramID", juce::String()).toString();
+        m.type             = (MidiMapping::Type)(int)mappingTree.getProperty("type", (int)MidiMapping::None);
+        m.controllerNumber = (int)mappingTree.getProperty("controllerNumber", 0);
+        m.midiChannel      = (int)mappingTree.getProperty("midiChannel", 0);
+
+        if (!m.paramID.isEmpty() && getParameterIndexFromID(m.paramID) >= 0)
+            midiMappings.push_back(m);
+    }
 }
 
 //==============================================================================

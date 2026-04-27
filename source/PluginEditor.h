@@ -11,7 +11,9 @@
 #include "Sequencer/ArpeggiatorPanel.h"
 #include "Effects/EffectsPanel.h"
 
-class PluginEditor : public juce::AudioProcessorEditor
+class PluginEditor : public juce::AudioProcessorEditor,
+                     public juce::Button::Listener,
+                     public juce::ComboBox::Listener
 {
 public:
     explicit PluginEditor (PluginProcessor&);
@@ -20,8 +22,10 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    void buttonClicked (juce::Button*) override;
+    void comboBoxChanged (juce::ComboBox*) override;
 
- private:
+private:
     PluginProcessor& processorRef;
     DrumSequencerPanel    drumSequencerPanel;
     ModulationMatrixPanel modulationMatrixPanel;
@@ -33,6 +37,13 @@ public:
     EffectsPanel          effectsPanel;
     juce::TabbedComponent tabs;
 
+    // MIDI Learn
+    juce::ToggleButton midiLearnButton;
+    juce::Label        midiLearnLabel;
+    juce::ComboBox     paramSelector;
+
     void setupTabs();
+    void setupMidiLearnButton();
+    void updateMidiLearnUI();
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
 };

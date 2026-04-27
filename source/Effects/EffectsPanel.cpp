@@ -50,6 +50,14 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     reverbRoomAttach    = std::make_unique<SliderAttachment>(apvts, "reverbRoom",    reverbRoomSlider);
     reverbDampAttach    = std::make_unique<SliderAttachment>(apvts, "reverbDamp",    reverbDampSlider);
     reverbWetAttach     = std::make_unique<SliderAttachment>(apvts, "reverbWet",     reverbWetSlider);
+
+    // Enable MIDI Learn indicators — must be called after attachments
+    delayTimeSlider.init    (processorRef, "delayTime");
+    delayFeedbackSlider.init(processorRef, "delayFeedback");
+    delayMixSlider.init     (processorRef, "delayMix");
+    reverbRoomSlider.init   (processorRef, "reverbRoom");
+    reverbDampSlider.init   (processorRef, "reverbDamp");
+    reverbWetSlider.init    (processorRef, "reverbWet");
 }
 
 void EffectsPanel::setupSlider(juce::Slider& s, double min, double max, double value, double skew)

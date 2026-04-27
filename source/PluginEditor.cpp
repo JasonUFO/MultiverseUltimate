@@ -10,10 +10,16 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       arpeggiatorPanel (p.getArpeggiator()),
       synthPanel (p),
       effectsPanel (p),
-      tabs (juce::TabbedButtonBar::TabsAtTop)
+      tabs (juce::TabbedButtonBar::TabsAtTop),
+      midiLearnButton ("MIDI Learn"),
+      midiLearnLabel ("", "")
 {
     setupTabs();
-    addAndMakeVisible(tabs);
+    setupMidiLearnButton();
+    addAndMakeVisible (tabs);
+    addAndMakeVisible (midiLearnButton);
+    addAndMakeVisible (midiLearnLabel);
+    addAndMakeVisible (paramSelector);
     setSize (1200, 800);
 }
 
@@ -29,17 +35,98 @@ void PluginEditor::setupTabs()
     tabs.addTab ("Sampler",    juce::Colours::darkgrey, &samplerPanel,          false);
     tabs.addTab ("Sequencer",  juce::Colours::darkgrey, &sequencerPanel,        false);
     tabs.addTab ("Pro Seq",    juce::Colours::darkgrey, &proSequencerPanel,     false);
-    tabs.addTab ("Arp",       juce::Colours::darkgrey, &arpeggiatorPanel,        false);
-    tabs.addTab ("Effects",   juce::Colours::darkgrey, &effectsPanel,          false);
+    tabs.addTab ("Arp",        juce::Colours::darkgrey, &arpeggiatorPanel,      false);
+    tabs.addTab ("Effects",    juce::Colours::darkgrey, &effectsPanel,          false);
+}
+
+void PluginEditor::setupMidiLearnButton()
+{
+    midiLearnButton.setToggleState (false, juce::dontSendNotification);
+    midiLearnButton.setColour (juce::ToggleButton::textColourId, juce::Colours::white);
+    midiLearnButton.setTooltip ("Enable MIDI Learn — select a parameter, then move a controller");
+    midiLearnButton.addListener (this);
+
+    midiLearnLabel.setJustificationType (juce::Justification::centredLeft);
+    midiLearnLabel.setFont (juce::Font (11.0f, juce::Font::plain));
+    midiLearnLabel.setColour (juce::Label::textColourId, juce::Colours::orange);
+    midiLearnLabel.setVisible (false);
+
+    // Populate parameter selector with all APVTS parameters
+    paramSelector.addItem ("(select parameter)", 1);
+    auto& params = processorRef.getParameters();
+    for (int i = 0; i < params.size(); ++i)
+    {
+        if (auto* rp = dynamic_cast<juce::RangedAudioParameter*>(params[i]))
+            paramSelector.addItem (rp->getName (64), i + 2); // offset by 2: id 1 = placeholder
+    }
+    paramSelector.setSelectedId (1, juce::dontSendNotification);
+    paramSelector.setVisible (false);
+    paramSelector.addListener (this);
 }
 
 void PluginEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }
 
 void PluginEditor::resized()
 {
-    tabs.setBounds (getLocalBounds().reduced (0));
+    auto area = getLocalBounds();
+
+    // Header strip: 32 px tall
+    auto header = area.removeFromTop (32);
+    midiLearnButton.setBounds (header.removeFromLeft (110).reduced (4, 4));
+    paramSelector.setBounds   (header.removeFromLeft (200).reduced (2, 4));
+    midiLearnLabel.setBounds  (header.reduced (4, 4));
+
+    tabs.setBounds (area);
+}
+
+void PluginEditor::buttonClicked (juce::Button* button)
+{
+    if (button != &midiLearnButton)
+        return;
+
+    const bool isActive = midiLearnButton.getToggleState();
+    processorRef.midiLearnActive = isActive;
+
+    if (!isActive)
+    {
+        processorRef.stopMidiLearn();
+        paramSelector.setSelectedId (1, juce::dontSendNotification);
+    }
+
+    updateMidiLearnUI();
+}
+
+void PluginEditor::comboBoxChanged (juce::ComboBox* combo)
+{
+    if (combo != &paramSelector)
+        return;
+
+    const int selectedId = paramSelector.getSelectedId();
+    if (selectedId <= 1)
+    {
+        processorRef.learnParameterIndex = -1;
+        return;
+    }
+
+    // id = paramIndex + 2  →  paramIndex = selectedId - 2
+    const int paramIndex = selectedId - 2;
+    processorRef.startMidiLearnForParameter (paramIndex);
+
+    midiLearnLabel.setText ("Waiting for CC...", juce::dontSendNotification);
+    midiLearnLabel.setVisible (true);
+}
+
+void PluginEditor::updateMidiLearnUI()
+{
+    const bool active = midiLearnButton.getToggleState();
+    paramSelector.setVisible (active);
+
+    if (!active)
+    {
+        midiLearnLabel.setVisible (false);
+        midiLearnLabel.setText ("", juce::dontSendNotification);
+    }
 }

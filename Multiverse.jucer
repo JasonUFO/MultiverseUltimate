@@ -12,6 +12,8 @@
       <FILE id="Aa0002" name="PluginEditor.cpp"  compile="1" resource="0" file="source/PluginEditor.cpp"/>
       <FILE id="Aa0003" name="PluginProcessor.h"   compile="0" resource="0" file="source/PluginProcessor.h"/>
       <FILE id="Aa0004" name="PluginProcessor.cpp" compile="1" resource="0" file="source/PluginProcessor.cpp"/>
+      <FILE id="Aa0005" name="MidiLearnSlider.h"   compile="0" resource="0" file="source/MidiLearnSlider.h"/>
+      <FILE id="Aa0006" name="MidiLearnSlider.cpp" compile="1" resource="0" file="source/MidiLearnSlider.cpp"/>
       <GROUP id="GrpDrm" name="DrumSequencer">
         <FILE id="Bb0001" name="DrumSequencer.h"       compile="0" resource="0" file="source/DrumSequencer/DrumSequencer.h"/>
         <FILE id="Bb0002" name="DrumSequencer.cpp"     compile="1" resource="0" file="source/DrumSequencer/DrumSequencer.cpp"/>

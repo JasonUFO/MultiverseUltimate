@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include "../MidiLearnSlider.h"
 
 class PluginProcessor;
 
@@ -16,11 +17,11 @@ private:
     PluginProcessor& processorRef;
 
     juce::Label delaySectionLabel;
-    juce::Slider delayTimeSlider, delayFeedbackSlider, delayMixSlider;
+    MidiLearnSlider delayTimeSlider, delayFeedbackSlider, delayMixSlider;
     juce::Label delayTimeLabel, delayFeedbackLabel, delayMixLabel;
 
     juce::Label reverbSectionLabel;
-    juce::Slider reverbRoomSlider, reverbDampSlider, reverbWetSlider;
+    MidiLearnSlider reverbRoomSlider, reverbDampSlider, reverbWetSlider;
     juce::Label reverbRoomLabel, reverbDampLabel, reverbWetLabel;
 
     void setupSlider(juce::Slider& s, double min, double max, double value, double skew = 1.0);

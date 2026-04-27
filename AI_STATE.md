@@ -12,6 +12,10 @@
 - Full state persistence: APVTS + engine states (synth, drum, modulation, sequencers, sampler, reverb extra) saved/restored via XML
 - MIDI handling: note on/off, pitch bend, sustain (CC64), sostenuto (CC66), mod wheel (CC1 → filter), all-notes-off (CC123)
 - LFO phase advancement fixed: advanceLFOs now called once per block with proper increment
+- MIDI Learn system: toggle button + parameter selector in header, CC/pitch-bend/channel-pressure → any APVTS param, mappings persist in preset state
+- MidiLearnSlider: drop-in juce::Slider subclass with orange "L" badge and right-click unlearn menu
+- EffectsPanel: all 6 knobs (delay + reverb) use MidiLearnSlider
+- Fixed: duplicate getStateInformation, missing createPluginFilter, ReferenceCountedArray → std::vector, parameter index lookup, hasTagName → hasType, channel omni check
 
 ## In Progress
 - None
@@ -20,4 +24,5 @@
 - None
 
 ## Next Step
-- Integration phase complete. Ensure UI panels function correctly and perform final regression testing across DAW environments
+- Adopt MidiLearnSlider in remaining panels (SynthPanel, ModulationMatrixPanel, SamplerPanel, etc.) — 3 steps per panel: include header, change juce::Slider → MidiLearnSlider, call .init(proc, "paramID") after attachment
+- Perform final regression testing across DAW environments
