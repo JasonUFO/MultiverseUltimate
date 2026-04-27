@@ -43,6 +43,11 @@ void Voice::setFilterParams(float cutoff, float resonance)
     filter.setResonance(resonance);
 }
 
+void Voice::setOversamplingMode(Filter::OversamplingMode mode)
+{
+    filter.setOversamplingMode(mode);
+}
+
 void Voice::setWaveform(WaveformType type)
 {
     if (type != oscillator.getWaveform())

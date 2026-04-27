@@ -133,6 +133,12 @@ void SynthEngine::setFilterParams(float cutoff, float resonance)
     }
 }
 
+void SynthEngine::setOversamplingMode(Filter::OversamplingMode mode)
+{
+    for (auto& vi : voices)
+        vi.voice.setOversamplingMode(mode);
+}
+
 void SynthEngine::setWaveform(WaveformType type)
 {
     waveform = type;

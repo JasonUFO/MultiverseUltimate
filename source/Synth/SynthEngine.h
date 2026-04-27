@@ -30,6 +30,7 @@ public:
     // Classic mode controls
     void setEnvelopeParams(float a, float d, float s, float r);
     void setFilterParams(float cutoff, float resonance);
+    void setOversamplingMode(Filter::OversamplingMode mode);
     void setWaveform(WaveformType type);
 
     // FM mode controls

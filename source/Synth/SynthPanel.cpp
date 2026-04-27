@@ -74,6 +74,28 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     addAndMakeVisible(cutoffLabel);
     addAndMakeVisible(resonanceLabel);
 
+    // Oversampling selector
+    setupLabel(oversamplingLabel, "OS");
+    addAndMakeVisible(oversamplingLabel);
+    oversamplingSelector.addItem("Off",  1);
+    oversamplingSelector.addItem("2x",   2);
+    oversamplingSelector.addItem("4x",   3);
+    oversamplingSelector.addItem("Auto", 4);
+    oversamplingSelector.setSelectedId(1, juce::dontSendNotification);
+    oversamplingSelector.onChange = [this]
+    {
+        Filter::OversamplingMode mode = Filter::OversamplingMode::Off;
+        switch (oversamplingSelector.getSelectedId())
+        {
+            case 2: mode = Filter::OversamplingMode::X2;   break;
+            case 3: mode = Filter::OversamplingMode::X4;   break;
+            case 4: mode = Filter::OversamplingMode::Auto; break;
+            default: break;
+        }
+        synthEngine.setOversamplingMode(mode);
+    };
+    addAndMakeVisible(oversamplingSelector);
+
     // APVTS attachments — connect sliders to automatable parameters
     auto& apvts = processorRef.apvts;
     attackAttach    = std::make_unique<SliderAttachment>(apvts, "attack",           attackSlider);
@@ -185,6 +207,9 @@ void SynthPanel::updateVisibility()
 
     algorithmLabel.setVisible(isFM);
     algorithmSelector.setVisible(isFM);
+
+    oversamplingLabel.setVisible(!isFM);
+    oversamplingSelector.setVisible(!isFM);
 
     for (auto& op : fmOps)
     {
@@ -305,6 +330,14 @@ void SynthPanel::resized()
             };
             placeKnob(cutoffSlider,    cutoffLabel);
             placeKnob(resonanceSlider, resonanceLabel);
+        }
+        area.removeFromTop(4);
+        // Oversampling row
+        {
+            auto osRow = area.removeFromTop(rowH);
+            oversamplingLabel.setBounds(osRow.removeFromLeft(30));
+            osRow.removeFromLeft(6);
+            oversamplingSelector.setBounds(osRow.removeFromLeft(90));
         }
     }
 }

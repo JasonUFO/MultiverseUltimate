@@ -17,6 +17,7 @@
 - EffectsPanel: all 6 knobs (delay + reverb) use MidiLearnSlider
 - Fixed: duplicate getStateInformation, missing createPluginFilter, ReferenceCountedArray → std::vector, parameter index lookup, hasTagName → hasType, channel omni check
 - Undo/Redo: APVTS already wired to undoManager; added Cmd+Z / Cmd+Shift+Z key handlers in PluginEditor; setStateInformation now calls undoManager.clearUndoHistory() on preset load
+- Filter oversampling (Phase 3.1): OversamplingMode enum (Off/2x/4x/Auto) added to Filter; two additional SVT filter instances prepared at 2×/4× sample rate; zero-insertion upsampling + decimation in process(); Auto mode activates 2× when cutoff > 5kHz; SynthEngine::setOversamplingMode() propagates to all 16 classic voices; "OS" ComboBox added to SynthPanel filter section (Classic mode only)
 
 ## In Progress
 - None

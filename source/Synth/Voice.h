@@ -14,6 +14,7 @@ public:
     
     void setEnvelopeParams(float a, float d, float s, float r);
     void setFilterParams(float cutoff, float resonance);
+    void setOversamplingMode(Filter::OversamplingMode mode);
     void setWaveform(WaveformType type);
     void setSampleRate(float sr);
     void setPitchBend(float semitones);

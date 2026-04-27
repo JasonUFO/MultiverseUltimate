@@ -27,6 +27,8 @@ private:
     juce::Label filterSectionLabel;
     juce::Slider cutoffSlider, resonanceSlider;
     juce::Label cutoffLabel, resonanceLabel;
+    juce::Label oversamplingLabel;
+    juce::ComboBox oversamplingSelector;
 
     void setupSlider(juce::Slider& s, double min, double max, double value, double skew = 1.0);
     void setupLabel(juce::Label& l, const juce::String& text);
