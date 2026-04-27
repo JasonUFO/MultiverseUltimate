@@ -29,6 +29,9 @@ Summarise current task in 2 sentences, then wait.
 End session with
 
 Update AI_STATE.md.
+Update AI_HANDOFF.md.
+Update CLAUDE.md
+Update AI_RULES.md
 
 Include:
 - Completed

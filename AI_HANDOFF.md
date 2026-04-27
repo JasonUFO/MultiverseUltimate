@@ -94,6 +94,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | 3.1 | Filter oversampling (Off/2x/4x/Auto) |
 | 3.2 | Reverb pre-delay, LF damp, width, freeze |
 | 3.3 | Chorus, Distortion, EQ, Compressor + drag-to-reorder chain |
+| 4.1 | SynthPanel MIDI Learn - replaced juce::Slider with MidiLearnSlider, added .init() calls |
 
 ## Next Steps
 - Adopt MidiLearnSlider in remaining panels (SynthPanel, ModulationMatrixPanel, SamplerPanel)

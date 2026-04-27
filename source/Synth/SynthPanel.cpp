@@ -4,6 +4,8 @@
 SynthPanel::SynthPanel(PluginProcessor& p)
     : processorRef(p), synthEngine(p.getSynthEngine())
 {
+    setLookAndFeel(&synthLookAndFeel);
+
     // Mode selector
     setupLabel(modeLabel, "MODE");
     addAndMakeVisible(modeLabel);
@@ -13,10 +15,10 @@ SynthPanel::SynthPanel(PluginProcessor& p)
                                juce::dontSendNotification);
     modeSelector.onChange = [this]
     {
-        const bool isFM = (modeSelector.getSelectedId() == 2);
-        synthEngine.setSynthMode(isFM ? SynthMode::FM : SynthMode::Classic);
+        synthEngine.setSynthMode(modeSelector.getSelectedId() == 2 ? SynthMode::FM : SynthMode::Classic);
         updateVisibility();
         resized();
+        repaint();
     };
     addAndMakeVisible(modeSelector);
 
@@ -32,49 +34,82 @@ SynthPanel::SynthPanel(PluginProcessor& p)
                                    juce::dontSendNotification);
     waveformSelector.onChange = [this]
     {
-        processorRef.baseWaveform = static_cast<WaveformType>(waveformSelector.getSelectedId() - 1);
+        const auto wf = static_cast<WaveformType>(waveformSelector.getSelectedId() - 1);
+        processorRef.baseWaveform = wf;
+        oscDisplay.setWaveform(wf);
     };
     addAndMakeVisible(waveformSelector);
 
-    // ADSR
-    setupLabel(envSectionLabel, "ENVELOPE");
-    addAndMakeVisible(envSectionLabel);
+    // Visualisations
+    oscDisplay.setWaveform(processorRef.baseWaveform);
+    addAndMakeVisible(oscDisplay);
+    addAndMakeVisible(lfoDisplay);
 
+    // Preset buttons
+    savePresetButton.onClick = [this]
+    {
+        fileChooser = std::make_unique<juce::FileChooser>(
+            "Save Preset",
+            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+                .getChildFile("MultiversePresets"),
+            "*.mvpreset");
+        fileChooser->launchAsync(
+            juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+            [this](const juce::FileChooser& fc)
+            {
+                auto f = fc.getResult();
+                if (f.getFullPathName().isEmpty()) return;
+                auto file = f.withFileExtension(".mvpreset");
+                juce::MemoryBlock state;
+                processorRef.getStateInformation(state);
+                file.replaceWithData(state.getData(), state.getSize());
+            });
+    };
+    addAndMakeVisible(savePresetButton);
+
+    loadPresetButton.onClick = [this]
+    {
+        fileChooser = std::make_unique<juce::FileChooser>(
+            "Load Preset",
+            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+                .getChildFile("MultiversePresets"),
+            "*.mvpreset");
+        fileChooser->launchAsync(
+            juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+            [this](const juce::FileChooser& fc)
+            {
+                auto f = fc.getResult();
+                if (!f.existsAsFile()) return;
+                juce::MemoryBlock state;
+                f.loadFileAsData(state);
+                processorRef.setStateInformation(state.getData(), (int)state.getSize());
+            });
+    };
+    addAndMakeVisible(loadPresetButton);
+
+    // ADSR
     setupSlider(attackSlider,  0.001, 5.0,  0.01, 0.4);
     setupSlider(decaySlider,   0.001, 5.0,  0.1,  0.4);
     setupSlider(sustainSlider, 0.0,   1.0,  0.7);
     setupSlider(releaseSlider, 0.001, 10.0, 0.5,  0.4);
-
     setupLabel(attackLabel,  "Attack");
     setupLabel(decayLabel,   "Decay");
     setupLabel(sustainLabel, "Sustain");
     setupLabel(releaseLabel, "Release");
-
-    addAndMakeVisible(attackSlider);
-    addAndMakeVisible(decaySlider);
-    addAndMakeVisible(sustainSlider);
-    addAndMakeVisible(releaseSlider);
-    addAndMakeVisible(attackLabel);
-    addAndMakeVisible(decayLabel);
-    addAndMakeVisible(sustainLabel);
-    addAndMakeVisible(releaseLabel);
+    addAndMakeVisible(attackSlider);  addAndMakeVisible(attackLabel);
+    addAndMakeVisible(decaySlider);   addAndMakeVisible(decayLabel);
+    addAndMakeVisible(sustainSlider); addAndMakeVisible(sustainLabel);
+    addAndMakeVisible(releaseSlider); addAndMakeVisible(releaseLabel);
 
     // Filter
-    setupLabel(filterSectionLabel, "FILTER");
-    addAndMakeVisible(filterSectionLabel);
-
     setupSlider(cutoffSlider,    20.0, 20000.0, 20000.0, 0.3);
     setupSlider(resonanceSlider, 0.1,  10.0,    0.707,   0.5);
-
     setupLabel(cutoffLabel,    "Cutoff");
     setupLabel(resonanceLabel, "Resonance");
+    addAndMakeVisible(cutoffSlider);    addAndMakeVisible(cutoffLabel);
+    addAndMakeVisible(resonanceSlider); addAndMakeVisible(resonanceLabel);
 
-    addAndMakeVisible(cutoffSlider);
-    addAndMakeVisible(resonanceSlider);
-    addAndMakeVisible(cutoffLabel);
-    addAndMakeVisible(resonanceLabel);
-
-    // Oversampling selector
+    // Oversampling
     setupLabel(oversamplingLabel, "OS");
     addAndMakeVisible(oversamplingLabel);
     oversamplingSelector.addItem("Off",  1);
@@ -96,16 +131,24 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     };
     addAndMakeVisible(oversamplingSelector);
 
-    // APVTS attachments — connect sliders to automatable parameters
+    // APVTS attachments
     auto& apvts = processorRef.apvts;
-    attackAttach    = std::make_unique<SliderAttachment>(apvts, "attack",           attackSlider);
-    decayAttach     = std::make_unique<SliderAttachment>(apvts, "decay",            decaySlider);
-    sustainAttach   = std::make_unique<SliderAttachment>(apvts, "sustain",          sustainSlider);
-    releaseAttach   = std::make_unique<SliderAttachment>(apvts, "release",          releaseSlider);
-    cutoffAttach    = std::make_unique<SliderAttachment>(apvts, "filterCutoff",     cutoffSlider);
-    resonanceAttach = std::make_unique<SliderAttachment>(apvts, "filterResonance",  resonanceSlider);
+    attackAttach    = std::make_unique<SliderAttachment>(apvts, "attack",          attackSlider);
+    decayAttach     = std::make_unique<SliderAttachment>(apvts, "decay",           decaySlider);
+    sustainAttach   = std::make_unique<SliderAttachment>(apvts, "sustain",         sustainSlider);
+    releaseAttach   = std::make_unique<SliderAttachment>(apvts, "release",         releaseSlider);
+    cutoffAttach    = std::make_unique<SliderAttachment>(apvts, "filterCutoff",    cutoffSlider);
+    resonanceAttach = std::make_unique<SliderAttachment>(apvts, "filterResonance", resonanceSlider);
+    
+    // Initialize MidiLearnSliders
+    attackSlider.init(processorRef, "attack");
+    decaySlider.init(processorRef, "decay");
+    sustainSlider.init(processorRef, "sustain");
+    releaseSlider.init(processorRef, "release");
+    cutoffSlider.init(processorRef, "filterCutoff");
+    resonanceSlider.init(processorRef, "filterResonance");
 
-    // FM Algorithm selector
+    // FM Algorithm
     setupLabel(algorithmLabel, "FM ALGORITHM");
     addAndMakeVisible(algorithmLabel);
     for (int i = 1; i <= 8; ++i)
@@ -115,65 +158,62 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     algorithmAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
         apvts, "fmAlgorithm", algorithmSelector);
 
-    // FM Operators (4 operators)
+    // FM Operators
     for (int op = 0; op < 4; ++op)
     {
-        auto& opControls = fmOps[op];
-        const int opNum = op + 1;
+        auto& c = fmOps[op];
+        const int n = op + 1;
 
-        setupLabel(opControls.sectionLabel, "OP " + juce::String(opNum));
-        addAndMakeVisible(opControls.sectionLabel);
+        setupLabel(c.sectionLabel, "OP " + juce::String(n));
+        addAndMakeVisible(c.sectionLabel);
 
-        setupSlider(opControls.ratioSlider,    0.5, 32.0,  1.0, 0.5);
-        setupSlider(opControls.levelSlider,     0.0,  1.0,   1.0);
-        setupSlider(opControls.feedbackSlider, 0.0, 1.0,   0.0);
-        setupSlider(opControls.attackSlider,   0.001, 5.0,  0.01, 0.4);
-        setupSlider(opControls.decaySlider,    0.001, 5.0,  0.1,  0.4);
-        setupSlider(opControls.sustainSlider,  0.0,   1.0,  0.7);
-        setupSlider(opControls.releaseSlider,   0.001, 10.0, 0.3,  0.4);
+        setupSlider(c.ratioSlider,    0.5,  32.0, 1.0,  0.5);
+        setupSlider(c.levelSlider,    0.0,   1.0,  1.0);
+        setupSlider(c.feedbackSlider, 0.0,   1.0,  0.0);
+        setupSlider(c.attackSlider,   0.001, 5.0,  0.01, 0.4);
+        setupSlider(c.decaySlider,    0.001, 5.0,  0.1,  0.4);
+        setupSlider(c.sustainSlider,  0.0,   1.0,  0.7);
+        setupSlider(c.releaseSlider,  0.001, 10.0, 0.3,  0.4);
 
-        setupLabel(opControls.ratioLabel,     "Ratio");
-        setupLabel(opControls.levelLabel,   "Level");
-        setupLabel(opControls.feedbackLabel, "Fdbk");
-        setupLabel(opControls.attackLabel,  "A");
-        setupLabel(opControls.decayLabel,   "D");
-        setupLabel(opControls.sustainLabel, "S");
-        setupLabel(opControls.releaseLabel, "R");
+        setupLabel(c.ratioLabel,    "Ratio");
+        setupLabel(c.levelLabel,    "Level");
+        setupLabel(c.feedbackLabel, "Fdbk");
+        setupLabel(c.attackLabel,   "A");
+        setupLabel(c.decayLabel,    "D");
+        setupLabel(c.sustainLabel,  "S");
+        setupLabel(c.releaseLabel,  "R");
 
-        addAndMakeVisible(opControls.ratioSlider);
-        addAndMakeVisible(opControls.levelSlider);
-        addAndMakeVisible(opControls.feedbackSlider);
-        addAndMakeVisible(opControls.attackSlider);
-        addAndMakeVisible(opControls.decaySlider);
-        addAndMakeVisible(opControls.sustainSlider);
-        addAndMakeVisible(opControls.releaseSlider);
-        addAndMakeVisible(opControls.ratioLabel);
-        addAndMakeVisible(opControls.levelLabel);
-        addAndMakeVisible(opControls.feedbackLabel);
-        addAndMakeVisible(opControls.attackLabel);
-        addAndMakeVisible(opControls.decayLabel);
-        addAndMakeVisible(opControls.sustainLabel);
-        addAndMakeVisible(opControls.releaseLabel);
+        addAndMakeVisible(c.ratioSlider);    addAndMakeVisible(c.ratioLabel);
+        addAndMakeVisible(c.levelSlider);    addAndMakeVisible(c.levelLabel);
+        addAndMakeVisible(c.feedbackSlider); addAndMakeVisible(c.feedbackLabel);
+        addAndMakeVisible(c.attackSlider);   addAndMakeVisible(c.attackLabel);
+        addAndMakeVisible(c.decaySlider);    addAndMakeVisible(c.decayLabel);
+        addAndMakeVisible(c.sustainSlider);  addAndMakeVisible(c.sustainLabel);
+        addAndMakeVisible(c.releaseSlider);  addAndMakeVisible(c.releaseLabel);
 
-        opControls.ratioAttach = std::make_unique<SliderAttachment>(
-            apvts, "fmOp" + juce::String(opNum) + "Ratio", opControls.ratioSlider);
-        opControls.levelAttach = std::make_unique<SliderAttachment>(
-            apvts, "fmOp" + juce::String(opNum) + "Level", opControls.levelSlider);
-        opControls.feedbackAttach = std::make_unique<SliderAttachment>(
-            apvts, "fmOp" + juce::String(opNum) + "Feedback", opControls.feedbackSlider);
-        opControls.attackAttach = std::make_unique<SliderAttachment>(
-            apvts, "fmOp" + juce::String(opNum) + "Attack", opControls.attackSlider);
-        opControls.decayAttach = std::make_unique<SliderAttachment>(
-            apvts, "fmOp" + juce::String(opNum) + "Decay", opControls.decaySlider);
-        opControls.sustainAttach = std::make_unique<SliderAttachment>(
-            apvts, "fmOp" + juce::String(opNum) + "Sustain", opControls.sustainSlider);
-        opControls.releaseAttach = std::make_unique<SliderAttachment>(
-            apvts, "fmOp" + juce::String(opNum) + "Release", opControls.releaseSlider);
+        const juce::String pfx = "fmOp" + juce::String(n);
+        c.ratioAttach    = std::make_unique<SliderAttachment>(apvts, pfx + "Ratio",    c.ratioSlider);
+        c.levelAttach    = std::make_unique<SliderAttachment>(apvts, pfx + "Level",    c.levelSlider);
+        c.feedbackAttach = std::make_unique<SliderAttachment>(apvts, pfx + "Feedback", c.feedbackSlider);
+        c.attackAttach   = std::make_unique<SliderAttachment>(apvts, pfx + "Attack",   c.attackSlider);
+        c.decayAttach    = std::make_unique<SliderAttachment>(apvts, pfx + "Decay",    c.decaySlider);
+        c.sustainAttach  = std::make_unique<SliderAttachment>(apvts, pfx + "Sustain",  c.sustainSlider);
+        c.releaseAttach  = std::make_unique<SliderAttachment>(apvts, pfx + "Release",  c.releaseSlider);
+        
+        // Initialize MidiLearnSliders for FM operator
+        c.ratioSlider.init(processorRef, pfx + "Ratio");
+        c.levelSlider.init(processorRef, pfx + "Level");
+        c.feedbackSlider.init(processorRef, pfx + "Feedback");
+        c.attackSlider.init(processorRef, pfx + "Attack");
+        c.decaySlider.init(processorRef, pfx + "Decay");
+        c.sustainSlider.init(processorRef, pfx + "Sustain");
+        c.releaseSlider.init(processorRef, pfx + "Release");
     }
 
     updateVisibility();
 }
 
+//==============================================================================
 void SynthPanel::setupSlider(juce::Slider& s, double min, double max, double value, double skew)
 {
     s.setSliderStyle(juce::Slider::Rotary);
@@ -189,155 +229,195 @@ void SynthPanel::setupLabel(juce::Label& l, const juce::String& text)
     l.setJustificationType(juce::Justification::centred);
 }
 
+void SynthPanel::drawSection(juce::Graphics& g, juce::Rectangle<int> r,
+                              const juce::String& title) const
+{
+    g.setColour(juce::Colour(0xff0e1c24));
+    g.fillRoundedRectangle(r.toFloat(), 6.0f);
+    g.setColour(juce::Colour(0xff2c3e47));
+    g.drawRoundedRectangle(r.toFloat(), 6.0f, 1.0f);
+    g.setColour(juce::Colour(0xff4fc3f7));
+    g.setFont(juce::Font(10.0f, juce::Font::bold));
+    g.drawText(title, r.getX() + 8, r.getY() + 5, 100, 14, juce::Justification::centredLeft);
+}
+
+//==============================================================================
 void SynthPanel::updateVisibility()
 {
     const bool isFM = (modeSelector.getSelectedId() == 2);
 
     waveformLabel.setVisible(!isFM);
     waveformSelector.setVisible(!isFM);
-    envSectionLabel.setVisible(!isFM);
-    attackLabel.setVisible(!isFM);
-    decayLabel.setVisible(!isFM);
-    sustainLabel.setVisible(!isFM);
-    releaseLabel.setVisible(!isFM);
-    attackSlider.setVisible(!isFM);
-    decaySlider.setVisible(!isFM);
-    sustainSlider.setVisible(!isFM);
-    releaseSlider.setVisible(!isFM);
+    oscDisplay.setVisible(!isFM);
+    lfoDisplay.setVisible(!isFM);
+
+    attackLabel.setVisible(!isFM);  attackSlider.setVisible(!isFM);
+    decayLabel.setVisible(!isFM);   decaySlider.setVisible(!isFM);
+    sustainLabel.setVisible(!isFM); sustainSlider.setVisible(!isFM);
+    releaseLabel.setVisible(!isFM); releaseSlider.setVisible(!isFM);
+
+    cutoffLabel.setVisible(!isFM);       cutoffSlider.setVisible(!isFM);
+    resonanceLabel.setVisible(!isFM);    resonanceSlider.setVisible(!isFM);
+    oversamplingLabel.setVisible(!isFM); oversamplingSelector.setVisible(!isFM);
 
     algorithmLabel.setVisible(isFM);
     algorithmSelector.setVisible(isFM);
 
-    oversamplingLabel.setVisible(!isFM);
-    oversamplingSelector.setVisible(!isFM);
-
-    for (auto& op : fmOps)
+    for (auto& c : fmOps)
     {
-        op.sectionLabel.setVisible(isFM);
-        op.ratioLabel.setVisible(isFM);
-        op.levelLabel.setVisible(isFM);
-        op.feedbackLabel.setVisible(isFM);
-        op.attackLabel.setVisible(isFM);
-        op.decayLabel.setVisible(isFM);
-        op.sustainLabel.setVisible(isFM);
-        op.releaseLabel.setVisible(isFM);
-        op.ratioSlider.setVisible(isFM);
-        op.levelSlider.setVisible(isFM);
-        op.feedbackSlider.setVisible(isFM);
-        op.attackSlider.setVisible(isFM);
-        op.decaySlider.setVisible(isFM);
-        op.sustainSlider.setVisible(isFM);
-        op.releaseSlider.setVisible(isFM);
+        c.sectionLabel.setVisible(isFM);
+        c.ratioLabel.setVisible(isFM);    c.ratioSlider.setVisible(isFM);
+        c.levelLabel.setVisible(isFM);    c.levelSlider.setVisible(isFM);
+        c.feedbackLabel.setVisible(isFM); c.feedbackSlider.setVisible(isFM);
+        c.attackLabel.setVisible(isFM);   c.attackSlider.setVisible(isFM);
+        c.decayLabel.setVisible(isFM);    c.decaySlider.setVisible(isFM);
+        c.sustainLabel.setVisible(isFM);  c.sustainSlider.setVisible(isFM);
+        c.releaseLabel.setVisible(isFM);  c.releaseSlider.setVisible(isFM);
     }
 }
 
+//==============================================================================
 void SynthPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-}
-
-void SynthPanel::resized()
-{
-    auto area = getLocalBounds().reduced(16);
-    const int rowH   = 30;
-    const int knobSz = 70;
-    const int labelH = 20;
-    const int gap    = 12;
+    g.fillAll(juce::Colour(0xff1a2530));
 
     const bool isFM = (modeSelector.getSelectedId() == 2);
 
-    // Row 1: Mode and Waveform selectors
-    auto topRow = area.removeFromTop(rowH + labelH + gap);
+    if (!isFM)
     {
-        auto modeCol = topRow.removeFromLeft(200);
-        modeLabel.setBounds(modeCol.removeFromTop(labelH));
-        modeSelector.setBounds(modeCol.removeFromTop(rowH));
-        topRow.removeFromLeft(24);
-        auto waveCol = topRow.removeFromLeft(200);
-        waveformLabel.setBounds(waveCol.removeFromTop(labelH));
-        waveformSelector.setBounds(waveCol.removeFromTop(rowH));
+        drawSection(g, oscSectionRect,    "OSC");
+        drawSection(g, filterSectionRect, "FILTER");
+        drawSection(g, envSectionRect,    "ENV");
     }
-    area.removeFromTop(gap);
+
+    // Mode badge
+    const juce::Colour badgeCol = isFM ? juce::Colour(0xff7986cb) : juce::Colour(0xff4fc3f7);
+    g.setColour(badgeCol.withAlpha(0.18f));
+    g.fillRoundedRectangle(modeBadgeRect.toFloat(), 4.0f);
+    g.setColour(badgeCol);
+    g.drawRoundedRectangle(modeBadgeRect.toFloat(), 4.0f, 1.0f);
+    g.setFont(juce::Font(10.0f, juce::Font::bold));
+    g.drawText(isFM ? "FM" : "CLASSIC", modeBadgeRect, juce::Justification::centred);
+}
+
+//==============================================================================
+void SynthPanel::resized()
+{
+    auto area = getLocalBounds().reduced(16);
+    const bool isFM = (modeSelector.getSelectedId() == 2);
+
+    // Header
+    {
+        auto hdr = area.removeFromTop(46);
+
+        auto modeCol = hdr.removeFromLeft(180);
+        modeLabel.setBounds(modeCol.removeFromTop(18));
+        modeSelector.setBounds(modeCol.removeFromTop(26));
+        hdr.removeFromLeft(8);
+
+        modeBadgeRect = hdr.removeFromLeft(80).reduced(0, 10);
+        hdr.removeFromLeft(8);
+
+        auto btnArea = hdr.removeFromRight(176);
+        savePresetButton.setBounds(btnArea.removeFromRight(82).reduced(0, 8));
+        btnArea.removeFromRight(8);
+        loadPresetButton.setBounds(btnArea.removeFromRight(82).reduced(0, 8));
+    }
+    area.removeFromTop(10);
 
     if (isFM)
     {
-        // FM Algorithm
-        auto algRow = area.removeFromTop(labelH + rowH);
-        algorithmLabel.setBounds(algRow.removeFromTop(labelH));
-        algorithmSelector.setBounds(algRow.removeFromTop(rowH));
-        area.removeFromTop(gap);
+        auto algRow = area.removeFromTop(46);
+        algorithmLabel.setBounds(algRow.removeFromTop(18));
+        algorithmSelector.setBounds(algRow.removeFromTop(26));
+        area.removeFromTop(8);
 
-        // FM Operators: 4 rows, each with 7 knobs
-        const int opKnobW = 60;
+        const int opKnobW  = 60;
         const int opLabelH = 16;
-        const int opRowH = opKnobW + opLabelH + 4;
 
         for (int op = 0; op < 4; ++op)
         {
+            auto& c    = fmOps[op];
             auto opRow = area.removeFromTop(opLabelH + opKnobW + opLabelH);
-            fmOps[op].sectionLabel.setBounds(opRow.removeFromTop(opLabelH));
+            c.sectionLabel.setBounds(opRow.removeFromTop(opLabelH));
 
             auto knobs = opRow;
-            auto placeFMSlider = [&](juce::Slider& s, juce::Label& l)
+            auto place = [&](juce::Slider& s, juce::Label& l)
             {
                 auto col = knobs.removeFromLeft(opKnobW);
                 s.setBounds(col.removeFromTop(opKnobW));
                 l.setBounds(col.removeFromTop(opLabelH));
                 knobs.removeFromLeft(4);
             };
-            placeFMSlider(fmOps[op].ratioSlider, fmOps[op].ratioLabel);
-            placeFMSlider(fmOps[op].levelSlider, fmOps[op].levelLabel);
-            placeFMSlider(fmOps[op].feedbackSlider, fmOps[op].feedbackLabel);
-            placeFMSlider(fmOps[op].attackSlider, fmOps[op].attackLabel);
-            placeFMSlider(fmOps[op].decaySlider, fmOps[op].decayLabel);
-            placeFMSlider(fmOps[op].sustainSlider, fmOps[op].sustainLabel);
-            placeFMSlider(fmOps[op].releaseSlider, fmOps[op].releaseLabel);
+            place(c.ratioSlider,    c.ratioLabel);
+            place(c.levelSlider,    c.levelLabel);
+            place(c.feedbackSlider, c.feedbackLabel);
+            place(c.attackSlider,   c.attackLabel);
+            place(c.decaySlider,    c.decayLabel);
+            place(c.sustainSlider,  c.sustainLabel);
+            place(c.releaseSlider,  c.releaseLabel);
             area.removeFromTop(8);
         }
     }
     else
     {
-        // Row 2: ADSR
-        auto envRow = area.removeFromTop(labelH + knobSz + labelH);
-        envSectionLabel.setBounds(envRow.removeFromTop(labelH));
+        const int knobSz = 70;
+        const int labelH = 18;
+
+        // OSC section
+        oscSectionRect = area.removeFromTop(80);
         {
-            auto knobRow = envRow;
-            auto placeKnob = [&](juce::Slider& knob, juce::Label& lbl)
+            auto inner = oscSectionRect.reduced(8).withTrimmedTop(16);
+            auto left  = inner.removeFromLeft(220);
+            waveformLabel.setBounds(left.removeFromTop(16));
+            waveformSelector.setBounds(left.removeFromTop(26));
+            oscDisplay.setBounds(inner.reduced(2));
+        }
+        area.removeFromTop(8);
+
+        // FILTER section
+        filterSectionRect = area.removeFromTop(155);
+        {
+            auto inner   = filterSectionRect.reduced(8).withTrimmedTop(18);
+            auto knobRow = inner.removeFromTop(knobSz + labelH);
+            auto placeKnob = [&](juce::Slider& s, juce::Label& l)
             {
-                auto col = knobRow.removeFromLeft(knobSz + gap);
-                knob.setBounds(col.removeFromTop(knobSz));
-                lbl.setBounds(col.removeFromTop(labelH));
-                knobRow.removeFromLeft(gap);
+                auto col = knobRow.removeFromLeft(knobSz);
+                s.setBounds(col.removeFromTop(knobSz));
+                l.setBounds(col.removeFromTop(labelH));
+                knobRow.removeFromLeft(12);
+            };
+            placeKnob(cutoffSlider,    cutoffLabel);
+            placeKnob(resonanceSlider, resonanceLabel);
+
+            inner.removeFromTop(4);
+            auto osRow = inner.removeFromTop(28);
+            oversamplingLabel.setBounds(osRow.removeFromLeft(30));
+            osRow.removeFromLeft(6);
+            oversamplingSelector.setBounds(osRow.removeFromLeft(90));
+        }
+        area.removeFromTop(8);
+
+        // ENV section
+        envSectionRect = area.removeFromTop(130);
+        {
+            auto inner   = envSectionRect.reduced(8).withTrimmedTop(18);
+            auto knobRow = inner;
+            auto placeKnob = [&](juce::Slider& s, juce::Label& l)
+            {
+                auto col = knobRow.removeFromLeft(knobSz);
+                s.setBounds(col.removeFromTop(knobSz));
+                l.setBounds(col.removeFromTop(labelH));
+                knobRow.removeFromLeft(12);
             };
             placeKnob(attackSlider,  attackLabel);
             placeKnob(decaySlider,   decayLabel);
             placeKnob(sustainSlider, sustainLabel);
             placeKnob(releaseSlider, releaseLabel);
         }
-        area.removeFromTop(gap);
+        area.removeFromTop(8);
 
-        // Row 3: Filter
-        auto filterRow = area.removeFromTop(labelH + knobSz + labelH);
-        filterSectionLabel.setBounds(filterRow.removeFromTop(labelH));
-        {
-            auto knobRow = filterRow;
-            auto placeKnob = [&](juce::Slider& knob, juce::Label& lbl)
-            {
-                auto col = knobRow.removeFromLeft(knobSz + gap);
-                knob.setBounds(col.removeFromTop(knobSz));
-                lbl.setBounds(col.removeFromTop(labelH));
-                knobRow.removeFromLeft(gap);
-            };
-            placeKnob(cutoffSlider,    cutoffLabel);
-            placeKnob(resonanceSlider, resonanceLabel);
-        }
-        area.removeFromTop(4);
-        // Oversampling row
-        {
-            auto osRow = area.removeFromTop(rowH);
-            oversamplingLabel.setBounds(osRow.removeFromLeft(30));
-            osRow.removeFromLeft(6);
-            oversamplingSelector.setBounds(osRow.removeFromLeft(90));
-        }
+        // LFO display
+        lfoDisplay.setBounds(area.removeFromTop(55));
     }
 }

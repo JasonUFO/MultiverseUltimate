@@ -36,6 +36,11 @@
 - EffectsPanel: 2-column layout (L: Chorus/Distortion/EQ, R: Compressor/Delay/Reverb)
 - All 14 new APVTS params fully automatable; all knobs use MidiLearnSlider
 
+### Phase 4.1 — SynthPanel MIDI Learn
+- Replaced juce::Slider with MidiLearnSlider in SynthPanel
+- Added .init() calls for all sliders
+- Full MIDI Learn support with orange "L" badge and mapping persistence
+
 ## In Progress
 - None
 
@@ -43,6 +48,6 @@
 - None
 
 ## Next Step
-- Adopt MidiLearnSlider in remaining panels (SynthPanel, ModulationMatrixPanel, SamplerPanel, etc.)
+- Adopt MidiLearnSlider in remaining panels (ModulationMatrixPanel, SamplerPanel, etc.)
   — 3 steps per panel: include header, change `juce::Slider` → `MidiLearnSlider`, call `.init(proc, "paramID")` after attachment
 - Perform final regression testing across DAW environments

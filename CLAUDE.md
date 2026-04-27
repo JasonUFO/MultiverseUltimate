@@ -30,6 +30,7 @@ All subsystems are integrated and functional. Phase 3.3 complete. The VST3 build
 - **State persistence**: XML save/restore including effect chain order ✅
 - **MIDI handling**: note on/off, pitch bend, sustain CC64, sostenuto CC66, mod wheel CC1→filter, all-notes-off CC123 ✅
 - **MIDI Learn**: CC/pitch-bend/channel-pressure → any APVTS param, orange "L" badge, persists in presets ✅
+- **SynthPanel MIDI Learn**: All sliders now support MIDI Learn with orange "L" badge ✅
 - **Undo/Redo**: Cmd+Z / Cmd+Shift+Z; clears on preset load ✅
 - **Filter oversampling**: Off/2x/4x/Auto (Classic mode) ✅
 - **Reverb quality**: pre-delay, LF damp, stereo width, freeze ✅
@@ -88,5 +89,5 @@ MIDI → SamplerEngine            ─┘
 ---
 
 ## Next Steps
-- Adopt MidiLearnSlider in remaining panels (SynthPanel, ModulationMatrixPanel, SamplerPanel)
+- Adopt MidiLearnSlider in remaining panels (ModulationMatrixPanel, SamplerPanel)
 - Final regression testing across DAW environments
