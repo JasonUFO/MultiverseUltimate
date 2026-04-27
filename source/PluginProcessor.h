@@ -16,6 +16,7 @@
 #include "Sequencer/Sequencer.h"
 #include "Sequencer/ProSequencer.h"
 #include "Sequencer/Arpeggiator.h"
+#include "Sequencer/PatternEngine.h"
 
 class PluginProcessor : public juce::AudioProcessor
 {
@@ -60,6 +61,7 @@ public:
     Sequencer&      getSequencer()       { return sequencer; }
     ProSequencer&   getProSequencer()    { return proSequencer; }
     Arpeggiator&    getArpeggiator()     { return arpeggiator; }
+    PatternEngine&   getPatternEngine()    { return patternEngine; }
     SynthEngine&    getSynthEngine()     { return synthEngine; }
     DelayEffect&    getDelay()           { return delay; }
     ReverbEffect&   getReverb()          { return reverb; }
@@ -80,6 +82,7 @@ public:
     Sequencer         sequencer;
     ProSequencer      proSequencer;
     Arpeggiator       arpeggiator;
+    PatternEngine     patternEngine;
 
     // LFO base rates — not yet automated (no UI knobs)
     float baseLfoRates[4] = {1.0f, 1.0f, 1.0f, 1.0f};

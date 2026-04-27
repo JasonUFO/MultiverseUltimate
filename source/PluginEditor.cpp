@@ -7,6 +7,7 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       samplerPanel (p.getSamplerEngine()),
       sequencerPanel (p.getSequencer()),
       proSequencerPanel (p.getProSequencer()),
+      arpeggiatorPanel (p.getArpeggiator()),
       synthPanel (p),
       effectsPanel (p),
       tabs (juce::TabbedButtonBar::TabsAtTop)
@@ -28,7 +29,8 @@ void PluginEditor::setupTabs()
     tabs.addTab ("Sampler",    juce::Colours::darkgrey, &samplerPanel,          false);
     tabs.addTab ("Sequencer",  juce::Colours::darkgrey, &sequencerPanel,        false);
     tabs.addTab ("Pro Seq",    juce::Colours::darkgrey, &proSequencerPanel,     false);
-    tabs.addTab ("Effects",    juce::Colours::darkgrey, &effectsPanel,          false);
+    tabs.addTab ("Arp",       juce::Colours::darkgrey, &arpeggiatorPanel,        false);
+    tabs.addTab ("Effects",   juce::Colours::darkgrey, &effectsPanel,          false);
 }
 
 void PluginEditor::paint (juce::Graphics& g)
