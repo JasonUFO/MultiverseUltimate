@@ -43,10 +43,14 @@
         <FILE id="Ee0007" name="SamplerPanel.cpp"  compile="1" resource="0" file="source/Sampler/SamplerPanel.cpp"/>
       </GROUP>
       <GROUP id="GrpSeq" name="Sequencer">
-        <FILE id="Ff0001" name="Sequencer.h"        compile="0" resource="0" file="source/Sequencer/Sequencer.h"/>
-        <FILE id="Ff0002" name="Sequencer.cpp"      compile="1" resource="0" file="source/Sequencer/Sequencer.cpp"/>
-        <FILE id="Ff0003" name="SequencerPanel.h"   compile="0" resource="0" file="source/Sequencer/SequencerPanel.h"/>
-        <FILE id="Ff0004" name="SequencerPanel.cpp" compile="1" resource="0" file="source/Sequencer/SequencerPanel.cpp"/>
+        <FILE id="Ff0001" name="Sequencer.h"          compile="0" resource="0" file="source/Sequencer/Sequencer.h"/>
+        <FILE id="Ff0002" name="Sequencer.cpp"        compile="1" resource="0" file="source/Sequencer/Sequencer.cpp"/>
+        <FILE id="Ff0003" name="SequencerPanel.h"     compile="0" resource="0" file="source/Sequencer/SequencerPanel.h"/>
+        <FILE id="Ff0004" name="SequencerPanel.cpp"   compile="1" resource="0" file="source/Sequencer/SequencerPanel.cpp"/>
+        <FILE id="Ff0005" name="ProSequencer.h"          compile="0" resource="0" file="source/Sequencer/ProSequencer.h"/>
+        <FILE id="Ff0006" name="ProSequencer.cpp"        compile="1" resource="0" file="source/Sequencer/ProSequencer.cpp"/>
+        <FILE id="Ff0007" name="ProSequencerPanel.h"     compile="0" resource="0" file="source/Sequencer/ProSequencerPanel.h"/>
+        <FILE id="Ff0008" name="ProSequencerPanel.cpp"   compile="1" resource="0" file="source/Sequencer/ProSequencerPanel.cpp"/>
       </GROUP>
       <GROUP id="GrpSyn" name="Synth">
         <FILE id="Gg0001" name="SynthEngine.h"          compile="0" resource="0" file="source/Synth/SynthEngine.h"/>

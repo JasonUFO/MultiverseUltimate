@@ -7,6 +7,7 @@
 #include "Synth/SynthPanel.h"
 #include "Sampler/SamplerPanel.h"
 #include "Sequencer/SequencerPanel.h"
+#include "Sequencer/ProSequencerPanel.h"
 #include "Effects/EffectsPanel.h"
 
 class PluginEditor : public juce::AudioProcessorEditor
@@ -21,12 +22,13 @@ public:
 
  private:
     PluginProcessor& processorRef;
-    DrumSequencerPanel drumSequencerPanel;
+    DrumSequencerPanel    drumSequencerPanel;
     ModulationMatrixPanel modulationMatrixPanel;
-    SamplerPanel samplerPanel;
-    SequencerPanel sequencerPanel;
-    SynthPanel synthPanel;
-    EffectsPanel effectsPanel;
+    SamplerPanel          samplerPanel;
+    SequencerPanel        sequencerPanel;
+    ProSequencerPanel     proSequencerPanel;
+    SynthPanel            synthPanel;
+    EffectsPanel          effectsPanel;
     juce::TabbedComponent tabs;
 
     void setupTabs();

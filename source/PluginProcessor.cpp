@@ -146,18 +146,15 @@ void PluginProcessor::changeProgramName (int index, const juce::String& newName)
 void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     if (sampleRate <= 0.0 || sampleRate > 1000000.0)
-    {
         sampleRate = 44100.0;
-    }
     if (samplesPerBlock <= 0)
-    {
         samplesPerBlock = 512;
-    }
 
     synthEngine.prepare (sampleRate, samplesPerBlock);
     samplerEngine.prepare (sampleRate, samplesPerBlock);
     drumSequencer.prepare (sampleRate, samplesPerBlock);
     sequencer.prepare (sampleRate, drumSequencer.getBPM());
+    proSequencer.prepare (sampleRate, 120.0f);
     delay.prepare (sampleRate, samplesPerBlock);
     delay.reset();
     reverb.prepare (sampleRate, samplesPerBlock);
@@ -194,9 +191,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     juce::ScopedNoDenormals noDenormals;
 
     if (buffer.getNumSamples() <= 0 || buffer.getNumChannels() <= 0)
-    {
         return;
-    }
 
     buffer.clear();
 
@@ -211,7 +206,6 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     const float baseReverbDamp      = *apvts.getRawParameterValue("reverbDamp");
     const float baseReverbWet       = *apvts.getRawParameterValue("reverbWet");
 
-    // Apply envelope and reverb damping once per block
     synthEngine.setEnvelopeParams(
         *apvts.getRawParameterValue("attack"),
         *apvts.getRawParameterValue("decay"),
@@ -220,15 +214,15 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     );
     reverb.setDamping(baseReverbDamp);
 
-    bool dawPlaying = false;
-    double dawBPM = 120.0;
-    double dawPpqPos = -1.0;
+    bool   dawPlaying = false;
+    double dawBPM     = 120.0;
+    double dawPpqPos  = -1.0;
 
     if (auto* playHead = getPlayHead())
     {
         if (auto pos = playHead->getPosition())
         {
-            dawBPM = pos->getBpm().orFallback(120.0);
+            dawBPM    = pos->getBpm().orFallback(120.0);
             dawPlaying = pos->getIsPlaying();
             if (auto ppqOpt = pos->getPpqPosition())
                 dawPpqPos = *ppqOpt;
@@ -237,28 +231,30 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     if (dawPlaying)
     {
-        drumSequencer.setBPM(static_cast<float>(dawBPM));
-        sequencer.setBPM(static_cast<float>(dawBPM));
+        drumSequencer.setBPM (static_cast<float> (dawBPM));
+        sequencer.setBPM     (static_cast<float> (dawBPM));
+        proSequencer.setBPM  (static_cast<float> (dawBPM));
 
-        if (!drumSequencer.isPlaying())
-            drumSequencer.start();
-        if (!sequencer.isPlaying())
-            sequencer.start();
+        if (!drumSequencer.isPlaying()) drumSequencer.start();
+        if (!sequencer.isPlaying())     sequencer.start();
+        if (!proSequencer.isPlaying())  proSequencer.start();
 
         if (dawPpqPos >= 0.0)
         {
             const double ppqStepPos = dawPpqPos * 4.0;
-            drumSequencer.syncToDAWPosition(ppqStepPos);
-            sequencer.syncToDAWPosition(ppqStepPos);
+            drumSequencer.syncToDAWPosition (ppqStepPos);
+            sequencer.syncToDAWPosition     (ppqStepPos);
+            proSequencer.syncToDAWPosition  (ppqStepPos);
         }
     }
     else
     {
-        if (sequencer.isPlaying())
+        if (sequencer.isPlaying() || proSequencer.isPlaying())
         {
             synthEngine.allNotesOff();
             samplerEngine.allNotesOff();
             sequencer.stop();
+            proSequencer.stop();
         }
         if (drumSequencer.isPlaying())
             drumSequencer.stop();
@@ -266,17 +262,29 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     dawWasPlaying = dawPlaying;
 
-    drumSequencer.process (buffer, buffer.getNumSamples());
-    sequencer.process (midiMessages, buffer.getNumSamples());
+    const int numSamples = buffer.getNumSamples();
 
+    // Generate audio from drum sequencer
+    drumSequencer.process (buffer, numSamples);
+
+    // Generate MIDI from both melodic sequencers and merge into the main buffer
+    sequencer.process (midiMessages, numSamples);
+
+    {
+        juce::MidiBuffer proMidi;
+        proSequencer.process (proMidi, numSamples);
+        midiMessages.addEvents (proMidi, 0, numSamples, 0);
+    }
+
+    // Process all MIDI (keyboard input + sequencer output)
     for (const auto metadata : midiMessages)
     {
         auto message = metadata.getMessage();
 
         if (message.isNoteOn())
         {
-            int note = message.getNoteNumber();
-            float vel = message.getVelocity() / 127.0f;
+            int   note = message.getNoteNumber();
+            float vel  = message.getVelocity() / 127.0f;
             sustainedNoteHeld[note] = false;
             synthEngine.noteOn (note, vel);
             samplerEngine.noteOn (note, vel);
@@ -296,7 +304,6 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         }
         else if (message.isPitchWheel())
         {
-            // MIDI pitch wheel: 0–16383, center = 8192; map to ±2 semitones
             basePitchBend = ((message.getPitchWheelValue() - 8192) / 8192.0f) * 2.0f;
         }
         else if (message.isController())
@@ -335,10 +342,9 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         }
     }
 
-    const int numSamples = buffer.getNumSamples();
     const int numChannels = buffer.getNumChannels();
 
-    // Read LFO base rates once per block (atomic loads, safe on audio thread)
+    // Read LFO base rates once per block
     const float lfoBaseRates[4] = {
         *apvts.getRawParameterValue("lfo1Rate"),
         *apvts.getRawParameterValue("lfo2Rate"),
@@ -346,7 +352,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         *apvts.getRawParameterValue("lfo4Rate"),
     };
 
-    // Per-block modulation: effect params applied here to avoid per-sample coefficient recalculation
+    // Per-block effect parameter modulation
     {
         float preSums[MAX_MOD_TARGETS] = {};
         modulationMatrix.computeModulationSums(preSums);
@@ -362,17 +368,15 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     for (int i = 0; i < numSamples; ++i)
     {
-        // 1. Compute modulation sums from current source values
         modulationMatrix.computeModulationSums(modSums);
 
         {
             float waveIdx = static_cast<float>(baseWaveform)
-                        + modSums[static_cast<int>(ModTargetType::OscillatorWaveform)];
+                          + modSums[static_cast<int>(ModTargetType::OscillatorWaveform)];
             synthEngine.setWaveform(static_cast<WaveformType>(
                 static_cast<int>(juce::jlimit(0.0f, 4.0f, waveIdx))));
         }
 
-        // 2. Apply modulation to LFO rates
         for (int lfo = 0; lfo < 4; ++lfo)
         {
             ModTargetType lfoRateTarget = static_cast<ModTargetType>(static_cast<int>(ModTargetType::LFO1Rate) + lfo);
@@ -380,32 +384,26 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             modulationMatrix.setLFORate(lfo, juce::jlimit(0.01f, 100.0f, newRate));
         }
 
-        // 3. Compute and apply filter modulation
-        float effCutoff = baseFilterCutoff + modSums[static_cast<int>(ModTargetType::FilterCutoff)];
-        effCutoff = juce::jlimit(20.0f, 20000.0f, effCutoff);
-        float effRes = baseFilterResonance + modSums[static_cast<int>(ModTargetType::FilterResonance)];
-        effRes = juce::jlimit(0.1f, 10.0f, effRes);
+        float effCutoff = juce::jlimit(20.0f, 20000.0f,
+            baseFilterCutoff + modSums[static_cast<int>(ModTargetType::FilterCutoff)]);
+        float effRes = juce::jlimit(0.1f, 10.0f,
+            baseFilterResonance + modSums[static_cast<int>(ModTargetType::FilterResonance)]);
         synthEngine.setFilterParams(effCutoff, effRes);
 
-        // 4. Compute and apply volume modulation
-        float effVol = masterVolume + modSums[static_cast<int>(ModTargetType::AmpVolume)];
-        effVol = juce::jlimit(0.0f, 1.0f, effVol);
-        // OscillatorLevel modulates synth oscillator gain independently of sampler
-        float effSynthVol = juce::jlimit(0.0f, 1.0f, effVol + modSums[static_cast<int>(ModTargetType::OscillatorLevel)]);
+        float effVol = juce::jlimit(0.0f, 1.0f,
+            masterVolume + modSums[static_cast<int>(ModTargetType::AmpVolume)]);
+        float effSynthVol = juce::jlimit(0.0f, 1.0f,
+            effVol + modSums[static_cast<int>(ModTargetType::OscillatorLevel)]);
         synthEngine.setMasterVolume(effSynthVol);
         samplerEngine.setMasterVolume(effVol);
 
-        // 5. OscillatorPitch modulation (semitone offset added to MIDI pitch wheel base)
         synthEngine.setPitchBend(basePitchBend + modSums[static_cast<int>(ModTargetType::OscillatorPitch)]);
 
-        // 6. AmpPan modulation: [-1, 1] — negative = left, positive = right
         const float pan = juce::jlimit(-1.0f, 1.0f, modSums[static_cast<int>(ModTargetType::AmpPan)]);
 
-        // 7. Process synth and sampler (mono)
-        float synthOut = synthEngine.process();
+        float synthOut   = synthEngine.process();
         float samplerOut = samplerEngine.process();
 
-        // 8. Mix per channel with drums, apply effects and pan
         for (int ch = 0; ch < numChannels; ++ch)
         {
             const float drumOut = buffer.getReadPointer(ch)[i];
@@ -417,7 +415,6 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             buffer.getWritePointer(ch)[i] = mixed * panGain;
         }
 
-        // 9. Advance LFOs for next sample
         modulationMatrix.advanceLFOs();
     }
 }
@@ -438,10 +435,8 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     juce::ValueTree root("Multiverse");
 
-    // All APVTS parameters (masterVolume, ADSR, filter, delay, reverb)
     root.appendChild(apvts.copyState(), nullptr);
 
-    // Non-APVTS synth params: mode, waveform, FM algorithm + operators, LFO rates
     juce::ValueTree synthParams("SynthParams");
     synthParams.setProperty("waveform",    static_cast<int>(synthEngine.getWaveform()),  nullptr);
     synthParams.setProperty("synthMode",   static_cast<int>(synthEngine.getSynthMode()), nullptr);
@@ -463,15 +458,14 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     }
     root.appendChild(synthParams, nullptr);
 
-    // Reverb dry level has no UI and is not automated — preserve current value
     juce::ValueTree reverbExtra("ReverbExtra");
     reverbExtra.setProperty("dry", reverb.getDryLevel(), nullptr);
     root.appendChild(reverbExtra, nullptr);
 
-    // Subsystem states
     root.appendChild(drumSequencer.getState(), nullptr);
     root.appendChild(modulationMatrix.getState(), nullptr);
     root.appendChild(sequencer.getState(), nullptr);
+    root.appendChild(proSequencer.getState(), nullptr);
     root.appendChild(samplerEngine.getState(), nullptr);
 
     auto xml = root.createXml();
@@ -492,12 +486,11 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 
     juce::ValueTree root = juce::ValueTree::fromXml(*xml);
 
-    // Restore APVTS parameters one-by-one so each change is recorded in undo history
     {
         auto apvtsState = apvts.state;
         auto savedState = root.getChildWithName("APVTSState");
         const int numParams = apvtsState.getNumChildren();
-        const int numSaved = savedState.getNumChildren();
+        const int numSaved  = savedState.getNumChildren();
         for (int i = 0; i < numParams; ++i)
         {
             auto paramId = apvtsState.getChild(i).getProperty("id").toString();
@@ -514,7 +507,6 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
         }
     }
 
-    // Restore non-APVTS synth params
     auto synthParams = root.getChildWithName("SynthParams");
     if (synthParams.isValid())
     {
@@ -542,12 +534,10 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
         }
     }
 
-    // Reverb dry level
     auto reverbExtra = root.getChildWithName("ReverbExtra");
     if (reverbExtra.isValid() && reverbExtra.hasProperty("dry"))
         reverb.setDryLevel((float)reverbExtra.getProperty("dry"));
 
-    // Subsystems
     auto drumNode = root.getChildWithName("DrumSequencer");
     if (drumNode.isValid())
         drumSequencer.setState(drumNode);
@@ -559,6 +549,10 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     auto seqNode = root.getChildWithName("Sequencer");
     if (seqNode.isValid())
         sequencer.setState(seqNode);
+
+    auto proSeqNode = root.getChildWithName("ProSequencer");
+    if (proSeqNode.isValid())
+        proSequencer.setState(proSeqNode);
 
     auto samplerNode = root.getChildWithName("SamplerEngine");
     if (samplerNode.isValid())

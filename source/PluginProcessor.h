@@ -14,6 +14,7 @@
 #include "DrumSequencer/DrumSequencer.h"
 #include "Synth/ModulationMatrix.h"
 #include "Sequencer/Sequencer.h"
+#include "Sequencer/ProSequencer.h"
 
 class PluginProcessor : public juce::AudioProcessor
 {
@@ -52,28 +53,30 @@ public:
     // Public so panels can attach sliders/buttons directly
     juce::AudioProcessorValueTreeState apvts;
 
-    DrumSequencer& getDrumSequencer() { return drumSequencer; }
+    DrumSequencer&  getDrumSequencer()   { return drumSequencer; }
     ModulationMatrix& getModulationMatrix() { return modulationMatrix; }
-    SamplerEngine& getSamplerEngine() { return samplerEngine; }
-    Sequencer& getSequencer() { return sequencer; }
-    SynthEngine& getSynthEngine() { return synthEngine; }
-    DelayEffect& getDelay() { return delay; }
-    ReverbEffect& getReverb() { return reverb; }
-    PresetManager& getPresetManager() { return presetManager; }
+    SamplerEngine&  getSamplerEngine()   { return samplerEngine; }
+    Sequencer&      getSequencer()       { return sequencer; }
+    ProSequencer&   getProSequencer()    { return proSequencer; }
+    SynthEngine&    getSynthEngine()     { return synthEngine; }
+    DelayEffect&    getDelay()           { return delay; }
+    ReverbEffect&   getReverb()          { return reverb; }
+    PresetManager&  getPresetManager()   { return presetManager; }
 
-    void saveNamedPreset(const juce::String& name);
-    bool loadPresetAtIndex(int index);
+    void saveNamedPreset (const juce::String& name);
+    bool loadPresetAtIndex (int index);
 
 public:
     WaveformType baseWaveform = WaveformType::Saw;
-    SynthEngine synthEngine;
-    SamplerEngine samplerEngine;
-    DelayEffect delay;
-    ReverbEffect reverb;
-    PresetManager presetManager;
-    DrumSequencer drumSequencer;
-    ModulationMatrix modulationMatrix;
-    Sequencer sequencer;
+    SynthEngine       synthEngine;
+    SamplerEngine     samplerEngine;
+    DelayEffect       delay;
+    ReverbEffect      reverb;
+    PresetManager     presetManager;
+    DrumSequencer     drumSequencer;
+    ModulationMatrix  modulationMatrix;
+    Sequencer         sequencer;
+    ProSequencer      proSequencer;
 
     // LFO base rates — not yet automated (no UI knobs)
     float baseLfoRates[4] = {1.0f, 1.0f, 1.0f, 1.0f};
