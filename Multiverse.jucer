@@ -51,6 +51,8 @@
         <FILE id="Ff0006" name="ProSequencer.cpp"        compile="1" resource="0" file="source/Sequencer/ProSequencer.cpp"/>
         <FILE id="Ff0007" name="ProSequencerPanel.h"     compile="0" resource="0" file="source/Sequencer/ProSequencerPanel.h"/>
         <FILE id="Ff0008" name="ProSequencerPanel.cpp"   compile="1" resource="0" file="source/Sequencer/ProSequencerPanel.cpp"/>
+        <FILE id="Ff0009" name="Arpeggiator.h"           compile="0" resource="0" file="source/Sequencer/Arpeggiator.h"/>
+        <FILE id="Ff0010" name="Arpeggiator.cpp"         compile="1" resource="0" file="source/Sequencer/Arpeggiator.cpp"/>
       </GROUP>
       <GROUP id="GrpSyn" name="Synth">
         <FILE id="Gg0001" name="SynthEngine.h"          compile="0" resource="0" file="source/Synth/SynthEngine.h"/>

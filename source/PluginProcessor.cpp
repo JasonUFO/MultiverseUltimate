@@ -155,6 +155,7 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     drumSequencer.prepare (sampleRate, samplesPerBlock);
     sequencer.prepare (sampleRate, drumSequencer.getBPM());
     proSequencer.prepare (sampleRate, 120.0f);
+    arpeggiator.prepare  (sampleRate, 120.0f);
     delay.prepare (sampleRate, samplesPerBlock);
     delay.reset();
     reverb.prepare (sampleRate, samplesPerBlock);
@@ -234,10 +235,12 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         drumSequencer.setBPM (static_cast<float> (dawBPM));
         sequencer.setBPM     (static_cast<float> (dawBPM));
         proSequencer.setBPM  (static_cast<float> (dawBPM));
+        arpeggiator.setBPM   (static_cast<float> (dawBPM));
 
         if (!drumSequencer.isPlaying()) drumSequencer.start();
         if (!sequencer.isPlaying())     sequencer.start();
         if (!proSequencer.isPlaying())  proSequencer.start();
+        if (!arpeggiator.isPlaying())   arpeggiator.start();
 
         if (dawPpqPos >= 0.0)
         {
@@ -245,6 +248,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             drumSequencer.syncToDAWPosition (ppqStepPos);
             sequencer.syncToDAWPosition     (ppqStepPos);
             proSequencer.syncToDAWPosition  (ppqStepPos);
+            arpeggiator.syncToDAWPosition   (ppqStepPos);
         }
     }
     else
@@ -256,6 +260,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             sequencer.stop();
             proSequencer.stop();
         }
+        if (arpeggiator.isPlaying())
+            arpeggiator.stop();
         if (drumSequencer.isPlaying())
             drumSequencer.stop();
     }
@@ -263,6 +269,30 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     dawWasPlaying = dawPlaying;
 
     const int numSamples = buffer.getNumSamples();
+
+    // Arpeggiator: capture keyboard NoteOn/Off before sequencer output is added,
+    // then remove them from the main buffer so the synth doesn't double-trigger.
+    juce::MidiBuffer arpMidi;
+    if (arpeggiator.isEnabled())
+    {
+        for (const auto md : midiMessages)
+        {
+            auto msg = md.getMessage();
+            if (msg.isNoteOn())  arpeggiator.noteOn  (msg.getNoteNumber());
+            if (msg.isNoteOff()) arpeggiator.noteOff (msg.getNoteNumber());
+        }
+
+        // Rebuild midiMessages without keyboard NoteOn/Off (arp owns them)
+        juce::MidiBuffer filtered;
+        for (const auto md : midiMessages)
+        {
+            auto msg = md.getMessage();
+            if (!msg.isNoteOn() && !msg.isNoteOff())
+                filtered.addEvent (msg, md.samplePosition);
+        }
+        midiMessages.clear();
+        midiMessages.addEvents (filtered, 0, numSamples, 0);
+    }
 
     // Generate audio from drum sequencer
     drumSequencer.process (buffer, numSamples);
@@ -275,6 +305,10 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         proSequencer.process (proMidi, numSamples);
         midiMessages.addEvents (proMidi, 0, numSamples, 0);
     }
+
+    // Run arpeggiator; its output is routed to the synth after the main MIDI loop
+    if (arpeggiator.isEnabled() && arpeggiator.isPlaying())
+        arpeggiator.process (arpMidi, numSamples);
 
     // Process all MIDI (keyboard input + sequencer output)
     for (const auto metadata : midiMessages)
@@ -339,6 +373,22 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                     sustainedNoteHeld[n] = false;
                 sustainPedalDown = false;
             }
+        }
+    }
+
+    // Route arpeggiator NoteOn/Off directly to synth engines
+    for (const auto md : arpMidi)
+    {
+        auto msg = md.getMessage();
+        if (msg.isNoteOn())
+        {
+            synthEngine.noteOn  (msg.getNoteNumber(), msg.getVelocity() / 127.0f);
+            samplerEngine.noteOn (msg.getNoteNumber(), msg.getVelocity() / 127.0f);
+        }
+        else if (msg.isNoteOff())
+        {
+            synthEngine.noteOff  (msg.getNoteNumber());
+            samplerEngine.noteOff (msg.getNoteNumber());
         }
     }
 
@@ -466,6 +516,7 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     root.appendChild(modulationMatrix.getState(), nullptr);
     root.appendChild(sequencer.getState(), nullptr);
     root.appendChild(proSequencer.getState(), nullptr);
+    root.appendChild(arpeggiator.getState(),  nullptr);
     root.appendChild(samplerEngine.getState(), nullptr);
 
     auto xml = root.createXml();
@@ -553,6 +604,10 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     auto proSeqNode = root.getChildWithName("ProSequencer");
     if (proSeqNode.isValid())
         proSequencer.setState(proSeqNode);
+
+    auto arpNode = root.getChildWithName("Arpeggiator");
+    if (arpNode.isValid())
+        arpeggiator.setState(arpNode);
 
     auto samplerNode = root.getChildWithName("SamplerEngine");
     if (samplerNode.isValid())

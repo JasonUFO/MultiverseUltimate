@@ -9,6 +9,7 @@
 - ProSequencer engine: 4 lanes × 32 steps, per-step active/note/velocity/gate/probability/ratchet, Forward/Reverse/Random play modes, DAW-synced, state persistence
 - ProSequencerPanel UI: lane selector, play mode toggles, 2-row 32-step grid with playhead, per-step editor (note picker, velocity/gate/probability sliders, ratchet), wired into editor as "Pro Seq" tab
 - Groove Engine: global swing (setSwingAmount 0–1), per-step microTiming (−1 to +1), timeline-based scheduling replacing count-down counter, per-lane independence, no drift, state persistence
+- Arpeggiator.h/cpp added to Projucer and project rebuilt
 
 ## In Progress
 - None
@@ -17,4 +18,4 @@
 - None
 
 ## Next Step
-Expose Groove Engine in ProSequencerPanel UI: add a global swing knob (calls setSwingAmount) and a microTiming slider in the per-step editor (calls setStepMicroTiming). Test with swingAmount=0.5, kick on steps 0/4/8/12 — should shuffle audibly.
+Add ArpeggiatorPanel UI: mode selector (Up/Down/UpDown/Random/Chord), numSteps knob, enable toggle, and per-step editor (noteOffset/octave/velocity/gate/tie). Wire enable toggle to arpeggiator.setEnabled(). Add as "Arp" tab in PluginEditor.
