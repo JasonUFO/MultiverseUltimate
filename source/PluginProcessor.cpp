@@ -476,48 +476,51 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     }
 
     float modSums[MAX_MOD_TARGETS];
+    modulationMatrix.computeModulationSums(modSums);
+
+    float waveIdx = static_cast<float>(baseWaveform)
+                  + modSums[static_cast<int>(ModTargetType::OscillatorWaveform)];
+    synthEngine.setWaveform(static_cast<WaveformType>(
+        static_cast<int>(juce::jlimit(0.0f, 4.0f, waveIdx))));
+
+    for (int lfo = 0; lfo < 4; ++lfo)
+    {
+        ModTargetType lfoRateTarget = static_cast<ModTargetType>(static_cast<int>(ModTargetType::LFO1Rate) + lfo);
+        float newRate = lfoBaseRates[lfo] + modSums[static_cast<int>(lfoRateTarget)];
+        modulationMatrix.setLFORate(lfo, juce::jlimit(0.01f, 100.0f, newRate));
+    }
+
+    float effCutoff = juce::jlimit(20.0f, 20000.0f,
+        baseFilterCutoff + modSums[static_cast<int>(ModTargetType::FilterCutoff)]);
+    float effRes = juce::jlimit(0.1f, 10.0f,
+        baseFilterResonance + modSums[static_cast<int>(ModTargetType::FilterResonance)]);
+    synthEngine.setFilterParams(effCutoff, effRes);
+
+    float effVol = juce::jlimit(0.0f, 1.0f,
+        masterVolume + modSums[static_cast<int>(ModTargetType::AmpVolume)]);
+    float effSynthVol = juce::jlimit(0.0f, 1.0f,
+        effVol + modSums[static_cast<int>(ModTargetType::OscillatorLevel)]);
+    synthEngine.setMasterVolume(effSynthVol);
+    samplerEngine.setMasterVolume(effVol);
+
+    synthEngine.setPitchBend(basePitchBend + modSums[static_cast<int>(ModTargetType::OscillatorPitch)]);
+
+    const float pan = juce::jlimit(-1.0f, 1.0f, modSums[static_cast<int>(ModTargetType::AmpPan)]);
+
+    juce::AudioBuffer<float> synthBuffer(2, numSamples);
+    juce::AudioBuffer<float> samplerBuffer(2, numSamples);
+    synthBuffer.clear();
+    samplerBuffer.clear();
+    synthEngine.processBuffer(synthBuffer, numSamples);
+    samplerEngine.processBuffer(samplerBuffer, numSamples);
 
     for (int i = 0; i < numSamples; ++i)
     {
-        modulationMatrix.computeModulationSums(modSums);
-
-        {
-            float waveIdx = static_cast<float>(baseWaveform)
-                          + modSums[static_cast<int>(ModTargetType::OscillatorWaveform)];
-            synthEngine.setWaveform(static_cast<WaveformType>(
-                static_cast<int>(juce::jlimit(0.0f, 4.0f, waveIdx))));
-        }
-
-        for (int lfo = 0; lfo < 4; ++lfo)
-        {
-            ModTargetType lfoRateTarget = static_cast<ModTargetType>(static_cast<int>(ModTargetType::LFO1Rate) + lfo);
-            float newRate = lfoBaseRates[lfo] + modSums[static_cast<int>(lfoRateTarget)];
-            modulationMatrix.setLFORate(lfo, juce::jlimit(0.01f, 100.0f, newRate));
-        }
-
-        float effCutoff = juce::jlimit(20.0f, 20000.0f,
-            baseFilterCutoff + modSums[static_cast<int>(ModTargetType::FilterCutoff)]);
-        float effRes = juce::jlimit(0.1f, 10.0f,
-            baseFilterResonance + modSums[static_cast<int>(ModTargetType::FilterResonance)]);
-        synthEngine.setFilterParams(effCutoff, effRes);
-
-        float effVol = juce::jlimit(0.0f, 1.0f,
-            masterVolume + modSums[static_cast<int>(ModTargetType::AmpVolume)]);
-        float effSynthVol = juce::jlimit(0.0f, 1.0f,
-            effVol + modSums[static_cast<int>(ModTargetType::OscillatorLevel)]);
-        synthEngine.setMasterVolume(effSynthVol);
-        samplerEngine.setMasterVolume(effVol);
-
-        synthEngine.setPitchBend(basePitchBend + modSums[static_cast<int>(ModTargetType::OscillatorPitch)]);
-
-        const float pan = juce::jlimit(-1.0f, 1.0f, modSums[static_cast<int>(ModTargetType::AmpPan)]);
-
-        float synthOut   = synthEngine.process();
-        float samplerOut = samplerEngine.process();
-
         for (int ch = 0; ch < numChannels; ++ch)
         {
             const float drumOut = buffer.getReadPointer(ch)[i];
+            const float synthOut = synthBuffer.getReadPointer(ch)[i];
+            const float samplerOut = samplerBuffer.getReadPointer(ch)[i];
             float mixed = drumOut + synthOut + samplerOut;
             mixed = delay.process(mixed);
             mixed = reverb.process(mixed);
@@ -526,7 +529,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             buffer.getWritePointer(ch)[i] = mixed * panGain;
         }
 
-        modulationMatrix.advanceLFOs();
+        if (i == numSamples - 1 || (i % 128 == 0))
+            modulationMatrix.advanceLFOs();
     }
 }
 

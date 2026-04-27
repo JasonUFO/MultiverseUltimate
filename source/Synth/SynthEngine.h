@@ -1,6 +1,7 @@
 #pragma once
 #include "Voice.h"
 #include "FMVoice.h"
+#include <JuceHeader.h>
 #include <array>
 
 constexpr int MAX_VOICES = 16;
@@ -45,7 +46,11 @@ public:
                              float sustain,
                              float release);
 
+    // Process single sample (for backward compatibility)
     float process();
+
+    // Process buffer for efficiency - returns output sample count
+    int processBuffer(juce::AudioBuffer<float>& buffer, int numSamples);
 
     int getActiveVoiceCount() const;
 

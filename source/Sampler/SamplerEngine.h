@@ -26,6 +26,8 @@ public:
 
     float process();
 
+    int processBuffer(juce::AudioBuffer<float>& buffer, int numSamples);
+
 private:
     struct VoiceInfo
     {

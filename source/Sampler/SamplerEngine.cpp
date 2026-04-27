@@ -121,6 +121,52 @@ float SamplerEngine::process()
     return output * masterVolume;
 }
 
+int SamplerEngine::processBuffer(juce::AudioBuffer<float>& buffer, int numSamples)
+{
+    int activeCount = 0;
+    auto* left = buffer.getWritePointer(0);
+    auto* right = buffer.getWritePointer(1);
+
+    for (auto& vi : voices)
+    {
+        if (!vi.inUse) continue;
+
+        if (vi.voice.isActive())
+        {
+            for (int i = 0; i < numSamples; ++i)
+            {
+                float s = vi.voice.process();
+                left[i] += s;
+                right[i] += s;
+            }
+            ++activeCount;
+        }
+        else
+        {
+            vi.inUse = false;
+        }
+    }
+
+    if (activeCount > 1)
+    {
+        float scale = 1.0f / static_cast<float>(activeCount);
+        for (int i = 0; i < numSamples; ++i)
+        {
+            left[i] *= scale;
+            right[i] *= scale;
+        }
+    }
+
+    float vol = masterVolume;
+    for (int i = 0; i < numSamples; ++i)
+    {
+        left[i] *= vol;
+        right[i] *= vol;
+    }
+
+    return activeCount;
+}
+
 juce::ValueTree SamplerEngine::getState() const
 {
     juce::ValueTree state ("SamplerEngine");
