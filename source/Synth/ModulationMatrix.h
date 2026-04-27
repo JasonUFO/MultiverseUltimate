@@ -76,8 +76,8 @@ public:
     void setLFORate(int lfoIndex, float rateHz);
     float getLFORate(int lfoIndex) const;
 
-    // Advance all LFOs by one sample and update sourceValues; call per audio sample
-    void advanceLFOs();
+    // Advance all LFOs by given number of samples and update sourceValues
+    void advanceLFOs(int numSamples = 1);
 
     // Compute modulation sums for all targets based on current source values
     // outSums must point to array of size at least MAX_MOD_TARGETS

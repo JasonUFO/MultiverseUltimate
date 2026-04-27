@@ -617,10 +617,9 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                                             : (1.0f + juce::jmin(0.0f, pan));
             buffer.getWritePointer(ch)[i] = mixed * panGain;
         }
-
-        if (i == numSamples - 1 || (i % 128 == 0))
-            modulationMatrix.advanceLFOs();
     }
+
+    modulationMatrix.advanceLFOs(numSamples);
 }
 
 //==============================================================================

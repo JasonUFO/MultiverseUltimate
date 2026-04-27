@@ -182,34 +182,39 @@ float ModulationMatrix::getLFORate(int lfoIndex) const
     return 1.0f;
 }
 
-void ModulationMatrix::advanceLFOs()
+void ModulationMatrix::advanceLFOs(int numSamples)
 {
     constexpr double twoPi = 6.283185307179586;
     double sr = sampleRate > 0 ? sampleRate : 44100.0;
+    float deltaPhase = static_cast<float>(twoPi * numSamples / sr);
 
-    float currPhase1 = lfo1Phase.load(std::memory_order_relaxed);
-    float val = static_cast<float>(std::sin(currPhase1));
-    sourceValues[static_cast<int>(ModSourceType::LFO1)].value.store(val, std::memory_order_relaxed);
-    float newPhase1 = currPhase1 + static_cast<float>(twoPi * lfo1Rate / sr);
-    lfo1Phase.store(newPhase1 >= twoPi ? newPhase1 - twoPi : newPhase1, std::memory_order_relaxed);
+    // LFO1
+    float p1 = lfo1Phase.load(std::memory_order_relaxed);
+    p1 += deltaPhase * lfo1Rate;
+    if (p1 >= twoPi) p1 -= twoPi;
+    lfo1Phase.store(p1, std::memory_order_relaxed);
+    sourceValues[static_cast<int>(ModSourceType::LFO1)].value.store(static_cast<float>(std::sin(p1)), std::memory_order_relaxed);
 
-    float currPhase2 = lfo2Phase.load(std::memory_order_relaxed);
-    val = static_cast<float>(std::sin(currPhase2));
-    sourceValues[static_cast<int>(ModSourceType::LFO2)].value.store(val, std::memory_order_relaxed);
-    float newPhase2 = currPhase2 + static_cast<float>(twoPi * lfo2Rate / sr);
-    lfo2Phase.store(newPhase2 >= twoPi ? newPhase2 - twoPi : newPhase2, std::memory_order_relaxed);
+    // LFO2
+    float p2 = lfo2Phase.load(std::memory_order_relaxed);
+    p2 += deltaPhase * lfo2Rate;
+    if (p2 >= twoPi) p2 -= twoPi;
+    lfo2Phase.store(p2, std::memory_order_relaxed);
+    sourceValues[static_cast<int>(ModSourceType::LFO2)].value.store(static_cast<float>(std::sin(p2)), std::memory_order_relaxed);
 
-    float currPhase3 = lfo3Phase.load(std::memory_order_relaxed);
-    val = static_cast<float>(std::sin(currPhase3));
-    sourceValues[static_cast<int>(ModSourceType::LFO3)].value.store(val, std::memory_order_relaxed);
-    float newPhase3 = currPhase3 + static_cast<float>(twoPi * lfo3Rate / sr);
-    lfo3Phase.store(newPhase3 >= twoPi ? newPhase3 - twoPi : newPhase3, std::memory_order_relaxed);
+    // LFO3
+    float p3 = lfo3Phase.load(std::memory_order_relaxed);
+    p3 += deltaPhase * lfo3Rate;
+    if (p3 >= twoPi) p3 -= twoPi;
+    lfo3Phase.store(p3, std::memory_order_relaxed);
+    sourceValues[static_cast<int>(ModSourceType::LFO3)].value.store(static_cast<float>(std::sin(p3)), std::memory_order_relaxed);
 
-    float currPhase4 = lfo4Phase.load(std::memory_order_relaxed);
-    val = static_cast<float>(std::sin(currPhase4));
-    sourceValues[static_cast<int>(ModSourceType::LFO4)].value.store(val, std::memory_order_relaxed);
-    float newPhase4 = currPhase4 + static_cast<float>(twoPi * lfo4Rate / sr);
-    lfo4Phase.store(newPhase4 >= twoPi ? newPhase4 - twoPi : newPhase4, std::memory_order_relaxed);
+    // LFO4
+    float p4 = lfo4Phase.load(std::memory_order_relaxed);
+    p4 += deltaPhase * lfo4Rate;
+    if (p4 >= twoPi) p4 -= twoPi;
+    lfo4Phase.store(p4, std::memory_order_relaxed);
+    sourceValues[static_cast<int>(ModSourceType::LFO4)].value.store(static_cast<float>(std::sin(p4)), std::memory_order_relaxed);
 }
 
 void ModulationMatrix::computeModulationSums(float* outSums) const
