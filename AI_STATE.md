@@ -48,11 +48,20 @@
 - None
 
 ## Next Step
-- Perform final regression testing across DAW environments
+- Build preset browser UI (Phase 5.1)
 
-## Session Update 2026-04-29
+## Session Update 2026-04-30
 ## Completed
-- Phase 4.2 ModulationMatrixPanel MIDI Learn: constructor now takes PluginProcessor&, amountSlider → MidiLearnSlider (no init() since modulation amounts are not APVTS params — safe, just no badge)
-- Phase 4.3 SamplerPanel MIDI Learn: added samplerVolume (0–2) and samplerPan (-1–1) APVTS params; applied in processBlock; SamplerPanel now takes PluginProcessor&, two MidiLearnSliders with full init() + APVTS attachments; Vol/Pan rows added to layout
+- Fixed MIDI learn silent cancellation: handleMidiForLearn no longer calls stopMidiLearn() on note/clock/sysex messages — only ignores them. Previously any note-on or MIDI clock would silently cancel the learn while the UI still showed "Waiting for CC..."
+- Set up launchd auto-backup agent (every 30 min): ~/Library/LaunchAgents/com.multiphaseaudio.backup.plist + ~/Library/Scripts/multiverse-backup.sh
 ## In Progress
+- None
 ## Broken
+- None
+
+## Phase 5.1 — Preset Browser (NEXT)
+- PresetManager class already exists in PluginProcessor (XML serialisation)
+- Need: preset browser UI panel (save/load/rename presets by name)
+- Add a "Presets" button or strip to the PluginEditor header
+- Presets should persist via getStateInformation/setStateInformation (APVTS already wired)
+- Start with: save current state as named preset, list saved presets, load selected preset
