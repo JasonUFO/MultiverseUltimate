@@ -72,8 +72,8 @@ void ModulationMatrixPanel::Row::resized()
 
 // ─── Panel ──────────────────────────────────────────────────────────────────
 
-ModulationMatrixPanel::ModulationMatrixPanel(ModulationMatrix& m)
-    : matrix(m)
+ModulationMatrixPanel::ModulationMatrixPanel(PluginProcessor& p, ModulationMatrix& m)
+    : processorRef(p), matrix(m)
 {
     titleLabel.setText("Modulation Matrix", juce::dontSendNotification);
     titleLabel.setFont(juce::Font(16.0f, juce::Font::bold));

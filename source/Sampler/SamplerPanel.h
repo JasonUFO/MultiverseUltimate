@@ -1,14 +1,17 @@
 #pragma once
 #include "SamplerEngine.h"
+#include "../MidiLearnSlider.h"
 #include <JuceHeader.h>
 #include <vector>
 #include <memory>
+
+class PluginProcessor;
 
 class SamplerPanel : public juce::Component,
                      public juce::FileDragAndDropTarget
 {
 public:
-    explicit SamplerPanel (SamplerEngine& engine);
+    explicit SamplerPanel (PluginProcessor& p, SamplerEngine& engine);
     ~SamplerPanel() override;
 
     void paint (juce::Graphics& g) override;
@@ -62,6 +65,14 @@ private:
     juce::Label xfadeLabel     { {}, "Xfade:" };
     juce::Slider xfadeSlider;
 
+    juce::Label        samplerVolumeLabel { {}, "Vol:" };
+    MidiLearnSlider    samplerVolumeSlider;
+    juce::Label        samplerPanLabel    { {}, "Pan:" };
+    MidiLearnSlider    samplerPanSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> samplerVolumeAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> samplerPanAttach;
+
+    PluginProcessor& processorRef;
     bool isDragOver = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SamplerPanel)

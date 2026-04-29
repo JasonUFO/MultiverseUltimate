@@ -48,11 +48,11 @@
 - None
 
 ## Next Step
-- Adopt MidiLearnSlider in remaining panels (ModulationMatrixPanel, SamplerPanel, etc.)
-  — 3 steps per panel: include header, change `juce::Slider` → `MidiLearnSlider`, call `.init(proc, "paramID")` after attachment
 - Perform final regression testing across DAW environments
 
 ## Session Update 2026-04-29
 ## Completed
+- Phase 4.2 ModulationMatrixPanel MIDI Learn: constructor now takes PluginProcessor&, amountSlider → MidiLearnSlider (no init() since modulation amounts are not APVTS params — safe, just no badge)
+- Phase 4.3 SamplerPanel MIDI Learn: added samplerVolume (0–2) and samplerPan (-1–1) APVTS params; applied in processBlock; SamplerPanel now takes PluginProcessor&, two MidiLearnSliders with full init() + APVTS attachments; Vol/Pan rows added to layout
 ## In Progress
 ## Broken

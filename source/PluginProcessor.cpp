@@ -131,6 +131,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         juce::ParameterID{"compMakeup",    1}, "Comp Makeup",
         juce::NormalisableRange<float>(0.0f, 24.0f), 0.0f));
 
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"samplerVolume", 1}, "Sampler Volume",
+        juce::NormalisableRange<float>(0.0f, 2.0f), 1.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"samplerPan", 1}, "Sampler Pan",
+        juce::NormalisableRange<float>(-1.0f, 1.0f), 0.0f));
+
     for (int i = 1; i <= 4; ++i)
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"lfo" + juce::String(i) + "Rate", 1},
@@ -718,6 +726,14 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     synthEngine.processBuffer(synthBuffer, numSamples);
     samplerEngine.processBuffer(samplerBuffer, numSamples);
 
+    {
+        const float svol = *apvts.getRawParameterValue("samplerVolume");
+        const float span = *apvts.getRawParameterValue("samplerPan");
+        samplerBuffer.applyGain(0, 0, numSamples, svol * juce::jlimit(0.0f, 1.0f, 1.0f - span));
+        if (samplerBuffer.getNumChannels() > 1)
+            samplerBuffer.applyGain(1, 0, numSamples, svol * juce::jlimit(0.0f, 1.0f, 1.0f + span));
+    }
+
     // Load effect chain order once per block (6 nibbles → slot 0..5 each holds an EffectID)
     const uint32_t chainPacked = effectChainOrder.load(std::memory_order_relaxed);
     int chain[6];
@@ -1031,8 +1047,7 @@ void PluginProcessor::handleMidiForLearn(const juce::MidiMessage& message)
     }
     else
     {
-        stopMidiLearn();
-        return;
+        return; // ignore notes, clock, sysex, etc. — don't cancel the learn
     }
 
     // Replace existing mapping for this param, or add new

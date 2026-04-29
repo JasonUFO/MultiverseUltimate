@@ -1,12 +1,13 @@
 #pragma once
 #include <JuceHeader.h>
 #include "ModulationMatrix.h"
+#include "../MidiLearnSlider.h"
 
 class ModulationMatrixPanel : public juce::Component,
-                               public juce::Timer
+                                public juce::Timer
 {
 public:
-    explicit ModulationMatrixPanel(ModulationMatrix& matrix);
+    explicit ModulationMatrixPanel(PluginProcessor& p, ModulationMatrix& matrix);
     ~ModulationMatrixPanel() override;
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -16,7 +17,7 @@ private:
     struct Row : public juce::Component
     {
         juce::ComboBox sourceBox, targetBox;
-        juce::Slider amountSlider;
+        MidiLearnSlider amountSlider;
         juce::TextButton deleteButton{ "X" };
 
         std::function<void()> onDelete;
@@ -26,6 +27,7 @@ private:
         void resized() override;
     };
 
+    PluginProcessor& processorRef;
     ModulationMatrix& matrix;
     juce::Label titleLabel;
     juce::TextButton addButton{ "+" };

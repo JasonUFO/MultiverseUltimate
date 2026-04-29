@@ -1,7 +1,8 @@
 #include "SamplerPanel.h"
+#include "../PluginProcessor.h"
 
-SamplerPanel::SamplerPanel (SamplerEngine& engine)
-    : samplerEngine (engine), zoneListModel (*this)
+SamplerPanel::SamplerPanel (PluginProcessor& p, SamplerEngine& engine)
+    : samplerEngine (engine), zoneListModel (*this), processorRef (p)
 {
     formatManager.registerBasicFormats();
 
@@ -79,6 +80,25 @@ SamplerPanel::SamplerPanel (SamplerEngine& engine)
         ownedZones[static_cast<size_t> (selectedZoneIndex)]->crossfadeLength = static_cast<int> (xfadeSlider.getValue());
     };
 
+    // Global sampler volume + pan (APVTS-backed, MIDI-learnable)
+    auto setupGlobalSlider = [this] (MidiLearnSlider& s, juce::Label& l)
+    {
+        s.setSliderStyle (juce::Slider::LinearHorizontal);
+        s.setTextBoxStyle (juce::Slider::TextBoxRight, false, 64, 18);
+        addAndMakeVisible (s);
+        addAndMakeVisible (l);
+    };
+
+    setupGlobalSlider (samplerVolumeSlider, samplerVolumeLabel);
+    samplerVolumeAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        p.apvts, "samplerVolume", samplerVolumeSlider);
+    samplerVolumeSlider.init (p, "samplerVolume");
+
+    setupGlobalSlider (samplerPanSlider, samplerPanLabel);
+    samplerPanAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        p.apvts, "samplerPan", samplerPanSlider);
+    samplerPanSlider.init (p, "samplerPan");
+
     updateControlsForSelectedZone();
 }
 
@@ -140,6 +160,8 @@ void SamplerPanel::resized()
         area.removeFromTop (3);
     };
 
+    row (samplerVolumeLabel, samplerVolumeSlider);
+    row (samplerPanLabel,    samplerPanSlider);
     row (rootNoteLabel,  rootNoteCombo);
     row (loopModeLabel,  loopModeCombo);
     row (loopStartLabel, loopStartSlider);

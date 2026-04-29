@@ -67,9 +67,10 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | 3.2 | Reverb pre-delay, LF damp, width, freeze |
 | 3.3 | Chorus, Distortion, EQ, Compressor + drag-to-reorder chain |
 | 4.1 | SynthPanel MIDI Learn - replaced juce::Slider with MidiLearnSlider, added .init() calls |
+| 4.2 | ModulationMatrixPanel MIDI Learn - MidiLearnSlider type for amountSlider; no init() (not APVTS) |
+| 4.3 | SamplerPanel MIDI Learn - added samplerVolume/samplerPan APVTS params + MidiLearnSliders with init() |
 
 ## Next Steps
-- Adopt MidiLearnSlider in remaining panels (SynthPanel, ModulationMatrixPanel, SamplerPanel)
 - Final regression testing across DAW environments
 
 ---

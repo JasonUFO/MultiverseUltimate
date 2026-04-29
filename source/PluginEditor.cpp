@@ -3,8 +3,8 @@
 PluginEditor::PluginEditor (PluginProcessor& p)
     : AudioProcessorEditor (p), processorRef (p),
       drumSequencerPanel (p.getDrumSequencer()),
-      modulationMatrixPanel (p.getModulationMatrix()),
-      samplerPanel (p.getSamplerEngine()),
+      modulationMatrixPanel (p, p.getModulationMatrix()),
+      samplerPanel (p, p.getSamplerEngine()),
       sequencerPanel (p.getSequencer()),
       proSequencerPanel (p.getProSequencer()),
       arpeggiatorPanel (p.getArpeggiator()),
