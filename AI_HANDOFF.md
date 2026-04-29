@@ -58,6 +58,22 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 
 ---
 
+## Completed Phases
+
+| Phase | What |
+|-------|------|
+| Integration | All engines wired, signal flow complete |
+| 3.1 | Filter oversampling (Off/2x/4x/Auto) |
+| 3.2 | Reverb pre-delay, LF damp, width, freeze |
+| 3.3 | Chorus, Distortion, EQ, Compressor + drag-to-reorder chain |
+| 4.1 | SynthPanel MIDI Learn - replaced juce::Slider with MidiLearnSlider, added .init() calls |
+
+## Next Steps
+- Adopt MidiLearnSlider in remaining panels (SynthPanel, ModulationMatrixPanel, SamplerPanel)
+- Final regression testing across DAW environments
+
+---
+
 ## Key Technical Facts
 
 | Detail | Value |
@@ -83,19 +99,3 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - Effect chain order is packed as 6 nibbles in `std::atomic<uint32_t> effectChainOrder` — `getChainSlot(pos)` / `swapChainSlots(a,b)` are the only API.
 - New effects (Chorus/Distortion/EQ/Compressor) have stereo L/R instances (`chorus[2]`, etc.); Delay is shared mono.
 - `EQEffect::updateCoeffs()` uses biquad math per setter call (once per block from processBlock) — no heap allocation.
-
----
-
-## Completed Phases
-
-| Phase | What |
-|-------|------|
-| Integration | All engines wired, signal flow complete |
-| 3.1 | Filter oversampling (Off/2x/4x/Auto) |
-| 3.2 | Reverb pre-delay, LF damp, width, freeze |
-| 3.3 | Chorus, Distortion, EQ, Compressor + drag-to-reorder chain |
-| 4.1 | SynthPanel MIDI Learn - replaced juce::Slider with MidiLearnSlider, added .init() calls |
-
-## Next Steps
-- Adopt MidiLearnSlider in remaining panels (SynthPanel, ModulationMatrixPanel, SamplerPanel)
-- Final regression testing across DAW environments

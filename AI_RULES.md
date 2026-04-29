@@ -44,14 +44,6 @@
 
 ---
 
-## Context Rules
-
-- Use `AI_HANDOFF.md` for project/architecture context
-- Use `AI_STATE.md` for current task status and next steps
-- Ignore unrelated systems
-
----
-
 ## Priority
 
 1. Audio output works and is stable

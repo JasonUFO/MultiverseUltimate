@@ -51,3 +51,8 @@
 - Adopt MidiLearnSlider in remaining panels (ModulationMatrixPanel, SamplerPanel, etc.)
   — 3 steps per panel: include header, change `juce::Slider` → `MidiLearnSlider`, call `.init(proc, "paramID")` after attachment
 - Perform final regression testing across DAW environments
+
+## Session Update 2026-04-29
+## Completed
+## In Progress
+## Broken
