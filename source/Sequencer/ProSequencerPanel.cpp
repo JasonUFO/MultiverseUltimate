@@ -76,6 +76,41 @@ void ProStepButton::mouseDown (const juce::MouseEvent& e)
 
 ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
 {
+    // Transport row
+    bpmLabel.setText ("BPM", juce::dontSendNotification);
+    bpmLabel.setJustificationType (juce::Justification::centredRight);
+    bpmLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    addAndMakeVisible (bpmLabel);
+
+    bpmSlider.setRange (40.0, 240.0, 0.5);
+    bpmSlider.setValue (sequencer.getBPM(), juce::dontSendNotification);
+    bpmSlider.setSliderStyle (juce::Slider::LinearHorizontal);
+    bpmSlider.setTextBoxStyle (juce::Slider::TextBoxLeft, false, 44, 20);
+    bpmSlider.onValueChange = [this]() { sequencer.setBPM (static_cast<float> (bpmSlider.getValue())); };
+    addAndMakeVisible (bpmSlider);
+
+    playButton.onClick = [this]() { sequencer.start(); };
+    addAndMakeVisible (playButton);
+
+    stopButton.onClick = [this]()
+    {
+        sequencer.stop();
+        if (lastHighlightedStep >= 0)
+        {
+            stepButtons[lastHighlightedStep].setHighlighted (false);
+            lastHighlightedStep = -1;
+        }
+    };
+    addAndMakeVisible (stopButton);
+
+    exportButton.onClick = [this]() { exportMidi(); };
+    addAndMakeVisible (exportButton);
+
+    bpmSlider.setTooltip    ("Tempo: beats per minute (40–240 BPM)");
+    playButton.setTooltip   ("Start the sequencer");
+    stopButton.setTooltip   ("Stop the sequencer and reset playhead");
+    exportButton.setTooltip ("Export all active lanes as a MIDI file");
+
     // Lane selector buttons
     const char* laneNames[] = { "Lane 1", "Lane 2", "Lane 3", "Lane 4" };
     for (int i = 0; i < PRO_SEQ_LANES; ++i)
@@ -282,6 +317,19 @@ void ProSequencerPanel::resized()
     auto area = getLocalBounds().reduced (6);
     area.removeFromTop (28);  // title
 
+    // ── Transport row ──────────────────────────────────────────────────────
+    auto transportRow = area.removeFromTop (26);
+    bpmLabel.setBounds  (transportRow.removeFromLeft (30));
+    bpmSlider.setBounds (transportRow.removeFromLeft (130));
+    transportRow.removeFromLeft (6);
+    playButton.setBounds   (transportRow.removeFromLeft (46).reduced (0, 1));
+    transportRow.removeFromLeft (3);
+    stopButton.setBounds   (transportRow.removeFromLeft (46).reduced (0, 1));
+    transportRow.removeFromLeft (3);
+    exportButton.setBounds (transportRow.removeFromLeft (100).reduced (0, 1));
+
+    area.removeFromTop (4);
+
     // ── Lane selector + mode controls ─────────────────────────────────────
     auto topRow = area.removeFromTop (28);
     for (int i = 0; i < PRO_SEQ_LANES; ++i)
@@ -347,6 +395,8 @@ void ProSequencerPanel::resized()
 
 void ProSequencerPanel::timerCallback()
 {
+    bpmSlider.setValue (sequencer.getBPM(), juce::dontSendNotification);
+
     if (!sequencer.isPlaying())
     {
         if (lastHighlightedStep >= 0)
@@ -469,4 +519,26 @@ void ProSequencerPanel::showNoteMenu (int stepIdx)
         if (selectedStep == stepIdx)
             noteBtn.setButtonText (ProStepButton::noteName (midi));
     });
+}
+
+void ProSequencerPanel::exportMidi()
+{
+    fileChooser = std::make_unique<juce::FileChooser> (
+        "Export MIDI",
+        juce::File::getSpecialLocation (juce::File::userDesktopDirectory).getChildFile ("proseq.mid"),
+        "*.mid");
+
+    fileChooser->launchAsync (
+        juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+        [this] (const juce::FileChooser& fc)
+        {
+            auto file = fc.getResult();
+            if (file != juce::File{})
+            {
+                auto midiFile = sequencer.exportMidi();
+                auto stream   = file.createOutputStream();
+                if (stream != nullptr)
+                    midiFile.writeTo (*stream);
+            }
+        });
 }

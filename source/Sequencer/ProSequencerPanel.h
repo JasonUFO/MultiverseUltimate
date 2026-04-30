@@ -44,6 +44,14 @@ private:
     int selectedStep = -1;
     int lastHighlightedStep = -1;
 
+    // Transport
+    juce::Slider   bpmSlider;
+    juce::Label    bpmLabel;
+    juce::TextButton playButton  { "Play" };
+    juce::TextButton stopButton  { "Stop" };
+    juce::TextButton exportButton { "Export MIDI" };
+    std::unique_ptr<juce::FileChooser> fileChooser;
+
     // Lane selector
     std::array<juce::TextButton, PRO_SEQ_LANES> laneButtons;
 
@@ -76,11 +84,12 @@ private:
     juce::ComboBox ratchetBox;
 
     // Helpers
-    void selectLane          (int lane);
-    void selectStep          (int step);
-    void refreshStepGrid     ();
-    void refreshStepEditor   ();
+    void selectLane            (int lane);
+    void selectStep            (int step);
+    void refreshStepGrid       ();
+    void refreshStepEditor     ();
     void updatePlayModeButtons ();
-    void applyPlayMode       (ProPlayMode mode);
-    void showNoteMenu        (int stepIdx);
+    void applyPlayMode         (ProPlayMode mode);
+    void showNoteMenu          (int stepIdx);
+    void exportMidi            ();
 };

@@ -169,6 +169,47 @@ void ProSequencer::setStepMicroTiming (int l, int s, float v) { if (l>=0&&l<PRO_
 // State persistence
 // ---------------------------------------------------------------------------
 
+juce::MidiFile ProSequencer::exportMidi() const
+{
+    juce::MidiFile midiFile;
+    const int ticksPerBeat = 480;
+    midiFile.setTicksPerQuarterNote (ticksPerBeat);
+
+    const int ticksPerStep  = ticksPerBeat / 4;
+    const int microsPerBeat = static_cast<int> (60000000.0 / static_cast<double> (bpm));
+
+    for (int lane = 0; lane < PRO_SEQ_LANES; ++lane)
+    {
+        const auto& l = lanes[lane];
+        bool hasActive = false;
+        for (int s = 0; s < l.numSteps; ++s)
+            if (l.steps[s].active) { hasActive = true; break; }
+        if (!hasActive) continue;
+
+        juce::MidiMessageSequence track;
+        track.addEvent (juce::MidiMessage::tempoMetaEvent (microsPerBeat), 0);
+
+        for (int s = 0; s < l.numSteps; ++s)
+        {
+            const auto& st = l.steps[s];
+            if (!st.active) continue;
+
+            const double startTick = static_cast<double> (s * ticksPerStep);
+            const double endTick   = startTick + static_cast<double> (ticksPerStep) * st.gate - 1.0;
+            const int vel = juce::jlimit (1, 127, static_cast<int> (st.velocity * 127.0f));
+
+            track.addEvent (juce::MidiMessage::noteOn  (1, st.note, static_cast<uint8_t> (vel)), startTick);
+            track.addEvent (juce::MidiMessage::noteOff (1, st.note),                              endTick);
+        }
+        track.updateMatchedPairs();
+        midiFile.addTrack (track);
+    }
+
+    return midiFile;
+}
+
+// ---------------------------------------------------------------------------
+
 juce::ValueTree ProSequencer::getState() const
 {
     juce::ValueTree root ("ProSequencer");

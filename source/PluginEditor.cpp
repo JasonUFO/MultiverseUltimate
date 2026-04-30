@@ -5,7 +5,6 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       drumSequencerPanel (p.getDrumSequencer()),
       modulationMatrixPanel (p, p.getModulationMatrix()),
       samplerPanel (p, p.getSamplerEngine()),
-      sequencerPanel (p.getSequencer()),
       proSequencerPanel (p.getProSequencer()),
       arpeggiatorPanel (p.getArpeggiator()),
       synthPanel (p),
@@ -48,8 +47,7 @@ void PluginEditor::setupTabs()
     tabs.addTab ("Drums",      juce::Colours::darkgrey, &drumSequencerPanel,    false);
     tabs.addTab ("Modulation", juce::Colours::darkgrey, &modulationMatrixPanel, false);
     tabs.addTab ("Sampler",    juce::Colours::darkgrey, &samplerPanel,          false);
-    tabs.addTab ("Sequencer",  juce::Colours::darkgrey, &sequencerPanel,        false);
-    tabs.addTab ("Pro Seq",    juce::Colours::darkgrey, &proSequencerPanel,     false);
+    tabs.addTab ("Sequencer",  juce::Colours::darkgrey, &proSequencerPanel,     false);
     tabs.addTab ("Arp",        juce::Colours::darkgrey, &arpeggiatorPanel,      false);
     tabs.addTab ("Effects",    juce::Colours::darkgrey, &effectsPanel,          false);
 }

@@ -56,6 +56,10 @@ public:
     int   getCurrentStep (int lane) const { return stepIndex[lane]; }
     float getSwingAmount ()         const { return swingAmount; }
 
+    float getBPM() const { return bpm; }
+
+    juce::MidiFile exportMidi() const;
+
     juce::ValueTree getState() const;
     void setState (const juce::ValueTree& state);
 
