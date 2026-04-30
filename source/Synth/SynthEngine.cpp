@@ -2,8 +2,7 @@
 #include <cmath>
 
 SynthEngine::SynthEngine()
-    : envAttack(0.01f), envDecay(0.1f), envSustain(0.7f), envRelease(0.3f),
-      waveform(WaveformType::Saw)
+    : envAttack(0.01f), envDecay(0.1f), envSustain(0.7f), envRelease(0.3f)
 {
     // fmOpParams default-initialized
 }
@@ -56,6 +55,15 @@ void SynthEngine::noteOn(int note, float velocity)
     {
         vi->voice.noteOn(note, velocity);
         vi->voice.setPitchBend(static_cast<float>(pitchBend));
+        // Apply current oscillator settings
+        for (int i = 0; i < 3; ++i)
+        {
+            vi->voice.setOscillatorType(i, oscSettings[i].type);
+            vi->voice.setOscillatorLevel(i, oscSettings[i].level);
+            vi->voice.setOscillatorDetune(i, oscSettings[i].detuneSemitones);
+            vi->voice.setOscillatorWaveform(i, oscSettings[i].classicWaveform);
+            vi->voice.setOscillatorWavePosition(i, oscSettings[i].wavePosition);
+        }
         vi->inUse = true;
         vi->lastUseTime = voiceCounter++;
     }
@@ -139,13 +147,44 @@ void SynthEngine::setOversamplingMode(Filter::OversamplingMode mode)
         vi.voice.setOversamplingMode(mode);
 }
 
-void SynthEngine::setWaveform(WaveformType type)
+void SynthEngine::setOscillatorType(int index, OscillatorType type)
 {
-    waveform = type;
+    if (index < 0 || index > 2) return;
+    oscSettings[index].type = type;
     for (auto& vi : voices)
-    {
-        vi.voice.setWaveform(type);
-    }
+        vi.voice.setOscillatorType(index, type);
+}
+
+void SynthEngine::setOscillatorLevel(int index, float level)
+{
+    if (index < 0 || index > 2) return;
+    oscSettings[index].level = juce::jlimit(0.0f, 1.0f, level);
+    for (auto& vi : voices)
+        vi.voice.setOscillatorLevel(index, oscSettings[index].level);
+}
+
+void SynthEngine::setOscillatorDetune(int index, float detuneSemitones)
+{
+    if (index < 0 || index > 2) return;
+    oscSettings[index].detuneSemitones = detuneSemitones;
+    for (auto& vi : voices)
+        vi.voice.setOscillatorDetune(index, detuneSemitones);
+}
+
+void SynthEngine::setOscillatorWaveform(int index, WaveformType wf)
+{
+    if (index < 0 || index > 2) return;
+    oscSettings[index].classicWaveform = wf;
+    for (auto& vi : voices)
+        vi.voice.setOscillatorWaveform(index, wf);
+}
+
+void SynthEngine::setOscillatorWavePosition(int index, float pos)
+{
+    if (index < 0 || index > 2) return;
+    oscSettings[index].wavePosition = juce::jlimit(0.0f, 1.0f, pos);
+    for (auto& vi : voices)
+        vi.voice.setOscillatorWavePosition(index, pos);
 }
 
 float SynthEngine::process()
@@ -398,7 +437,32 @@ void SynthEngine::getEnvelopeParams(float& a, float& d, float& s, float& r) cons
 
 WaveformType SynthEngine::getWaveform() const
 {
-    return waveform;
+    return oscSettings[0].classicWaveform;
+}
+
+OscillatorType SynthEngine::getOscillatorType(int index) const
+{
+    return (index >= 0 && index < 3) ? oscSettings[index].type : OscillatorType::Classic;
+}
+
+float SynthEngine::getOscillatorLevel(int index) const
+{
+    return (index >= 0 && index < 3) ? oscSettings[index].level : 1.0f;
+}
+
+float SynthEngine::getOscillatorDetune(int index) const
+{
+    return (index >= 0 && index < 3) ? oscSettings[index].detuneSemitones : 0.0f;
+}
+
+WaveformType SynthEngine::getOscillatorWaveform(int index) const
+{
+    return (index >= 0 && index < 3) ? oscSettings[index].classicWaveform : WaveformType::Saw;
+}
+
+float SynthEngine::getOscillatorWavePosition(int index) const
+{
+    return (index >= 0 && index < 3) ? oscSettings[index].wavePosition : 0.0f;
 }
 
 void SynthEngine::getFMOperatorParams(int opIndex,

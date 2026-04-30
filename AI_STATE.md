@@ -65,6 +65,14 @@
 ## Completed
 - Fixed MIDI learn silent cancellation: handleMidiForLearn no longer calls stopMidiLearn() on note/clock/sysex messages — only ignores them. Previously any note-on or MIDI clock would silently cancel the learn while the UI still showed "Waiting for CC..."
 - Set up launchd auto-backup agent (every 30 min): ~/Library/LaunchAgents/com.multiphaseaudio.backup.plist + ~/Library/Scripts/multiverse-backup.sh
+- **Phase 1 — 3 Oscillators + Wavetable Engine (COMPLETED)**
+  - Voice class upgraded: 1 → 3 oscillators per voice (`OscState` struct with type/classicOsc/wavetableOsc/level/detune)
+  - New `WavetableOscillator` class: 2048-sample table, 4 standard waves (sine/saw/square/tri), linear interpolation, wave position scanning
+  - SynthEngine: new `OscSettings[3]` array, 15 new APVTS params (type/level/detune/waveform/wavePos per osc)
+  - SynthPanel UI: 3 oscillator strips with type selector (Classic/Wavetable), level, detune, waveform, wave position knobs
+  - State persistence: 3 oscillators saved/restored in XML (getStateInformation/setStateInformation)
+  - All existing presets remain backward-compatible (new params use safe defaults)
+
 ## In Progress
 - None
 ## Broken
@@ -83,3 +91,6 @@
 - Factory bank is read-only; User bank allows save/delete
 - Import/Export buttons for individual presets using FileChooser (launchAsync API)
 - createFactoryPresetsIfNeeded() creates category subdirectories automatically
+
+## Next Step
+- Continue pro-level upgrades per MULTIVERSE SYNTH BREIF.txt: unison/drift, dual filters, sub/noise, oscillator sync/ring mod, wavetable file loading from disk

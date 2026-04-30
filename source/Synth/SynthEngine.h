@@ -31,7 +31,13 @@ public:
     void setEnvelopeParams(float a, float d, float s, float r);
     void setFilterParams(float cutoff, float resonance);
     void setOversamplingMode(Filter::OversamplingMode mode);
-    void setWaveform(WaveformType type);
+
+    // Per-oscillator controls (index 0-2)
+    void setOscillatorType(int index, OscillatorType type);
+    void setOscillatorLevel(int index, float level);
+    void setOscillatorDetune(int index, float detuneSemitones);
+    void setOscillatorWaveform(int index, WaveformType wf);
+    void setOscillatorWavePosition(int index, float pos);
 
     // FM mode controls
     void setSynthMode(SynthMode mode);
@@ -58,6 +64,13 @@ public:
     // Getters for state persistence
     void getEnvelopeParams(float& a, float& d, float& s, float& r) const;
     WaveformType getWaveform() const;
+
+    // Per-oscillator getters
+    OscillatorType getOscillatorType(int index) const;
+    float getOscillatorLevel(int index) const;
+    float getOscillatorDetune(int index) const;
+    WaveformType getOscillatorWaveform(int index) const;
+    float getOscillatorWavePosition(int index) const;
     void getFMOperatorParams(int opIndex,
                              float& ratio,
                              float& level,
@@ -99,8 +112,16 @@ private:
     float envSustain = 0.7f;
     float envRelease = 0.3f;
 
-    // Waveform for classic oscillators
-    WaveformType waveform = WaveformType::Saw;
+    // Per-oscillator state (3 oscillators)
+    struct OscSettings
+    {
+        OscillatorType type = OscillatorType::Classic;
+        WaveformType classicWaveform = WaveformType::Saw;
+        float level = 1.0f;
+        float detuneSemitones = 0.0f;
+        float wavePosition = 0.0f; // 0..1 for wavetable scan
+    };
+    std::array<OscSettings, 3> oscSettings;
 
     // FM operator parameters (4 operators)
     struct FMOperatorSettings

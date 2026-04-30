@@ -211,6 +211,22 @@ private:
     juce::Rectangle<int> oscSectionRect, filterSectionRect, envSectionRect;
     juce::Rectangle<int> modeBadgeRect;
 
+    // 3 Oscillator strips
+    struct OscControls
+    {
+        juce::Label        sectionLabel;
+        juce::ComboBox     typeSelector;
+        MidiLearnSlider    levelSlider;
+        MidiLearnSlider    detuneSlider;
+        juce::ComboBox     waveformSelector;
+        MidiLearnSlider    wavePosSlider;
+        juce::Label        levelLabel, detuneLabel, wavePosLabel;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> typeAttach;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>    levelAttach, detuneAttach, wavePosAttach;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> waveformAttach;
+    };
+    std::array<OscControls, 3> oscControls;
+
     // Envelope
     juce::Label  envSectionLabel;
     MidiLearnSlider attackSlider, decaySlider, sustainSlider, releaseSlider;

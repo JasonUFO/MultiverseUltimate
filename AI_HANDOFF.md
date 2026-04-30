@@ -16,7 +16,7 @@
 
 | Engine | Description |
 |--------|-------------|
-| SynthEngine | 16-voice classic / 8-voice FM |
+| SynthEngine | 16-voice classic (3 osc/voice: Classic or Wavetable) / 8-voice FM |
 | DrumSequencer | Sample-based, 32 voices |
 | SamplerEngine | Zone-based playback, 16 voices |
 | Effects | Chorus → Distortion → EQ → Compressor → Delay → Reverb (reorderable chain) |
@@ -42,16 +42,17 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 
 ## What Works
 
-- SynthEngine (Classic + FM), DrumSequencer, SamplerEngine — all produce audio ✅
+- SynthEngine (16-voice classic with 3 osc/voice + FM 8-voice), DrumSequencer, SamplerEngine — all produce audio ✅
+- 3 oscillators per voice: Classic (math-based) or Wavetable (2048-sample table, 4 waves, position scan) ✅
 - All 6 effects with full parameter control and MIDI Learn ✅
 - Effect chain reordering — drag-to-reorder strip, order persists in presets ✅
 - ModulationMatrix — LFO → pitch/cutoff/volume/effects ✅
 - Melodic Sequencer, DAW transport sync ✅
-- Full state persistence (XML) including effect chain order ✅
+- Full state persistence (XML) including 3 oscillators + effect chain order ✅
 - MIDI Learn on all effect panel knobs ✅
 - Undo/Redo (Cmd+Z / Cmd+Shift+Z) ✅
 - Filter oversampling (Off/2x/4x/Auto) ✅
-- Preset system (XML) ✅
+- Preset system (XML) with Factory/User banks ✅
 
 ## What Is Broken / Unconnected
 - None

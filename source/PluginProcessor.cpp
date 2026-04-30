@@ -185,6 +185,32 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
             juce::ParameterID{"fmOp" + juce::String(op) + "Release", 1},
             "FM Op " + juce::String(op) + " Release",
             juce::NormalisableRange<float>(0.001f, 10.0f, 0.0f, 0.4f), 0.3f));
+     }
+
+    // 3 Oscillator parameters (per oscillator: type, level, detune, waveform, wavePos)
+    for (int osc = 1; osc <= 3; ++osc)
+    {
+        juce::String prefix = "osc" + juce::String(osc);
+
+        layout.add(std::make_unique<juce::AudioParameterChoice>(
+            juce::ParameterID{prefix + "Type", 1}, prefix + " Type",
+            juce::StringArray{"Classic", "Wavetable"}, 0));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{prefix + "Level", 1}, prefix + " Level",
+            juce::NormalisableRange<float>(0.0f, 1.0f), 1.0f));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{prefix + "Detune", 1}, prefix + " Detune",
+            juce::NormalisableRange<float>(-12.0f, 12.0f, 0.0f, 0.5f), 0.0f));
+
+        layout.add(std::make_unique<juce::AudioParameterChoice>(
+            juce::ParameterID{prefix + "Waveform", 1}, prefix + " Waveform",
+            juce::StringArray{"Sine", "Saw", "Square", "Triangle", "Noise"}, 1));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{prefix + "WavePos", 1}, prefix + " Wave Pos",
+            juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
     }
 
     return layout;
@@ -354,6 +380,22 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         *apvts.getRawParameterValue("sustain"),
         *apvts.getRawParameterValue("release")
     );
+
+    // 3 Oscillator parameters
+    for (int osc = 0; osc < 3; ++osc)
+    {
+        juce::String prefix = "osc" + juce::String(osc + 1);
+        int typeChoice = static_cast<int>(*apvts.getRawParameterValue(prefix + "Type"));
+        OscillatorType otype = (typeChoice == 1) ? OscillatorType::Wavetable : OscillatorType::Classic;
+        synthEngine.setOscillatorType(osc, otype);
+        synthEngine.setOscillatorLevel(osc, *apvts.getRawParameterValue(prefix + "Level"));
+        synthEngine.setOscillatorDetune(osc, *apvts.getRawParameterValue(prefix + "Detune"));
+
+        int wfChoice = static_cast<int>(*apvts.getRawParameterValue(prefix + "Waveform"));
+        WaveformType wf = static_cast<WaveformType>(wfChoice);
+        synthEngine.setOscillatorWaveform(osc, wf);
+        synthEngine.setOscillatorWavePosition(osc, *apvts.getRawParameterValue(prefix + "WavePos"));
+    }
 
     synthEngine.setFMAlgorithm(
         static_cast<int>(*apvts.getRawParameterValue("fmAlgorithm")) + 1
@@ -692,7 +734,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     float waveIdx = static_cast<float>(baseWaveform)
                   + modSums[static_cast<int>(ModTargetType::OscillatorWaveform)];
-    synthEngine.setWaveform(static_cast<WaveformType>(
+    synthEngine.setOscillatorWaveform(0, static_cast<WaveformType>(
         static_cast<int>(juce::jlimit(0.0f, 4.0f, waveIdx))));
 
     for (int lfo = 0; lfo < 4; ++lfo)
@@ -812,9 +854,20 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     root.appendChild(apvts.copyState(), nullptr);
 
     juce::ValueTree synthParams("SynthParams");
-    synthParams.setProperty("waveform",    static_cast<int>(synthEngine.getWaveform()),  nullptr);
     synthParams.setProperty("synthMode",   static_cast<int>(synthEngine.getSynthMode()), nullptr);
     synthParams.setProperty("fmAlgorithm", synthEngine.getFMAlgorithm(),                 nullptr);
+    // Save 3 oscillator settings
+    for (int osc = 0; osc < 3; ++osc)
+    {
+        juce::ValueTree oscNode("Osc");
+        oscNode.setProperty("index",     osc, nullptr);
+        oscNode.setProperty("type",      static_cast<int>(synthEngine.getOscillatorType(osc)), nullptr);
+        oscNode.setProperty("level",     synthEngine.getOscillatorLevel(osc), nullptr);
+        oscNode.setProperty("detune",   synthEngine.getOscillatorDetune(osc), nullptr);
+        oscNode.setProperty("waveform",  static_cast<int>(synthEngine.getOscillatorWaveform(osc)), nullptr);
+        oscNode.setProperty("wavePos",   synthEngine.getOscillatorWavePosition(osc), nullptr);
+        synthParams.appendChild(oscNode, nullptr);
+    }
     for (int op = 0; op < 4; ++op)
     {
         float ratio, level, fb, att, dec, sus, rel;
@@ -893,12 +946,28 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     auto synthParams = root.getChildWithName("SynthParams");
     if (synthParams.isValid())
     {
-        if (synthParams.hasProperty("waveform"))
-            synthEngine.setWaveform(static_cast<WaveformType>((int)synthParams.getProperty("waveform")));
         if (synthParams.hasProperty("synthMode"))
             synthEngine.setSynthMode(static_cast<SynthMode>((int)synthParams.getProperty("synthMode")));
         if (synthParams.hasProperty("fmAlgorithm"))
             synthEngine.setFMAlgorithm((int)synthParams.getProperty("fmAlgorithm"));
+
+        // Restore 3 oscillator settings
+        for (auto oscNode : synthParams)
+        {
+            if (oscNode.hasType("Osc"))
+            {
+                int idx = (int)oscNode.getProperty("index");
+                if (idx >= 0 && idx < 3)
+                {
+                    synthEngine.setOscillatorType(idx, static_cast<OscillatorType>((int)oscNode.getProperty("type")));
+                    synthEngine.setOscillatorLevel(idx, (float)oscNode.getProperty("level"));
+                    synthEngine.setOscillatorDetune(idx, (float)oscNode.getProperty("detune"));
+                    synthEngine.setOscillatorWaveform(idx, static_cast<WaveformType>((int)oscNode.getProperty("waveform")));
+                    synthEngine.setOscillatorWavePosition(idx, (float)oscNode.getProperty("wavePos"));
+                }
+            }
+        }
+
         for (auto opNode : synthParams)
         {
             if (opNode.hasType("FmOp"))
