@@ -7,7 +7,7 @@
 - **Framework:** JUCE 8
 - **Language:** C++17
 - **Build:** Projucer + Xcode → `Builds/MacOSX/MultiverseUltimate.xcodeproj`
-- **Install:** `~/Library/Audio/Plug-Ins/VST3/MultiverseUltimate.vst3` (~37 MB, arm64+x86_64)
+- **Install:** `~/Library/Audio/Plug-Ins/VST3/MultiverseUltimate.vst3` (arm64+x86_64)
 - **Status:** Builds successfully, loads in DAW, fully functional
 
 ---
@@ -44,6 +44,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 
 - SynthEngine (16-voice classic with 3 osc/voice + FM 8-voice), DrumSequencer, SamplerEngine — all produce audio ✅
 - 3 oscillators per voice: Classic (math-based) or Wavetable (2048-sample table, 4 waves, position scan) ✅
+- Voice modes: Poly / Mono / Legato with portamento (per-sample semitone-space glide) ✅
 - All 6 effects with full parameter control and MIDI Learn ✅
 - Effect chain reordering — drag-to-reorder strip, order persists in presets ✅
 - ModulationMatrix — LFO → pitch/cutoff/volume/effects ✅
@@ -67,16 +68,15 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | 3.1 | Filter oversampling (Off/2x/4x/Auto) |
 | 3.2 | Reverb pre-delay, LF damp, width, freeze |
 | 3.3 | Chorus, Distortion, EQ, Compressor + drag-to-reorder chain |
-| 4.1 | SynthPanel MIDI Learn - replaced juce::Slider with MidiLearnSlider, added .init() calls |
-| 4.2 | ModulationMatrixPanel MIDI Learn - MidiLearnSlider type for amountSlider; no init() (not APVTS) |
-| 4.3 | SamplerPanel MIDI Learn - added samplerVolume/samplerPan APVTS params + MidiLearnSliders with init() |
-| 5.1 | Preset Browser - PresetBrowserPanel (save/load/delete), PresetManager file I/O to ~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/ |
-| 5.1 | Preset Banks - Added Factory/User banks, category subfolders (Init/Bass/Lead/Pad/Drums/FX), bank selector dropdown, import/export buttons |
-| 4.3 | Tooltips - TooltipWindow in PluginEditor, setTooltip() on all controls across all 8 panels, "?" help button in header |
-| Phase 3 | Wavetable file loading - "LOAD WT" button per osc strip, FileChooser for .wav/.aif, distributes to all 16 voices, persists file path in preset XML |
+| 4.1 | SynthPanel MIDI Learn |
+| 4.2 | ModulationMatrixPanel MIDI Learn |
+| 4.3 | SamplerPanel MIDI Learn + Tooltips across all panels |
+| 5.1 | Preset Browser + Factory/User banks with category subfolders |
+| Phase 3 | Wavetable file loading per oscillator strip |
+| Phase A | Voice Modes (Poly/Mono/Legato) + Portamento + "Porta Always" |
 
 ## Next Steps
-- Final regression testing across DAW environments
+- Macro controls (8 assignable knobs, right-click assignment, per-target range, DAW-automatable)
 
 ---
 
@@ -105,3 +105,8 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - Effect chain order is packed as 6 nibbles in `std::atomic<uint32_t> effectChainOrder` — `getChainSlot(pos)` / `swapChainSlots(a,b)` are the only API.
 - New effects (Chorus/Distortion/EQ/Compressor) have stereo L/R instances (`chorus[2]`, etc.); Delay is shared mono.
 - `EQEffect::updateCoeffs()` uses biquad math per setter call (once per block from processBlock) — no heap allocation.
+- Voice mode glide runs **per-sample** in `processBuffer` using `std::exp2((semitone - 69) / 12)` — only active in Mono/Legato, skipped entirely in Poly.
+- Mono note stack is `int monoNoteStack[16]` + `int monoNoteCount` in SynthEngine (no heap alloc). Stack is cleared in `allNotesOff()`.
+- `Voice::setFrequencyDirect(hz)` sets `baseFrequency` and calls `updateOscillatorFrequencies()` without touching the envelope — used by the glide loop.
+- `Voice::setNoteLegato(note)` updates `midiNote` + `baseFrequency` only — no envelope retrigger. Used in Legato mode on gate-open note changes.
+- APVTS params added by Phase A: `voiceMode` (Choice 0–2), `portamento` (Float 0–2s), `portaAlways` (Bool).

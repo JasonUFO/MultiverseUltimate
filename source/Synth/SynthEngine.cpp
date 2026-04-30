@@ -43,7 +43,63 @@ void SynthEngine::noteOn(int note, float velocity)
         return;
     }
 
-    // Kill any existing voices for this note (handles retrigger + unison groups)
+    if (voiceMode == VoiceMode::Mono || voiceMode == VoiceMode::Legato)
+    {
+        // Remove duplicate from stack, then push
+        for (int i = 0; i < monoNoteCount; ++i)
+        {
+            if (monoNoteStack[i] == note)
+            {
+                for (int j = i; j < monoNoteCount - 1; ++j) monoNoteStack[j] = monoNoteStack[j + 1];
+                --monoNoteCount;
+                break;
+            }
+        }
+        if (monoNoteCount < 16) monoNoteStack[monoNoteCount++] = note;
+        monoVelocity = velocity;
+
+        const bool gateWasOpen = (getActiveVoiceCount() > 0);
+
+        glideTargetSemitone = static_cast<float>(note);
+        if (!portaAlways && !gateWasOpen)
+            glideCurrentSemitone = glideTargetSemitone;
+
+        if (voiceMode == VoiceMode::Legato && gateWasOpen)
+        {
+            // Smooth pitch update — no envelope retrigger
+            for (auto& vi : voices)
+                if (vi.inUse) { vi.voice.setNoteLegato(note); break; }
+        }
+        else
+        {
+            // Kill all, start fresh with envelope retrigger
+            for (auto& vi : voices)
+                if (vi.inUse) { vi.voice.noteOff(); vi.inUse = false; }
+
+            auto* vi = findFreeVoice();
+            if (vi != nullptr)
+            {
+                vi->voice.noteOn(note, velocity);
+                vi->voice.setPitchBend(static_cast<float>(pitchBend));
+                for (int i = 0; i < 3; ++i)
+                {
+                    vi->voice.setOscillatorType(i, oscSettings[i].type);
+                    vi->voice.setOscillatorLevel(i, oscSettings[i].level);
+                    vi->voice.setOscillatorDetune(i, oscSettings[i].detuneSemitones);
+                    vi->voice.setOscillatorWaveform(i, oscSettings[i].classicWaveform);
+                    vi->voice.setOscillatorWavePosition(i, oscSettings[i].wavePosition);
+                }
+                vi->panLeft  = 1.0f;
+                vi->panRight = 1.0f;
+                vi->unisonDetuneOffset = 0.0f;
+                vi->inUse = true;
+                vi->lastUseTime = voiceCounter++;
+            }
+        }
+        return;
+    }
+
+    // Poly mode — kill existing voices for this note, then spawn unison group
     for (auto& vi : voices)
         if (vi.inUse && vi.voice.getMidiNote() == note)
         { vi.voice.noteOff(); vi.inUse = false; }
@@ -58,9 +114,9 @@ void SynthEngine::noteOn(int note, float velocity)
         float panL = 1.0f, panR = 1.0f;
         if (n > 1)
         {
-            const float t = static_cast<float>(u) / static_cast<float>(n - 1); // 0..1
+            const float t = static_cast<float>(u) / static_cast<float>(n - 1);
             detuneOffset = (t - 0.5f) * 2.0f * unisonDetuneSemitones;
-            const float pan = (t - 0.5f) * 2.0f * unisonWidthAmount; // -1..+1
+            const float pan = (t - 0.5f) * 2.0f * unisonWidthAmount;
             panL = pan <= 0.0f ? 1.0f : (1.0f - pan);
             panR = pan >= 0.0f ? 1.0f : (1.0f + pan);
         }
@@ -93,7 +149,66 @@ void SynthEngine::noteOff(int note)
         return;
     }
 
-    // Release all unison voices for this note
+    if (voiceMode == VoiceMode::Mono || voiceMode == VoiceMode::Legato)
+    {
+        // Remove released note from stack
+        for (int i = 0; i < monoNoteCount; ++i)
+        {
+            if (monoNoteStack[i] == note)
+            {
+                for (int j = i; j < monoNoteCount - 1; ++j) monoNoteStack[j] = monoNoteStack[j + 1];
+                --monoNoteCount;
+                break;
+            }
+        }
+
+        if (monoNoteCount > 0)
+        {
+            // Return to last still-held note
+            const int prevNote = monoNoteStack[monoNoteCount - 1];
+            glideTargetSemitone = static_cast<float>(prevNote);
+
+            if (voiceMode == VoiceMode::Legato)
+            {
+                for (auto& vi : voices)
+                    if (vi.inUse) { vi.voice.setNoteLegato(prevNote); break; }
+            }
+            else
+            {
+                // Mono: retrigger envelope on return note
+                for (auto& vi : voices)
+                    if (vi.inUse) { vi.voice.noteOff(); vi.inUse = false; }
+
+                auto* vi = findFreeVoice();
+                if (vi != nullptr)
+                {
+                    vi->voice.noteOn(prevNote, monoVelocity);
+                    vi->voice.setPitchBend(static_cast<float>(pitchBend));
+                    for (int i = 0; i < 3; ++i)
+                    {
+                        vi->voice.setOscillatorType(i, oscSettings[i].type);
+                        vi->voice.setOscillatorLevel(i, oscSettings[i].level);
+                        vi->voice.setOscillatorDetune(i, oscSettings[i].detuneSemitones);
+                        vi->voice.setOscillatorWaveform(i, oscSettings[i].classicWaveform);
+                        vi->voice.setOscillatorWavePosition(i, oscSettings[i].wavePosition);
+                    }
+                    vi->panLeft = 1.0f; vi->panRight = 1.0f;
+                    vi->unisonDetuneOffset = 0.0f;
+                    vi->inUse = true;
+                    vi->lastUseTime = voiceCounter++;
+                }
+            }
+        }
+        else
+        {
+            // Last key released — trigger release phase
+            for (auto& vi : voices)
+                if (vi.inUse) { vi.voice.noteOff(); break; }
+        }
+        return;
+    }
+
+    // Poly mode — release all unison voices for this note
     for (auto& vi : voices)
         if (vi.inUse && vi.voice.getMidiNote() == note)
             vi.voice.noteOff();
@@ -101,6 +216,8 @@ void SynthEngine::noteOff(int note)
 
 void SynthEngine::allNotesOff()
 {
+    monoNoteCount = 0;
+
     for (auto& vi : voices)
     {
         if (vi.inUse && vi.voice.isActive())
@@ -265,6 +382,31 @@ int SynthEngine::processBuffer(juce::AudioBuffer<float>& buffer, int numSamples)
                     right[i] += s;
                 }
                 ++activeCount;
+            }
+            else
+            {
+                vi.inUse = false;
+            }
+        }
+    }
+    else if (voiceMode != VoiceMode::Poly)
+    {
+        // Mono / Legato: single voice with per-sample pitch glide
+        for (auto& vi : voices)
+        {
+            if (!vi.inUse) continue;
+            if (vi.voice.isActive())
+            {
+                for (int i = 0; i < numSamples; ++i)
+                {
+                    glideCurrentSemitone += (glideTargetSemitone - glideCurrentSemitone) * glideCoeff;
+                    vi.voice.setFrequencyDirect(440.0f * std::exp2((glideCurrentSemitone - 69.0f) / 12.0f));
+                    const float s = vi.voice.process();
+                    left[i]  += s;
+                    right[i] += s;
+                }
+                ++activeCount;
+                break;
             }
             else
             {
@@ -522,6 +664,25 @@ void SynthEngine::setUnisonDetune(float semitones)
 void SynthEngine::setUnisonWidth(float w)
 {
     unisonWidthAmount = juce::jlimit(0.0f, 1.0f, w);
+}
+
+void SynthEngine::setVoiceMode(VoiceMode m)
+{
+    voiceMode = m;
+}
+
+void SynthEngine::setPortaAlways(bool always)
+{
+    portaAlways = always;
+}
+
+void SynthEngine::setPortamento(float sec)
+{
+    portaTime = juce::jmax(0.0f, sec);
+    if (portaTime < 0.001f)
+        glideCoeff = 1.0f;
+    else
+        glideCoeff = 1.0f - std::exp(-1.0f / (portaTime * sampleRate));
 }
 
 bool SynthEngine::loadWavetableFile(int oscIndex, const juce::File& file)

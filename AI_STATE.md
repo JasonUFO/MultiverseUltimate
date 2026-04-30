@@ -15,6 +15,7 @@
 - MIDI Learn: CC/pitch-bend/channel-pressure → any APVTS param, orange "L" badge, mappings persist
 - Undo/Redo: Cmd+Z / Cmd+Shift+Z; clears on preset load
 - FM Operator UI: 4 operators with ADSR/ratio/level/feedback, algorithm selector 1–8
+- Fixed MIDI learn silent cancellation: handleMidiForLearn no longer calls stopMidiLearn() on note/clock/sysex messages
 
 ### Phase 3.1 — Filter Oversampling
 - OversamplingMode enum (Off/2x/4x/Auto); Auto activates 2× above 5kHz
@@ -32,25 +33,43 @@
 - **Distortion** (Drive/Tone/Mix): tanh soft-clip + one-pole LP tone filter
 - **3-Band EQ** (Low/Mid/High ±12dB): Audio EQ Cookbook biquads — low shelf 250Hz, peak 1kHz, high shelf 4kHz
 - **Compressor** (Threshold/Ratio/Attack/Release/Makeup): dB-domain feed-forward envelope follower
-- **Effect chain ordering**: atomic uint32 packs 6 nibbles (one EffectID per slot); drag-to-reorder strip at top of EffectsPanel; order persists in preset state; Reverb always applied as stereo block op, correctly splits pre/post chain
+- **Effect chain ordering**: atomic uint32 packs 6 nibbles; drag-to-reorder strip; order persists in preset state
 - EffectsPanel: 2-column layout (L: Chorus/Distortion/EQ, R: Compressor/Delay/Reverb)
-- All 14 new APVTS params fully automatable; all knobs use MidiLearnSlider
 
 ### Phase 4.1 — SynthPanel MIDI Learn
-- Replaced juce::Slider with MidiLearnSlider in SynthPanel
-- Added .init() calls for all sliders
-- Full MIDI Learn support with orange "L" badge and mapping persistence
-
-### Phase 5.1 — Preset Browser
-- PresetManager: saveState/loadState/deletePreset/scanPresetsDirectory implemented; presets saved to ~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/*.mvpreset
-- PresetBrowserPanel: name TextEditor + Save, ListBox of presets + Load/Delete buttons
-- PluginEditor: "Presets" toggle button in header; browser appears as 160px collapsible panel above tabs
-- Double-click a preset in the list to load it
+- Replaced juce::Slider with MidiLearnSlider in SynthPanel; .init() calls for all sliders
 
 ### Phase 4.3 — Tooltips
-- juce::TooltipWindow added to PluginEditor (700ms delay, hover over any control)
-- setTooltip() calls added to all sliders, combo boxes, buttons in all 8 panels
-- "?" button added to header strip — shows panel-specific help text for the active tab via AlertWindow
+- juce::TooltipWindow in PluginEditor (700ms delay)
+- setTooltip() on all controls across all 8 panels
+- "?" help button in header
+
+### Phase 5.1 — Preset Browser + Banks
+- PresetManager: saveState/loadState/deletePreset/scanPresetsDirectory
+- Presets saved to ~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/*.mvpreset
+- PresetBrowserPanel: name TextEditor + Save, ListBox + Load/Delete, double-click to load
+- PluginEditor: "Presets" toggle in header; 160px collapsible browser above tabs
+- Factory/User banks, category subfolders (Init/Bass/Lead/Pad/Drums/FX), bank selector dropdown
+- Import/Export buttons using FileChooser (launchAsync API)
+
+### Phase 3 (Wavetable) — 3 Oscillators + Wavetable File Loading
+- Voice class: 3 oscillators per voice (OscState: type/classicOsc/wavetableOsc/level/detune)
+- WavetableOscillator: 2048-sample table, 4 standard waves, linear interpolation, wave position scanning
+- SynthEngine: OscSettings[3] array, 15 APVTS params (type/level/detune/waveform/wavePos per osc)
+- SynthPanel UI: 3 oscillator strips, type selector, level/detune/waveform/wavePos controls
+- "LOAD WT" button per oscillator strip (Wavetable mode only); FileChooser for .wav/.aif/.aiff
+- Wavetable file path persisted in preset XML; distributed to all 16 voices on load
+- Unison: stacked voices with detune spread and stereo width
+
+### Phase A — Voice Modes (2026-05-01)
+- VoiceMode enum (Poly/Mono/Legato) in SynthEngine
+- Mono note stack (int monoNoteStack[16]) — held-note tracking, no heap alloc, cleared in allNotesOff()
+- Portamento: per-sample glide in processBuffer using exp2 semitone interpolation (pitch-linear, no warp)
+- Mono: always retriggers envelope; returns to last held key on release (retriggers on return)
+- Legato: no retrigger when gate open; smooth pitch update only; no retrigger on return to held key
+- "Porta Always" toggle: glide even on non-overlapping notes
+- 3 new APVTS params: voiceMode (Choice), portamento (Float 0–2s, skew 0.4), portaAlways (Bool)
+- UI: VOICE ComboBox + PORTA horizontal slider + "Always" toggle in SynthPanel header row (zero height cost)
 
 ## In Progress
 - None
@@ -59,47 +78,4 @@
 - None
 
 ## Next Step
-- Final regression testing (load/save presets in DAW, verify all tabs still functional)
-
-## Session Update 2026-04-30
-## Completed
-- Fixed MIDI learn silent cancellation: handleMidiForLearn no longer calls stopMidiLearn() on note/clock/sysex messages — only ignores them. Previously any note-on or MIDI clock would silently cancel the learn while the UI still showed "Waiting for CC..."
-- Set up launchd auto-backup agent (every 30 min): ~/Library/LaunchAgents/com.multiphaseaudio.backup.plist + ~/Library/Scripts/multiverse-backup.sh
-- **Phase 1 — 3 Oscillators + Wavetable Engine (COMPLETED)**
-  - Voice class upgraded: 1 → 3 oscillators per voice (`OscState` struct with type/classicOsc/wavetableOsc/level/detune)
-  - New `WavetableOscillator` class: 2048-sample table, 4 standard waves (sine/saw/square/tri), linear interpolation, wave position scanning
-  - SynthEngine: new `OscSettings[3]` array, 15 new APVTS params (type/level/detune/waveform/wavePos per osc)
-  - SynthPanel UI: 3 oscillator strips with type selector (Classic/Wavetable), level, detune, waveform, wave position knobs
-  - State persistence: 3 oscillators saved/restored in XML (getStateInformation/setStateInformation)
-  - All existing presets remain backward-compatible (new params use safe defaults)
-
-## In Progress
-- None
-## Broken
-- None
-
-## Phase 5.1 — Preset Browser (COMPLETED)
-- PresetManager: saveState/loadState/deletePreset/scanPresetsDirectory implemented; presets saved to ~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/*.mvpreset
-- PresetBrowserPanel: name TextEditor + Save, ListBox of presets + Load/Delete buttons
-- PluginEditor: "Presets" toggle button in header; browser appears as 160px collapsible panel above tabs
-- Double-click a preset in the list to load it
-
-## Phase 5.1 Add Preset Banks (COMPLETED)
-- Organized presets into categories: Init, Bass, Lead, Pad, Drums, FX
-- Added bank selector dropdown (Factory/User) above preset list
-- Bank files stored in separate subfolders under ~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/
-- Factory bank is read-only; User bank allows save/delete
-- Import/Export buttons for individual presets using FileChooser (launchAsync API)
-- createFactoryPresetsIfNeeded() creates category subdirectories automatically
-
-## Phase 3 — Wavetable File Loading (COMPLETED)
-- "LOAD WT" button per oscillator strip (visible in Wavetable mode)
-- FileChooser opens .wav/.aif/.aiff files; resamples into 2048-sample table across all 16 voices
-- Filename displayed next to button after load
-- File path persisted in preset XML (wavetableFile property on OscNode)
-- SynthEngine.loadWavetableFile() / getWavetableFilePath() public API
-- Voice.loadWavetableData() distributes AudioBuffer to per-voice WavetableOscillator
-
-## Next Step
-- Macro controls (4–8 assignable knobs that modulate multiple params)
-- Voice modes (mono/legato/poly)
+- Macro controls (8 assignable knobs, right-click param assignment, per-target min/max range, DAW-automatable, nameable, preset-persistent)

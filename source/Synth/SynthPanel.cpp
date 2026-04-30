@@ -317,6 +317,39 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         c.releaseSlider.init(processorRef, pfx + "Release");
     }
 
+    // Voice mode / portamento controls
+    setupLabel(voiceModeLabel, "VOICE");
+    addAndMakeVisible(voiceModeLabel);
+
+    voiceModeSelector.addItem("Poly",   1);
+    voiceModeSelector.addItem("Mono",   2);
+    voiceModeSelector.addItem("Legato", 3);
+    voiceModeSelector.setSelectedId(1, juce::dontSendNotification);
+    voiceModeSelector.setTooltip("Poly: full polyphony; Mono: one note, retrigger; Legato: one note, smooth (no retrigger)");
+    addAndMakeVisible(voiceModeSelector);
+    voiceModeAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        apvts, "voiceMode", voiceModeSelector);
+
+    setupLabel(portamentoLabel, "PORTA");
+    addAndMakeVisible(portamentoLabel);
+
+    portamentoSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    portamentoSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 48, 20);
+    portamentoSlider.setRange(0.0, 2.0);
+    portamentoSlider.setSkewFactor(0.4);
+    portamentoSlider.setValue(0.0, juce::dontSendNotification);
+    portamentoSlider.setTooltip("Portamento glide time (0 = instant, 2s = slow glide)");
+    addAndMakeVisible(portamentoSlider);
+    portamentoSlider.init(processorRef, "portamento");
+    portamentoAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        apvts, "portamento", portamentoSlider);
+
+    portaAlwaysButton.setButtonText("Always");
+    portaAlwaysButton.setTooltip("Always porta: glide even when notes don't overlap");
+    addAndMakeVisible(portaAlwaysButton);
+    portaAlwaysAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+        apvts, "portaAlways", portaAlwaysButton);
+
     // Tooltips
     modeSelector.setTooltip      ("Synthesis mode: Classic (subtractive) for 3 oscillators, or FM");
     waveformSelector.setTooltip  ("Legacy oscillator waveform selector");
@@ -474,18 +507,31 @@ void SynthPanel::resized()
     {
         auto hdr = area.removeFromTop(46);
 
+        // Buttons on the right first
+        auto btnArea = hdr.removeFromRight(176);
+        savePresetButton.setBounds(btnArea.removeFromRight(82).reduced(0, 8));
+        btnArea.removeFromRight(8);
+        loadPresetButton.setBounds(btnArea.removeFromRight(82).reduced(0, 8));
+
+        // Synth mode on the left
         auto modeCol = hdr.removeFromLeft(180);
         modeLabel.setBounds(modeCol.removeFromTop(18));
         modeSelector.setBounds(modeCol.removeFromTop(26));
         hdr.removeFromLeft(8);
 
         modeBadgeRect = hdr.removeFromLeft(80).reduced(0, 10);
-        hdr.removeFromLeft(8);
+        hdr.removeFromLeft(16);
 
-        auto btnArea = hdr.removeFromRight(176);
-        savePresetButton.setBounds(btnArea.removeFromRight(82).reduced(0, 8));
-        btnArea.removeFromRight(8);
-        loadPresetButton.setBounds(btnArea.removeFromRight(82).reduced(0, 8));
+        // Voice mode strip (centre)
+        voiceModeLabel.setBounds(hdr.removeFromLeft(52).reduced(0, 14));
+        hdr.removeFromLeft(4);
+        voiceModeSelector.setBounds(hdr.removeFromLeft(108).reduced(0, 8));
+        hdr.removeFromLeft(12);
+        portaAlwaysButton.setBounds(hdr.removeFromLeft(68).reduced(4, 12));
+        hdr.removeFromLeft(8);
+        auto portaCol = hdr.removeFromLeft(180);
+        portamentoLabel.setBounds(portaCol.removeFromTop(18));
+        portamentoSlider.setBounds(portaCol.removeFromTop(26));
     }
     area.removeFromTop(10);
 

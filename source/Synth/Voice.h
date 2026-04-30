@@ -42,6 +42,9 @@ public:
     void setOscillatorWavePosition(int index, float pos);
     void loadWavetableData(int oscIndex, const juce::AudioBuffer<float>& audio);
 
+    void setFrequencyDirect(float hz);
+    void setNoteLegato(int note);
+
 private:
     void updateOscillatorFrequencies();
 

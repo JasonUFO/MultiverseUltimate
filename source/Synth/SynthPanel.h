@@ -262,6 +262,15 @@ private:
     };
     std::array<FMOpControls, 4> fmOps;
 
+    // Voice mode / portamento (header strip)
+    juce::Label           voiceModeLabel, portamentoLabel;
+    juce::ComboBox        voiceModeSelector;
+    MidiLearnSlider       portamentoSlider;
+    juce::ToggleButton    portaAlwaysButton;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> voiceModeAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>   portamentoAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>   portaAlwaysAttach;
+
     // Unison controls
     juce::Label        unisonVoicesLabel, unisonDetuneLabel, unisonWidthLabel;
     juce::ComboBox     unisonVoicesBox;

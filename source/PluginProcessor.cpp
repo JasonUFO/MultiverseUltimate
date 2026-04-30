@@ -224,6 +224,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         juce::ParameterID{"unisonWidth", 1}, "Unison Width",
         juce::NormalisableRange<float>(0.0f, 1.0f), 1.0f));
 
+    // Voice mode / portamento
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"voiceMode", 1}, "Voice Mode",
+        juce::StringArray{"Poly", "Mono", "Legato"}, 0));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"portamento", 1}, "Portamento",
+        juce::NormalisableRange<float>(0.0f, 2.0f, 0.0f, 0.4f), 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"portaAlways", 1}, "Porta Always", false));
+
     return layout;
 }
 
@@ -412,6 +422,11 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     synthEngine.setUnisonVoices(static_cast<int>(*apvts.getRawParameterValue("unisonVoices")) + 1);
     synthEngine.setUnisonDetune(*apvts.getRawParameterValue("unisonDetune") / 100.0f);
     synthEngine.setUnisonWidth(*apvts.getRawParameterValue("unisonWidth"));
+
+    // Voice mode / portamento
+    synthEngine.setVoiceMode(static_cast<VoiceMode>(static_cast<int>(*apvts.getRawParameterValue("voiceMode"))));
+    synthEngine.setPortamento(*apvts.getRawParameterValue("portamento"));
+    synthEngine.setPortaAlways(*apvts.getRawParameterValue("portaAlways") > 0.5f);
 
     synthEngine.setFMAlgorithm(
         static_cast<int>(*apvts.getRawParameterValue("fmAlgorithm")) + 1

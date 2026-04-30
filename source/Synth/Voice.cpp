@@ -108,6 +108,18 @@ void Voice::loadWavetableData(int oscIndex, const juce::AudioBuffer<float>& audi
     oscStates[oscIndex].wavetableOsc.loadWavetable(audio);
 }
 
+void Voice::setFrequencyDirect(float hz)
+{
+    baseFrequency = juce::jmax(1.0f, hz);
+    updateOscillatorFrequencies();
+}
+
+void Voice::setNoteLegato(int note)
+{
+    midiNote = note;
+    baseFrequency = 440.0f * std::pow(2.0f, (note - 69) / 12.0f);
+}
+
 float Voice::process()
 {
     if (!active) return 0.0f;

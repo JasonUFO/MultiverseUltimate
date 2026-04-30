@@ -13,6 +13,13 @@ enum class SynthMode
     FM
 };
 
+enum class VoiceMode
+{
+    Poly,
+    Mono,
+    Legato
+};
+
 class SynthEngine
 {
 public:
@@ -43,6 +50,11 @@ public:
     void setUnisonVoices(int n);
     void setUnisonDetune(float semitones);
     void setUnisonWidth(float w);
+
+    // Voice mode / portamento
+    void setVoiceMode(VoiceMode m);
+    void setPortamento(float seconds);
+    void setPortaAlways(bool always);
 
     // Wavetable file loading
     bool loadWavetableFile(int oscIndex, const juce::File& file);
@@ -152,6 +164,19 @@ private:
     float sampleRate = 44100.0f;
     double pitchBend = 0.0;
     int voiceCounter = 0;
+
+    // Voice mode / portamento
+    VoiceMode voiceMode = VoiceMode::Poly;
+    float portaTime = 0.0f;
+    bool portaAlways = false;
+    float glideCurrentSemitone = 69.0f;
+    float glideTargetSemitone  = 69.0f;
+    float glideCoeff = 1.0f;
+
+    // Mono note stack (held keys, no heap alloc)
+    int monoNoteStack[16] = {};
+    int monoNoteCount = 0;
+    float monoVelocity = 0.5f;
 
     // Unison state
     int   unisonVoiceCount       = 1;
