@@ -71,6 +71,31 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         c.levelSlider.init(processorRef, paramPrefix + "Level");
         c.detuneSlider.init(processorRef, paramPrefix + "Detune");
         c.wavePosSlider.init(processorRef, paramPrefix + "WavePos");
+
+        setupLabel(c.wtFileLabel, "no file");
+        c.wtFileLabel.setFont(juce::Font(9.0f));
+        addAndMakeVisible(c.loadWTButton);
+        addAndMakeVisible(c.wtFileLabel);
+        c.loadWTButton.setTooltip("Load a .wav or .aif wavetable file from disk");
+
+        const int oscIdx = osc; // capture by value for lambda
+        c.loadWTButton.onClick = [this, oscIdx]()
+        {
+            fileChooser = std::make_unique<juce::FileChooser>(
+                "Load Wavetable - Osc " + juce::String(oscIdx + 1),
+                juce::File::getSpecialLocation(juce::File::userHomeDirectory),
+                "*.wav;*.aif;*.aiff");
+            fileChooser->launchAsync(
+                juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+                [this, oscIdx](const juce::FileChooser& fc)
+                {
+                    auto f = fc.getResult();
+                    if (!f.existsAsFile()) return;
+                    if (synthEngine.loadWavetableFile(oscIdx, f))
+                        oscControls[oscIdx].wtFileLabel.setText(
+                            f.getFileNameWithoutExtension(), juce::dontSendNotification);
+                });
+        };
     }
 
     // Waveform selector (legacy, hidden in 3-osc mode)
@@ -381,6 +406,8 @@ void SynthPanel::updateVisibility()
         c.waveformSelector.setVisible(!isFM && !isWavetable);
         c.wavePosLabel.setVisible(!isFM && isWavetable);
         c.wavePosSlider.setVisible(!isFM && isWavetable);
+        c.loadWTButton.setVisible(!isFM && isWavetable);
+        c.wtFileLabel.setVisible(!isFM && isWavetable);
     }
 
     unisonVoicesLabel.setVisible(!isFM); unisonVoicesBox.setVisible(!isFM);
@@ -530,6 +557,13 @@ void SynthPanel::resized()
                 placeKnob(c.detuneSlider, c.detuneLabel, true);
                 placeKnob(c.waveformSelector, c.levelLabel, !isWavetable); // reuse label slot
                 placeKnob(c.wavePosSlider, c.wavePosLabel, isWavetable);
+                if (isWavetable)
+                {
+                    auto btnRow = knobArea.removeFromTop(20);
+                    c.loadWTButton.setBounds(btnRow.removeFromLeft(60));
+                    btnRow.removeFromLeft(4);
+                    c.wtFileLabel.setBounds(btnRow);
+                }
             }
         }
         area.removeFromTop(8);

@@ -92,5 +92,14 @@
 - Import/Export buttons for individual presets using FileChooser (launchAsync API)
 - createFactoryPresetsIfNeeded() creates category subdirectories automatically
 
+## Phase 3 — Wavetable File Loading (COMPLETED)
+- "LOAD WT" button per oscillator strip (visible in Wavetable mode)
+- FileChooser opens .wav/.aif/.aiff files; resamples into 2048-sample table across all 16 voices
+- Filename displayed next to button after load
+- File path persisted in preset XML (wavetableFile property on OscNode)
+- SynthEngine.loadWavetableFile() / getWavetableFilePath() public API
+- Voice.loadWavetableData() distributes AudioBuffer to per-voice WavetableOscillator
+
 ## Next Step
-- Continue pro-level upgrades per MULTIVERSE SYNTH BREIF.txt: unison/drift, dual filters, sub/noise, oscillator sync/ring mod, wavetable file loading from disk
+- Macro controls (4–8 assignable knobs that modulate multiple params)
+- Voice modes (mono/legato/poly)

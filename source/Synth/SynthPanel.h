@@ -221,6 +221,8 @@ private:
         juce::ComboBox     waveformSelector;
         MidiLearnSlider    wavePosSlider;
         juce::Label        levelLabel, detuneLabel, wavePosLabel;
+        juce::TextButton   loadWTButton { "LOAD WT" };
+        juce::Label        wtFileLabel;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> typeAttach;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>    levelAttach, detuneAttach, wavePosAttach;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> waveformAttach;

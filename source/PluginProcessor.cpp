@@ -876,12 +876,13 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     for (int osc = 0; osc < 3; ++osc)
     {
         juce::ValueTree oscNode("Osc");
-        oscNode.setProperty("index",     osc, nullptr);
-        oscNode.setProperty("type",      static_cast<int>(synthEngine.getOscillatorType(osc)), nullptr);
-        oscNode.setProperty("level",     synthEngine.getOscillatorLevel(osc), nullptr);
-        oscNode.setProperty("detune",   synthEngine.getOscillatorDetune(osc), nullptr);
-        oscNode.setProperty("waveform",  static_cast<int>(synthEngine.getOscillatorWaveform(osc)), nullptr);
-        oscNode.setProperty("wavePos",   synthEngine.getOscillatorWavePosition(osc), nullptr);
+        oscNode.setProperty("index",         osc, nullptr);
+        oscNode.setProperty("type",          static_cast<int>(synthEngine.getOscillatorType(osc)), nullptr);
+        oscNode.setProperty("level",         synthEngine.getOscillatorLevel(osc), nullptr);
+        oscNode.setProperty("detune",        synthEngine.getOscillatorDetune(osc), nullptr);
+        oscNode.setProperty("waveform",      static_cast<int>(synthEngine.getOscillatorWaveform(osc)), nullptr);
+        oscNode.setProperty("wavePos",       synthEngine.getOscillatorWavePosition(osc), nullptr);
+        oscNode.setProperty("wavetableFile", synthEngine.getWavetableFilePath(osc), nullptr);
         synthParams.appendChild(oscNode, nullptr);
     }
     for (int op = 0; op < 4; ++op)
@@ -980,6 +981,12 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
                     synthEngine.setOscillatorDetune(idx, (float)oscNode.getProperty("detune"));
                     synthEngine.setOscillatorWaveform(idx, static_cast<WaveformType>((int)oscNode.getProperty("waveform")));
                     synthEngine.setOscillatorWavePosition(idx, (float)oscNode.getProperty("wavePos"));
+                    if (oscNode.hasProperty("wavetableFile"))
+                    {
+                        juce::String path = oscNode.getProperty("wavetableFile").toString();
+                        if (path.isNotEmpty())
+                            synthEngine.loadWavetableFile(idx, juce::File(path));
+                    }
                 }
             }
         }

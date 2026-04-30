@@ -44,6 +44,10 @@ public:
     void setUnisonDetune(float semitones);
     void setUnisonWidth(float w);
 
+    // Wavetable file loading
+    bool loadWavetableFile(int oscIndex, const juce::File& file);
+    juce::String getWavetableFilePath(int oscIndex) const;
+
     // FM mode controls
     void setSynthMode(SynthMode mode);
     SynthMode getSynthMode() const { return synthMode; }
@@ -153,4 +157,8 @@ private:
     int   unisonVoiceCount       = 1;
     float unisonDetuneSemitones  = 0.2f;
     float unisonWidthAmount      = 1.0f;
+
+    // Wavetable file loading
+    juce::AudioFormatManager formatManager;
+    juce::String wavetableFilePaths[3];
 };

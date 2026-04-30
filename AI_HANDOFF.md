@@ -73,6 +73,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | 5.1 | Preset Browser - PresetBrowserPanel (save/load/delete), PresetManager file I/O to ~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/ |
 | 5.1 | Preset Banks - Added Factory/User banks, category subfolders (Init/Bass/Lead/Pad/Drums/FX), bank selector dropdown, import/export buttons |
 | 4.3 | Tooltips - TooltipWindow in PluginEditor, setTooltip() on all controls across all 8 panels, "?" help button in header |
+| Phase 3 | Wavetable file loading - "LOAD WT" button per osc strip, FileChooser for .wav/.aif, distributes to all 16 voices, persists file path in preset XML |
 
 ## Next Steps
 - Final regression testing across DAW environments

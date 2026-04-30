@@ -40,6 +40,7 @@ public:
     void setOscillatorDetune(int index, float detuneSemitones);
     void setOscillatorWaveform(int index, WaveformType wf);
     void setOscillatorWavePosition(int index, float pos);
+    void loadWavetableData(int oscIndex, const juce::AudioBuffer<float>& audio);
 
 private:
     void updateOscillatorFrequencies();

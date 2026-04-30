@@ -4,7 +4,7 @@
 SynthEngine::SynthEngine()
     : envAttack(0.01f), envDecay(0.1f), envSustain(0.7f), envRelease(0.3f)
 {
-    // fmOpParams default-initialized
+    formatManager.registerBasicFormats();
 }
 
 void SynthEngine::prepare(double sr, int)
@@ -522,4 +522,30 @@ void SynthEngine::setUnisonDetune(float semitones)
 void SynthEngine::setUnisonWidth(float w)
 {
     unisonWidthAmount = juce::jlimit(0.0f, 1.0f, w);
+}
+
+bool SynthEngine::loadWavetableFile(int oscIndex, const juce::File& file)
+{
+    if (oscIndex < 0 || oscIndex > 2) return false;
+    if (!file.existsAsFile()) return false;
+
+    std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
+    if (reader == nullptr) return false;
+
+    const int numSamples = (int)juce::jmin(reader->lengthInSamples, (juce::int64)1048576);
+    juce::AudioBuffer<float> audio(1, numSamples);
+    audio.clear();
+    reader->read(&audio, 0, numSamples, 0, true, false);
+
+    for (auto& vi : voices)
+        vi.voice.loadWavetableData(oscIndex, audio);
+
+    wavetableFilePaths[oscIndex] = file.getFullPathName();
+    return true;
+}
+
+juce::String SynthEngine::getWavetableFilePath(int oscIndex) const
+{
+    if (oscIndex < 0 || oscIndex > 2) return {};
+    return wavetableFilePaths[oscIndex];
 }

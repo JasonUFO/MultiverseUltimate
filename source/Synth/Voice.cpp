@@ -102,6 +102,12 @@ void Voice::setOscillatorWavePosition(int index, float pos)
     oscStates[index].wavetableOsc.setWavePosition(pos);
 }
 
+void Voice::loadWavetableData(int oscIndex, const juce::AudioBuffer<float>& audio)
+{
+    if (oscIndex < 0 || oscIndex > 2) return;
+    oscStates[oscIndex].wavetableOsc.loadWavetable(audio);
+}
+
 float Voice::process()
 {
     if (!active) return 0.0f;
