@@ -96,6 +96,22 @@ public:
 
     DrumPattern& getCurrentPattern() { return currentPattern; }
 
+    // Swing (0.0 = no swing, 1.0 = max ~33% delay on odd steps)
+    void setSwing (float s);
+    float getSwing() const { return swing; }
+
+    // Step resolution (steps per beat: 1=1/4, 2=1/8, 4=1/16, 8=1/32)
+    void setStepsPerBeat (float spb);
+    float getStepsPerBeat() const { return quantStepsPerBeat; }
+
+    // Copy / paste current pattern
+    void copyCurrentPattern();
+    void pasteToCurrentPattern();
+    bool hasPatternInClipboard() const { return clipboardValid; }
+
+    // Sample buffer access for waveform preview (UI thread only)
+    const juce::AudioBuffer<float>& getTrackSampleBuffer (int track) const;
+
     // State persistence
     juce::ValueTree getState() const;
     void setState(const juce::ValueTree& state);
@@ -133,4 +149,11 @@ public:
     juce::AudioFormatManager formatManager;
 
     std::atomic<float> trackLevels[DRUM_TRACK_COUNT] = {};
+
+    float swing = 0.0f;
+    float quantStepsPerBeat = 4.0f;
+    double currentEffectiveSamplesPerStep = 0.0;
+
+    DrumPattern clipboardPattern;
+    bool clipboardValid = false;
 };

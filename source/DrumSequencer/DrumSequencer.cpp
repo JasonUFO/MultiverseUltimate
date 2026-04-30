@@ -88,11 +88,17 @@ void DrumSequencer::process (juce::AudioBuffer<float>& buffer, int numSamples)
 
     for (int i = 0; i < numSamples; ++i)
     {
-        if (sampleCounter >= samplesPerStep)
+        if (sampleCounter >= currentEffectiveSamplesPerStep)
         {
-            sampleCounter -= samplesPerStep;
+            sampleCounter -= currentEffectiveSamplesPerStep;
             handleStep (currentStep.load());
-            currentStep.store ((currentStep.load() + 1) % DRUM_STEPS);
+            int nextStep = (currentStep.load() + 1) % DRUM_STEPS;
+            currentStep.store (nextStep);
+
+            // Recompute effective step duration for swing
+            bool nextIsOdd = (nextStep % 2) != 0;
+            double factor = nextIsOdd ? (1.0 + swing * 0.33) : (1.0 - swing * 0.33);
+            currentEffectiveSamplesPerStep = juce::jmax (1.0, samplesPerStep * factor);
         }
 
         float mixL = 0.0f, mixR = 0.0f;
@@ -144,7 +150,8 @@ void DrumSequencer::process (juce::AudioBuffer<float>& buffer, int numSamples)
 void DrumSequencer::start()
 {
     currentStep.store (0);
-    sampleCounter = samplesPerStep;  // fire step 0 at sample 0
+    sampleCounter = samplesPerStep;
+    currentEffectiveSamplesPerStep = samplesPerStep;
     playing.store (true);
 }
 
@@ -170,9 +177,9 @@ void DrumSequencer::setBPM (float newBPM)
 void DrumSequencer::updateSamplesPerStep()
 {
     double beatsPerSecond = bpm / 60.0;
-    double stepsPerBeat = 4.0;
-    double stepsPerSecond = beatsPerSecond * stepsPerBeat;
+    double stepsPerSecond = beatsPerSecond * quantStepsPerBeat;
     samplesPerStep = sampleRate / stepsPerSecond;
+    currentEffectiveSamplesPerStep = samplesPerStep;
 }
 
 void DrumSequencer::handleStep (int step)
@@ -411,12 +418,44 @@ float DrumSequencer::getTrackLevel (int track) const
     return 0.0f;
 }
 
+void DrumSequencer::setSwing (float s)
+{
+    swing = juce::jlimit (0.0f, 1.0f, s);
+}
+
+void DrumSequencer::setStepsPerBeat (float spb)
+{
+    quantStepsPerBeat = juce::jlimit (0.25f, 16.0f, spb);
+    updateSamplesPerStep();
+}
+
+void DrumSequencer::copyCurrentPattern()
+{
+    clipboardPattern = currentPattern;
+    clipboardValid = true;
+}
+
+void DrumSequencer::pasteToCurrentPattern()
+{
+    if (clipboardValid)
+        currentPattern = clipboardPattern;
+}
+
+const juce::AudioBuffer<float>& DrumSequencer::getTrackSampleBuffer (int track) const
+{
+    static const juce::AudioBuffer<float> empty;
+    if (track < 0 || track >= DRUM_TRACK_COUNT) return empty;
+    return tracks[track].sampleBuffer;
+}
+
 juce::ValueTree DrumSequencer::getState() const
 {
     juce::ValueTree v("DrumSequencer");
     v.setProperty("bpm", bpm, nullptr);
     v.setProperty("currentPatternSlot", currentPatternSlot, nullptr);
     v.setProperty("sampleRate", sampleRate, nullptr);
+    v.setProperty("swing", swing, nullptr);
+    v.setProperty("stepsPerBeat", quantStepsPerBeat, nullptr);
 
     // Tracks
     juce::ValueTree tracksNode("Tracks");
@@ -485,6 +524,10 @@ void DrumSequencer::setState(const juce::ValueTree& state)
         setBPM((float)state.getProperty("bpm"));
     if (state.hasProperty("currentPatternSlot"))
         currentPatternSlot = (int)state.getProperty("currentPatternSlot");
+    if (state.hasProperty("swing"))
+        swing = juce::jlimit(0.0f, 1.0f, (float)state.getProperty("swing"));
+    if (state.hasProperty("stepsPerBeat"))
+        setStepsPerBeat((float)state.getProperty("stepsPerBeat"));
 
     // Load tracks
     auto tracksNode = state.getChildWithName("Tracks");

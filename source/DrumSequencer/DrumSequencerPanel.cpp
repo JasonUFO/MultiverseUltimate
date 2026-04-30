@@ -3,6 +3,8 @@
 DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
     : sequencer (seq)
 {
+    chainQueue.fill (-1);
+
     for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
     {
         for (int s = 0; s < DRUM_STEPS; ++s)
@@ -15,6 +17,8 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
                 bool newState = !sequencer.getStepActive (t, s);
                 sequencer.setStepActive (t, s, newState);
                 stepButtons[t][s].setActive (newState);
+                if (newState)
+                    stepButtons[t][s].setVelocity (sequencer.getStepVelocity (t, s));
             };
 
             stepButtons[t][s].onRightClick = [this, t, s]()
@@ -60,8 +64,94 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
                 stepButtons[t][lastHighlightedStep].setHighlighted (false);
         }
         lastHighlightedStep = -1;
+        positionLabel.setText ("Step: —", juce::dontSendNotification);
     };
     addAndMakeVisible (stopButton);
+
+    positionLabel.setText ("Step: —", juce::dontSendNotification);
+    positionLabel.setColour (juce::Label::textColourId, juce::Colour (0xffaaaacc));
+    positionLabel.setJustificationType (juce::Justification::centredLeft);
+    addAndMakeVisible (positionLabel);
+
+    copyPatternButton.onClick = [this]()
+    {
+        sequencer.copyCurrentPattern();
+        pastePatternButton.setEnabled (true);
+    };
+    copyPatternButton.setTooltip ("Copy current pattern to clipboard");
+    addAndMakeVisible (copyPatternButton);
+
+    pastePatternButton.setEnabled (sequencer.hasPatternInClipboard());
+    pastePatternButton.onClick = [this]()
+    {
+        sequencer.pasteToCurrentPattern();
+        refreshStepDisplay();
+    };
+    pastePatternButton.setTooltip ("Paste copied pattern into current slot");
+    addAndMakeVisible (pastePatternButton);
+
+    // Swing
+    swingLabel.setText ("Swing", juce::dontSendNotification);
+    swingLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    swingLabel.setJustificationType (juce::Justification::centredRight);
+    addAndMakeVisible (swingLabel);
+
+    swingSlider.setRange (0.0, 100.0, 1.0);
+    swingSlider.setValue (0.0, juce::dontSendNotification);
+    swingSlider.setSliderStyle (juce::Slider::LinearHorizontal);
+    swingSlider.setTextBoxStyle (juce::Slider::TextBoxLeft, false, 38, 20);
+    swingSlider.setTextValueSuffix ("%");
+    swingSlider.onValueChange = [this]()
+    {
+        sequencer.setSwing (static_cast<float> (swingSlider.getValue()) / 100.0f);
+    };
+    swingSlider.setTooltip ("Swing: delays odd steps to create a shuffle feel (0–100%)");
+    addAndMakeVisible (swingSlider);
+
+    // Quantization
+    quantLabel.setText ("Quant", juce::dontSendNotification);
+    quantLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    quantLabel.setJustificationType (juce::Justification::centredRight);
+    addAndMakeVisible (quantLabel);
+
+    quantCombo.addItem ("1/4",  1);
+    quantCombo.addItem ("1/8",  2);
+    quantCombo.addItem ("1/16", 3);
+    quantCombo.addItem ("1/32", 4);
+    quantCombo.setSelectedId (3, juce::dontSendNotification);
+    quantCombo.onChange = [this]()
+    {
+        const float spbValues[] = { 1.0f, 2.0f, 4.0f, 8.0f };
+        int id = quantCombo.getSelectedId() - 1;
+        if (id >= 0 && id < 4)
+            sequencer.setStepsPerBeat (spbValues[id]);
+    };
+    quantCombo.setTooltip ("Step resolution: 1/4 = quarter, 1/8 = eighth, 1/16 = sixteenth (default), 1/32 = thirty-second");
+    addAndMakeVisible (quantCombo);
+
+    // Pattern chain
+    chainToggleButton.setClickingTogglesState (true);
+    chainToggleButton.setColour (juce::TextButton::buttonOnColourId, juce::Colour (0xff33aa66));
+    chainToggleButton.onClick = [this]()
+    {
+        chainActive = chainToggleButton.getToggleState();
+        chainPos = 0;
+    };
+    chainToggleButton.setTooltip ("Enable chain mode: auto-advance through the pattern queue on the right");
+    addAndMakeVisible (chainToggleButton);
+
+    for (int i = 0; i < MAX_DRUM_PATTERNS; ++i)
+    {
+        chainSlotButtons[i].setTooltip ("Chain slot " + juce::String (i + 1) + ": click to cycle through patterns (1–8) or clear (—)");
+        chainSlotButtons[i].onClick = [this, i]()
+        {
+            int cur = chainQueue[i];
+            chainQueue[i] = (cur >= MAX_DRUM_PATTERNS - 1) ? -1 : cur + 1;
+            updateChainSlotButtons();
+        };
+        addAndMakeVisible (chainSlotButtons[i]);
+    }
+    updateChainSlotButtons();
 
     for (int i = 0; i < MAX_DRUM_PATTERNS; ++i)
     {
@@ -106,6 +196,7 @@ void DrumSequencerPanel::refreshStepDisplay()
         for (int s = 0; s < DRUM_STEPS; ++s)
         {
             stepButtons[t][s].setActive (sequencer.getStepActive (t, s));
+            stepButtons[t][s].setVelocity (sequencer.getStepVelocity (t, s));
         }
     }
 }
@@ -126,6 +217,12 @@ void DrumSequencerPanel::timerCallback()
 
     int step = sequencer.getCurrentStep();
     int displayStep = (step - 1 + DRUM_STEPS) % DRUM_STEPS;
+
+    positionLabel.setText ("Step: " + juce::String (displayStep + 1), juce::dontSendNotification);
+
+    // Chain: detect pattern wrap (step goes from 15 back to 0)
+    if (chainActive && displayStep == 0 && lastHighlightedStep == DRUM_STEPS - 1)
+        advanceChain();
 
     if (displayStep != lastHighlightedStep)
     {
@@ -159,6 +256,7 @@ void DrumSequencerPanel::showVelocityMenu (int track, int step)
         {
             float velocity = static_cast<float> (result) / 100.0f;
             sequencer.setStepVelocity (track, step, velocity);
+            stepButtons[track][step].setVelocity (velocity);
         }
     });
 }
@@ -224,18 +322,44 @@ void DrumSequencerPanel::resized()
 {
     auto area = getLocalBounds().reduced (6);
 
-    area.removeFromTop (24);
+    area.removeFromTop (24);  // title
 
-    auto controls = area.removeFromTop (28);
-    bpmLabel.setBounds (controls.removeFromLeft (32));
-    bpmSlider.setBounds (controls.removeFromLeft (140));
-    controls.removeFromLeft (8);
-    playButton.setBounds (controls.removeFromLeft (50));
-    controls.removeFromLeft (4);
-    stopButton.setBounds (controls.removeFromLeft (50));
+    // Row 1: BPM + transport + position + copy/paste
+    auto row1 = area.removeFromTop (28);
+    bpmLabel.setBounds (row1.removeFromLeft (36));
+    bpmSlider.setBounds (row1.removeFromLeft (140));
+    row1.removeFromLeft (6);
+    playButton.setBounds (row1.removeFromLeft (50));
+    row1.removeFromLeft (4);
+    stopButton.setBounds (row1.removeFromLeft (50));
+    row1.removeFromLeft (8);
+    positionLabel.setBounds (row1.removeFromLeft (72));
+    row1.removeFromLeft (8);
+    copyPatternButton.setBounds (row1.removeFromLeft (50));
+    row1.removeFromLeft (4);
+    pastePatternButton.setBounds (row1.removeFromLeft (50));
 
     area.removeFromTop (4);
 
+    // Row 2: Swing + Quant + Chain
+    auto row2 = area.removeFromTop (24);
+    swingLabel.setBounds (row2.removeFromLeft (42));
+    swingSlider.setBounds (row2.removeFromLeft (130));
+    row2.removeFromLeft (8);
+    quantLabel.setBounds (row2.removeFromLeft (42));
+    quantCombo.setBounds (row2.removeFromLeft (80));
+    row2.removeFromLeft (8);
+    chainToggleButton.setBounds (row2.removeFromLeft (54));
+    row2.removeFromLeft (4);
+    {
+        int chainW = row2.getWidth() / MAX_DRUM_PATTERNS;
+        for (auto& btn : chainSlotButtons)
+            btn.setBounds (row2.removeFromLeft (chainW).reduced (1, 0));
+    }
+
+    area.removeFromTop (4);
+
+    // Pattern row
     auto patRow = area.removeFromTop (22);
     int patW = patRow.getWidth() / MAX_DRUM_PATTERNS;
     for (auto& btn : patternButtons)
@@ -246,18 +370,14 @@ void DrumSequencerPanel::resized()
     int trackRowHeight = area.getHeight() / juce::jmax (1, DRUM_TRACK_COUNT);
     if (trackRowHeight < 18) trackRowHeight = 18;
 
-    // Split area: left quarter for track controls, right three-quarters for step buttons
     auto stepArea = area.removeFromRight (area.getWidth() * 3 / 4);
-    int stepWidth = stepArea.getWidth() / DRUM_STEPS;
 
     for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
     {
-        // Track control row (name, volume, mute, solo, load)
         auto trackRowBounds = area.removeFromTop (trackRowHeight);
         if (t < static_cast<int> (trackRows.size()))
             trackRows[static_cast<size_t> (t)]->setBounds (trackRowBounds);
 
-        // Step button row aligned with the track control row
         auto stepRow = stepArea.removeFromTop (trackRowHeight);
         int sw = stepRow.getWidth() / DRUM_STEPS;
         for (int s = 0; s < DRUM_STEPS; ++s)
@@ -281,8 +401,10 @@ void DrumSequencerPanel::DrumStepButton::paint (juce::Graphics& g)
     }
     else if (active)
     {
-        bg = juce::Colour (0xff2a5faa);
-        border = juce::Colour (0xff4488dd);
+        // Velocity intensity: dark blue (low) → bright cyan (high)
+        float v = juce::jlimit (0.0f, 1.0f, velocity);
+        bg     = juce::Colour (0xff1a3a6a).interpolatedWith (juce::Colour (0xff44ccff), v);
+        border = juce::Colour (0xff2255aa).interpolatedWith (juce::Colour (0xff88eeff), v);
     }
     else
     {
@@ -395,6 +517,34 @@ void DrumSequencerPanel::TrackRow::paint (juce::Graphics& g)
 {
     g.setColour (juce::Colour (0xff1f1f35));
     g.fillRoundedRectangle (getLocalBounds().toFloat().reduced (1), 2.0f);
+
+    // Waveform preview in name label area when a sample is loaded
+    const auto& buf = sequencer.getTrackSampleBuffer (trackIndex);
+    if (buf.getNumSamples() > 0)
+    {
+        auto waveArea = juce::Rectangle<int> (2, 2, 68, getHeight() - 4);
+        g.setColour (juce::Colour (0xff1a2a44));
+        g.fillRect (waveArea);
+
+        const float* samples = buf.getReadPointer (0);
+        int numSamples = buf.getNumSamples();
+        int w = waveArea.getWidth();
+        float cy = waveArea.getCentreY();
+        float halfH = (waveArea.getHeight() - 2) * 0.45f;
+
+        g.setColour (juce::Colour (0xff3388cc).withAlpha (0.85f));
+        juce::Path path;
+        for (int px = 0; px < w; ++px)
+        {
+            int idx = juce::jlimit (0, numSamples - 1,
+                                    static_cast<int> ((float) px / w * numSamples));
+            float s = juce::jlimit (-1.0f, 1.0f, samples[idx]);
+            float y = cy - s * halfH;
+            if (px == 0) path.startNewSubPath ((float) (waveArea.getX() + px), y);
+            else         path.lineTo          ((float) (waveArea.getX() + px), y);
+        }
+        g.strokePath (path, juce::PathStrokeType (1.0f));
+    }
 }
 
 void DrumSequencerPanel::TrackRow::resized()
@@ -415,4 +565,34 @@ void DrumSequencerPanel::TrackRow::resized()
     loadButton.setBounds (area.removeFromLeft (btnW));
     area.removeFromLeft (2);
     levelMeter.setBounds (area.removeFromLeft (16));
+}
+
+// ===== Chain helpers =====
+
+void DrumSequencerPanel::advanceChain()
+{
+    for (int i = 1; i <= MAX_DRUM_PATTERNS; ++i)
+    {
+        int nextSlot = (chainPos + i) % MAX_DRUM_PATTERNS;
+        if (chainQueue[nextSlot] >= 0)
+        {
+            chainPos = nextSlot;
+            int patIdx = chainQueue[nextSlot];
+            sequencer.savePattern (sequencer.getCurrentPatternSlot());
+            sequencer.loadPattern (patIdx);
+            refreshStepDisplay();
+            updatePatternButtons();
+            return;
+        }
+    }
+}
+
+void DrumSequencerPanel::updateChainSlotButtons()
+{
+    for (int i = 0; i < MAX_DRUM_PATTERNS; ++i)
+    {
+        int pat = chainQueue[i];
+        chainSlotButtons[i].setButtonText (pat < 0 ? juce::String (juce::CharPointer_UTF8 ("\xe2\x80\x94"))
+                                                    : juce::String (pat + 1));
+    }
 }
