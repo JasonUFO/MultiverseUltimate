@@ -230,6 +230,19 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
     };
     addAndMakeVisible (ratchetBox);
 
+    // Tooltips
+    fwdBtn.setTooltip          ("Play steps in forward order (left to right)");
+    revBtn.setTooltip          ("Play steps in reverse order (right to left)");
+    rndBtn.setTooltip          ("Play steps in random order");
+    numStepsBox.setTooltip     ("Number of active steps per lane (8, 16, or 32)");
+    noteBtn.setTooltip         ("Set the MIDI note for the selected step");
+    velocitySlider.setTooltip  ("Step velocity: note hit strength (0–100%)");
+    gateSlider.setTooltip      ("Step gate: note duration as fraction of step length (1–99%)");
+    probSlider.setTooltip      ("Step probability: chance the step will trigger (0–100%)");
+    ratchetBox.setTooltip      ("Ratchet: number of triggers within one step (1–8×)");
+    for (int i = 0; i < PRO_SEQ_LANES; ++i)
+        laneButtons[i].setTooltip ("Select lane " + juce::String(i + 1) + " — each lane has independent step data");
+
     startTimer (50);
 }
 

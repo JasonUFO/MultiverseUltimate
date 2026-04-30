@@ -126,6 +126,16 @@ ArpeggiatorPanel::ArpeggiatorPanel (Arpeggiator& arp) : arpeggiator (arp)
         addAndMakeVisible (stepButtons[s]);
     }
 
+    // Tooltips
+    enableBtn.setTooltip          ("Enable or disable the arpeggiator");
+    modeBox.setTooltip            ("Arp mode: Up / Down / UpDown / Random / Chord");
+    numStepsBox.setTooltip        ("Total number of arp steps (8, 16, or 32)");
+    noteOffsetSlider.setTooltip   ("Semitone offset for the selected step (−12 to +12)");
+    octaveSlider.setTooltip       ("Octave shift for the selected step (−2 to +2)");
+    velocitySlider.setTooltip     ("Velocity for the selected step (0–100%)");
+    gateSlider.setTooltip         ("Gate length for the selected step (1–99% of step duration)");
+    tieBtn.setTooltip             ("Tie: hold note over into the next step");
+
     refreshStepGrid();
 }
 

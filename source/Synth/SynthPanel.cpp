@@ -210,6 +210,32 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         c.releaseSlider.init(processorRef, pfx + "Release");
     }
 
+    // Tooltips
+    modeSelector.setTooltip      ("Synthesis mode: Classic (subtractive) or FM");
+    waveformSelector.setTooltip  ("Oscillator waveform: Sine / Saw / Square / Triangle / Noise");
+    savePresetButton.setTooltip  ("Save current state to a preset file");
+    loadPresetButton.setTooltip  ("Load a previously saved preset file");
+    attackSlider.setTooltip      ("Envelope Attack: time to reach full volume (1ms–5s)");
+    decaySlider.setTooltip       ("Envelope Decay: time to fall to sustain level (1ms–5s)");
+    sustainSlider.setTooltip     ("Envelope Sustain: held volume level (0–100%)");
+    releaseSlider.setTooltip     ("Envelope Release: time to silence after note-off (1ms–10s)");
+    cutoffSlider.setTooltip      ("Filter Cutoff: frequency where filtering begins (20Hz–20kHz). Lower = darker sound.");
+    resonanceSlider.setTooltip   ("Filter Resonance: emphasis at cutoff. High values add a ringing tone.");
+    oversamplingSelector.setTooltip("Filter Oversampling: Off / 2x / 4x / Auto (Auto enables 2× above 5kHz)");
+    algorithmSelector.setTooltip ("FM Algorithm: operator routing topology (1–8)");
+    for (int op = 0; op < 4; ++op)
+    {
+        auto& c = fmOps[op];
+        const auto pfx = "OP " + juce::String(op + 1) + " — ";
+        c.ratioSlider.setTooltip   (pfx + "Frequency ratio relative to base pitch (0.5–32)");
+        c.levelSlider.setTooltip   (pfx + "Operator output amplitude (0–100%)");
+        c.feedbackSlider.setTooltip(pfx + "Self-modulation / feedback depth (0–100%)");
+        c.attackSlider.setTooltip  (pfx + "Operator envelope Attack (1ms–5s)");
+        c.decaySlider.setTooltip   (pfx + "Operator envelope Decay (1ms–5s)");
+        c.sustainSlider.setTooltip (pfx + "Operator envelope Sustain level (0–100%)");
+        c.releaseSlider.setTooltip (pfx + "Operator envelope Release (1ms–10s)");
+    }
+
     updateVisibility();
 }
 

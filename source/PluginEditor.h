@@ -10,6 +10,7 @@
 #include "Sequencer/ProSequencerPanel.h"
 #include "Sequencer/ArpeggiatorPanel.h"
 #include "Effects/EffectsPanel.h"
+#include "Presets/PresetBrowserPanel.h"
 
 class PluginEditor : public juce::AudioProcessorEditor,
                      public juce::Button::Listener,
@@ -37,6 +38,15 @@ private:
     SynthPanel            synthPanel;
     EffectsPanel          effectsPanel;
     juce::TabbedComponent tabs;
+
+    // Preset browser
+    PresetBrowserPanel presetBrowserPanel;
+    juce::TextButton   presetsButton { "Presets" };
+    bool               presetsVisible = false;
+
+    // Tooltips
+    juce::TooltipWindow tooltipWindow { this, 700 };
+    juce::TextButton    helpButton    { "?" };
 
     // MIDI Learn
     juce::ToggleButton midiLearnButton;

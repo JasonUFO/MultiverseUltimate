@@ -56,6 +56,11 @@ ModulationMatrixPanel::Row::Row()
     };
 
     deleteButton.onClick = [this]() { if (onDelete) onDelete(); };
+
+    sourceBox.setTooltip   ("Modulation source: LFO1, LFO2, Envelope, Velocity, Random…");
+    targetBox.setTooltip   ("Modulation target: Pitch, Filter Cutoff, Volume, Effect parameter…");
+    amountSlider.setTooltip("Modulation depth: how strongly the source affects the target (−1.0 to +1.0)");
+    deleteButton.setTooltip("Remove this modulation route");
 }
 
 void ModulationMatrixPanel::Row::resized()
@@ -86,6 +91,7 @@ ModulationMatrixPanel::ModulationMatrixPanel(PluginProcessor& p, ModulationMatri
         resized();
         repaint();
     };
+    addButton.setTooltip("Add a new modulation route (source → target with depth)");
     addAndMakeVisible(addButton);
 
     rebuild();

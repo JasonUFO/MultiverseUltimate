@@ -12,10 +12,25 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       effectsPanel (p),
       tabs (juce::TabbedButtonBar::TabsAtTop),
       midiLearnButton ("MIDI Learn"),
-      midiLearnLabel ("", "")
+      midiLearnLabel ("", ""),
+      presetBrowserPanel (p)
 {
     setupTabs();
     setupMidiLearnButton();
+
+    presetsButton.addListener (this);
+    addAndMakeVisible (presetsButton);
+    addChildComponent (presetBrowserPanel);
+
+    helpButton.setClickingTogglesState (true);
+    helpButton.setToggleState (true, juce::dontSendNotification);
+    helpButton.onClick = [this]
+    {
+        tooltipWindow.setMillisecondsBeforeTipAppears (
+            helpButton.getToggleState() ? 700 : 99999999);
+    };
+    addAndMakeVisible (helpButton);
+
     addAndMakeVisible (tabs);
     addAndMakeVisible (midiLearnButton);
     addAndMakeVisible (midiLearnLabel);
@@ -77,13 +92,35 @@ void PluginEditor::resized()
     auto header = area.removeFromTop (32);
     midiLearnButton.setBounds (header.removeFromLeft (110).reduced (4, 4));
     paramSelector.setBounds   (header.removeFromLeft (200).reduced (2, 4));
+    presetsButton.setBounds   (header.removeFromRight (72).reduced (4, 4));
+    helpButton.setBounds      (header.removeFromRight (28).reduced (2, 4));
     midiLearnLabel.setBounds  (header.reduced (4, 4));
+
+    // Preset browser (collapsible, 160px)
+    if (presetsVisible)
+    {
+        presetBrowserPanel.setBounds (area.removeFromTop (160));
+        presetBrowserPanel.setVisible (true);
+    }
+    else
+    {
+        presetBrowserPanel.setVisible (false);
+    }
 
     tabs.setBounds (area);
 }
 
 void PluginEditor::buttonClicked (juce::Button* button)
 {
+    if (button == &presetsButton)
+    {
+        presetsVisible = !presetsVisible;
+        if (presetsVisible)
+            presetBrowserPanel.refresh();
+        resized();
+        return;
+    }
+
     if (button != &midiLearnButton)
         return;
 

@@ -40,8 +40,10 @@
       <GROUP id="GrpPst" name="Presets">
         <FILE id="Dd0001" name="Preset.h"          compile="0" resource="0" file="source/Presets/Preset.h"/>
         <FILE id="Dd0002" name="Preset.cpp"        compile="1" resource="0" file="source/Presets/Preset.cpp"/>
-        <FILE id="Dd0003" name="PresetManager.h"   compile="0" resource="0" file="source/Presets/PresetManager.h"/>
-        <FILE id="Dd0004" name="PresetManager.cpp" compile="1" resource="0" file="source/Presets/PresetManager.cpp"/>
+        <FILE id="Dd0003" name="PresetManager.h"        compile="0" resource="0" file="source/Presets/PresetManager.h"/>
+        <FILE id="Dd0004" name="PresetManager.cpp"       compile="1" resource="0" file="source/Presets/PresetManager.cpp"/>
+        <FILE id="Dd0005" name="PresetBrowserPanel.h"   compile="0" resource="0" file="source/Presets/PresetBrowserPanel.h"/>
+        <FILE id="Dd0006" name="PresetBrowserPanel.cpp" compile="1" resource="0" file="source/Presets/PresetBrowserPanel.cpp"/>
       </GROUP>
       <GROUP id="GrpSmp" name="Sampler">
         <FILE id="Ee0001" name="SamplerEngine.h"   compile="0" resource="0" file="source/Sampler/SamplerEngine.h"/>

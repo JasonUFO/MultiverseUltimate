@@ -273,6 +273,32 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     reverbPreDelaySlider.init(processorRef, "reverbPreDelay");
     reverbLFDampSlider.init  (processorRef, "reverbLFDamp");
     reverbWidthSlider.init   (processorRef, "reverbWidth");
+
+    // Tooltips
+    chorusRateSlider.setTooltip  ("Chorus Rate: LFO speed (0.1–5 Hz). Higher = faster modulation.");
+    chorusDepthSlider.setTooltip ("Chorus Depth: modulation depth (0–100%). Higher = wider pitch wobble.");
+    chorusMixSlider.setTooltip   ("Chorus Mix: wet/dry blend (0=dry, 1=fully wet)");
+    distDriveSlider.setTooltip   ("Distortion Drive: saturation amount (1–100×). Higher = more clipping.");
+    distToneSlider.setTooltip    ("Distortion Tone: low-pass filter on distorted signal (0=dark, 1=bright)");
+    distMixSlider.setTooltip     ("Distortion Mix: wet/dry blend");
+    eqLowSlider.setTooltip       ("EQ Low Shelf: gain at 250 Hz (±12 dB)");
+    eqMidSlider.setTooltip       ("EQ Mid Peak: gain at 1 kHz (±12 dB)");
+    eqHighSlider.setTooltip      ("EQ High Shelf: gain at 4 kHz (±12 dB)");
+    compThreshSlider.setTooltip  ("Compressor Threshold: level above which compression starts (−60–0 dB)");
+    compRatioSlider.setTooltip   ("Compressor Ratio: gain reduction above threshold (1:1–20:1)");
+    compAttackSlider.setTooltip  ("Compressor Attack: time to engage compression (0.1–100 ms)");
+    compReleaseSlider.setTooltip ("Compressor Release: time to disengage compression (10–1000 ms)");
+    compMakeupSlider.setTooltip  ("Compressor Makeup Gain: output boost to compensate for gain reduction (0–24 dB)");
+    delayTimeSlider.setTooltip   ("Delay Time: echo delay length (0–2 s)");
+    delayFeedbackSlider.setTooltip("Delay Feedback: echo repeat decay (0–95%). High values = long tail.");
+    delayMixSlider.setTooltip    ("Delay Mix: wet/dry blend");
+    reverbRoomSlider.setTooltip  ("Reverb Room Size: acoustic size of the simulated space (0–100%)");
+    reverbDampSlider.setTooltip  ("Reverb HF Damping: high-frequency absorption (0=bright, 1=dark)");
+    reverbWetSlider.setTooltip   ("Reverb Wet Level: amount of reverb in the output (0–100%)");
+    reverbPreDelaySlider.setTooltip("Reverb Pre-Delay: time before reverb onset (0–200 ms)");
+    reverbLFDampSlider.setTooltip("Reverb LF Damping: low-frequency damping on the wet signal");
+    reverbWidthSlider.setTooltip ("Reverb Width: stereo spread (0=mono, 1=full stereo)");
+    reverbFreezeButton.setTooltip("Reverb Freeze: hold the reverb tail indefinitely");
 }
 
 void EffectsPanel::setupSlider(juce::Slider& s, double min, double max, double value, double skew)

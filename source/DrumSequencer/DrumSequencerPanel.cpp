@@ -84,6 +84,13 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
     dropLabel.setVisible (false);
     addAndMakeVisible (dropLabel);
 
+    // Tooltips
+    bpmSlider.setTooltip   ("Tempo: beats per minute (40–240 BPM)");
+    playButton.setTooltip  ("Start the drum sequencer");
+    stopButton.setTooltip  ("Stop the drum sequencer and reset playhead");
+    for (int i = 0; i < MAX_DRUM_PATTERNS; ++i)
+        patternButtons[i].setTooltip ("Load drum pattern slot " + juce::String(i + 1));
+
     startTimer (50);
 }
 
@@ -364,6 +371,11 @@ DrumSequencerPanel::TrackRow::TrackRow (int idx, DrumSequencer& seq, DrumSequenc
     levelMeter.setColour (juce::Label::backgroundColourId, juce::Colour (0xff1a1a2e));
     levelMeter.setColour (juce::Label::textColourId, juce::Colour (0xff44aa44));
     addAndMakeVisible (levelMeter);
+
+    volumeSlider.setTooltip ("Track " + juce::String(idx + 1) + " volume (0–100%)");
+    muteButton.setTooltip   ("Mute track " + juce::String(idx + 1) + " (silences this drum track)");
+    soloButton.setTooltip   ("Solo track " + juce::String(idx + 1) + " (mutes all other tracks)");
+    loadButton.setTooltip   ("Load an audio sample for track " + juce::String(idx + 1));
 }
 
 void DrumSequencerPanel::TrackRow::updateFromSequencer()

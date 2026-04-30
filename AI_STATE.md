@@ -41,6 +41,17 @@
 - Added .init() calls for all sliders
 - Full MIDI Learn support with orange "L" badge and mapping persistence
 
+### Phase 5.1 — Preset Browser
+- PresetManager: saveState/loadState/deletePreset/scanPresetsDirectory implemented; presets saved to ~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/*.mvpreset
+- PresetBrowserPanel: name TextEditor + Save, ListBox of presets + Load/Delete buttons
+- PluginEditor: "Presets" toggle button in header; browser appears as 160px collapsible panel above tabs
+- Double-click a preset in the list to load it
+
+### Phase 4.3 — Tooltips
+- juce::TooltipWindow added to PluginEditor (700ms delay, hover over any control)
+- setTooltip() calls added to all sliders, combo boxes, buttons in all 8 panels
+- "?" button added to header strip — shows panel-specific help text for the active tab via AlertWindow
+
 ## In Progress
 - None
 
@@ -48,7 +59,7 @@
 - None
 
 ## Next Step
-- Build preset browser UI (Phase 5.1)
+- Final regression testing (load/save presets in DAW, verify all tabs still functional)
 
 ## Session Update 2026-04-30
 ## Completed

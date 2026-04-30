@@ -3,6 +3,10 @@
 PresetManager::PresetManager()
 {
     presets.push_back(Preset("Init"));
+    presetsDirectory = juce::File::getSpecialLocation(juce::File::userHomeDirectory)
+                           .getChildFile("Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate");
+    presetsDirectory.createDirectory();
+    scanPresetsDirectory();
 }
 
 void PresetManager::loadPreset(const juce::String& path)
@@ -73,13 +77,51 @@ void PresetManager::previousPreset()
 
 void PresetManager::saveState(const juce::String& name, const juce::MemoryBlock& state)
 {
-    juce::ignoreUnused(name);
-    juce::ignoreUnused(state);
+    presetsDirectory.createDirectory();
+    auto file = presetsDirectory.getChildFile(name + ".mvpreset");
+    file.replaceWithData(state.getData(), state.getSize());
+    scanPresetsDirectory();
 }
 
 bool PresetManager::loadState(int index, juce::MemoryBlock& state)
 {
-    juce::ignoreUnused(index);
-    juce::ignoreUnused(state);
-    return false;
+    if (index < 0 || index >= presetFiles.size())
+        return false;
+    return presetFiles[index].loadFileAsData(state);
+}
+
+void PresetManager::deletePreset(int index)
+{
+    if (index >= 0 && index < presetFiles.size())
+    {
+        presetFiles[index].deleteFile();
+        scanPresetsDirectory();
+    }
+}
+
+void PresetManager::scanPresetsDirectory()
+{
+    presetFiles.clear();
+    presetNames.clear();
+    if (!presetsDirectory.isDirectory())
+        return;
+
+    juce::Array<juce::File> found;
+    presetsDirectory.findChildFiles(found, juce::File::findFiles, false, "*.mvpreset");
+
+    struct AlphaSort
+    {
+        static int compareElements(const juce::File& a, const juce::File& b)
+        {
+            return a.getFileNameWithoutExtension()
+                    .compareNatural(b.getFileNameWithoutExtension());
+        }
+    } cmp;
+    found.sort(cmp);
+
+    for (auto& f : found)
+    {
+        presetFiles.add(f);
+        presetNames.add(f.getFileNameWithoutExtension());
+    }
 }

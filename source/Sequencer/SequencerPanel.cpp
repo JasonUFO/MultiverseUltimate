@@ -135,6 +135,15 @@ SequencerPanel::SequencerPanel (Sequencer& seq) : sequencer (seq)
     exportButton.onClick = [this]() { exportMidi(); };
     addAndMakeVisible (exportButton);
 
+    // Tooltips
+    bpmSlider.setTooltip     ("Tempo: beats per minute (40–240 BPM)");
+    playButton.setTooltip    ("Start the melodic sequencer");
+    stopButton.setTooltip    ("Stop the sequencer and reset to step 1");
+    modeButton.setTooltip    ("Toggle between Step Sequencer mode (SEQ) and Arpeggiator mode (ARP)");
+    exportButton.setTooltip  ("Export the current pattern as a standard MIDI file");
+    for (int i = 0; i < MAX_PATTERNS; ++i)
+        patternButtons[i].setTooltip ("Load pattern slot " + juce::String(i + 1));
+
     startTimer (50);
 }
 

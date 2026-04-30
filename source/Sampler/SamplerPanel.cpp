@@ -99,6 +99,17 @@ SamplerPanel::SamplerPanel (PluginProcessor& p, SamplerEngine& engine)
         p.apvts, "samplerPan", samplerPanSlider);
     samplerPanSlider.init (p, "samplerPan");
 
+    // Tooltips
+    clearButton.setTooltip       ("Remove all loaded sample zones");
+    loopModeCombo.setTooltip     ("Loop mode: None (one-shot) / Forward / Ping-Pong");
+    rootNoteCombo.setTooltip     ("Root note: MIDI pitch at which the sample plays at its original speed");
+    loopStartSlider.setTooltip   ("Loop start point (sample index). Drag to set where the loop begins.");
+    loopEndSlider.setTooltip     ("Loop end point (sample index). Drag to set where the loop ends.");
+    xfadeSlider.setTooltip       ("Loop crossfade length: smoothes the loop boundary to reduce clicks");
+    samplerVolumeSlider.setTooltip("Sampler Volume: global output level for all zones (0–100%)");
+    samplerPanSlider.setTooltip  ("Sampler Pan: global stereo position (−1=left, 0=centre, +1=right)");
+    zoneList.setTooltip          ("Sample zones — drag audio files into this panel to load them");
+
     updateControlsForSelectedZone();
 }
 
