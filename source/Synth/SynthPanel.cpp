@@ -193,6 +193,35 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     cutoffAttach    = std::make_unique<SliderAttachment>(apvts, "filterCutoff",    cutoffSlider);
     resonanceAttach = std::make_unique<SliderAttachment>(apvts, "filterResonance", resonanceSlider);
     
+    // Unison controls
+    setupLabel(unisonVoicesLabel, "VOICES");
+    setupLabel(unisonDetuneLabel, "DETUNE");
+    setupLabel(unisonWidthLabel,  "WIDTH");
+    addAndMakeVisible(unisonVoicesLabel);
+    addAndMakeVisible(unisonDetuneLabel);
+    addAndMakeVisible(unisonWidthLabel);
+
+    for (int i = 1; i <= 8; ++i)
+        unisonVoicesBox.addItem(juce::String(i), i);
+    unisonVoicesBox.setSelectedId(1, juce::dontSendNotification);
+    addAndMakeVisible(unisonVoicesBox);
+
+    setupSlider(unisonDetuneSlider, 0.0, 100.0, 20.0);
+    setupSlider(unisonWidthSlider,  0.0, 1.0,   1.0);
+    addAndMakeVisible(unisonDetuneSlider);
+    addAndMakeVisible(unisonWidthSlider);
+
+    unisonVoicesAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        apvts, "unisonVoices", unisonVoicesBox);
+    unisonDetuneAttach = std::make_unique<SliderAttachment>(apvts, "unisonDetune", unisonDetuneSlider);
+    unisonWidthAttach  = std::make_unique<SliderAttachment>(apvts, "unisonWidth",  unisonWidthSlider);
+    unisonDetuneSlider.init(processorRef, "unisonDetune");
+    unisonWidthSlider.init(processorRef,  "unisonWidth");
+
+    unisonVoicesBox.setTooltip("Number of stacked voices per note (1 = off)");
+    unisonDetuneSlider.setTooltip("Detune spread across unison voices in cents");
+    unisonWidthSlider.setTooltip("Stereo spread of unison voices (0 = mono, 1 = full wide)");
+
     // Initialize MidiLearnSliders
     attackSlider.init(processorRef, "attack");
     decaySlider.init(processorRef, "decay");
@@ -354,6 +383,10 @@ void SynthPanel::updateVisibility()
         c.wavePosSlider.setVisible(!isFM && isWavetable);
     }
 
+    unisonVoicesLabel.setVisible(!isFM); unisonVoicesBox.setVisible(!isFM);
+    unisonDetuneLabel.setVisible(!isFM); unisonDetuneSlider.setVisible(!isFM);
+    unisonWidthLabel.setVisible(!isFM);  unisonWidthSlider.setVisible(!isFM);
+
     attackLabel.setVisible(!isFM);  attackSlider.setVisible(!isFM);
     decayLabel.setVisible(!isFM);   decaySlider.setVisible(!isFM);
     sustainLabel.setVisible(!isFM); sustainSlider.setVisible(!isFM);
@@ -389,6 +422,7 @@ void SynthPanel::paint(juce::Graphics& g)
     if (!isFM)
     {
         drawSection(g, oscSectionRect,    "OSC");
+        drawSection(g, unisonSectionRect, "UNISON");
         drawSection(g, filterSectionRect, "FILTER");
         drawSection(g, envSectionRect,    "ENV");
     }
@@ -497,6 +531,27 @@ void SynthPanel::resized()
                 placeKnob(c.waveformSelector, c.levelLabel, !isWavetable); // reuse label slot
                 placeKnob(c.wavePosSlider, c.wavePosLabel, isWavetable);
             }
+        }
+        area.removeFromTop(8);
+
+        // UNISON section
+        unisonSectionRect = area.removeFromTop(90);
+        {
+            auto inner = unisonSectionRect.reduced(8).withTrimmedTop(18);
+            // Voices ComboBox (labeled)
+            auto voicesCol = inner.removeFromLeft(100);
+            unisonVoicesLabel.setBounds(voicesCol.removeFromBottom(labelH));
+            unisonVoicesBox.setBounds(voicesCol.reduced(0, 4));
+            inner.removeFromLeft(12);
+            // Detune knob
+            auto detuneCol = inner.removeFromLeft(knobSz);
+            unisonDetuneSlider.setBounds(detuneCol.removeFromTop(knobSz));
+            unisonDetuneLabel.setBounds(detuneCol.removeFromTop(labelH));
+            inner.removeFromLeft(12);
+            // Width knob
+            auto widthCol = inner.removeFromLeft(knobSz);
+            unisonWidthSlider.setBounds(widthCol.removeFromTop(knobSz));
+            unisonWidthLabel.setBounds(widthCol.removeFromTop(labelH));
         }
         area.removeFromTop(8);
 

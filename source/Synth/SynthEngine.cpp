@@ -43,27 +43,41 @@ void SynthEngine::noteOn(int note, float velocity)
         return;
     }
 
-    auto* vi = findVoiceForNote(note);
-    if (vi != nullptr)
-    {
-        vi->voice.noteOff();
-        vi->inUse = false;
-    }
+    // Kill any existing voices for this note (handles retrigger + unison groups)
+    for (auto& vi : voices)
+        if (vi.inUse && vi.voice.getMidiNote() == note)
+        { vi.voice.noteOff(); vi.inUse = false; }
 
-    vi = findFreeVoice();
-    if (vi != nullptr)
+    const int n = juce::jlimit(1, MAX_VOICES, unisonVoiceCount);
+    for (int u = 0; u < n; ++u)
     {
+        auto* vi = findFreeVoice();
+        if (vi == nullptr) break;
+
+        float detuneOffset = 0.0f;
+        float panL = 1.0f, panR = 1.0f;
+        if (n > 1)
+        {
+            const float t = static_cast<float>(u) / static_cast<float>(n - 1); // 0..1
+            detuneOffset = (t - 0.5f) * 2.0f * unisonDetuneSemitones;
+            const float pan = (t - 0.5f) * 2.0f * unisonWidthAmount; // -1..+1
+            panL = pan <= 0.0f ? 1.0f : (1.0f - pan);
+            panR = pan >= 0.0f ? 1.0f : (1.0f + pan);
+        }
+
         vi->voice.noteOn(note, velocity);
         vi->voice.setPitchBend(static_cast<float>(pitchBend));
-        // Apply current oscillator settings
         for (int i = 0; i < 3; ++i)
         {
             vi->voice.setOscillatorType(i, oscSettings[i].type);
             vi->voice.setOscillatorLevel(i, oscSettings[i].level);
-            vi->voice.setOscillatorDetune(i, oscSettings[i].detuneSemitones);
+            vi->voice.setOscillatorDetune(i, oscSettings[i].detuneSemitones + detuneOffset);
             vi->voice.setOscillatorWaveform(i, oscSettings[i].classicWaveform);
             vi->voice.setOscillatorWavePosition(i, oscSettings[i].wavePosition);
         }
+        vi->unisonDetuneOffset = detuneOffset;
+        vi->panLeft  = panL;
+        vi->panRight = panR;
         vi->inUse = true;
         vi->lastUseTime = voiceCounter++;
     }
@@ -79,9 +93,10 @@ void SynthEngine::noteOff(int note)
         return;
     }
 
-    auto* vi = findVoiceForNote(note);
-    if (vi != nullptr)
-        vi->voice.noteOff();
+    // Release all unison voices for this note
+    for (auto& vi : voices)
+        if (vi.inUse && vi.voice.getMidiNote() == note)
+            vi.voice.noteOff();
 }
 
 void SynthEngine::allNotesOff()
@@ -168,7 +183,7 @@ void SynthEngine::setOscillatorDetune(int index, float detuneSemitones)
     if (index < 0 || index > 2) return;
     oscSettings[index].detuneSemitones = detuneSemitones;
     for (auto& vi : voices)
-        vi.voice.setOscillatorDetune(index, detuneSemitones);
+        vi.voice.setOscillatorDetune(index, detuneSemitones + vi.unisonDetuneOffset);
 }
 
 void SynthEngine::setOscillatorWaveform(int index, WaveformType wf)
@@ -265,11 +280,13 @@ int SynthEngine::processBuffer(juce::AudioBuffer<float>& buffer, int numSamples)
 
             if (vi.voice.isActive())
             {
+                const float pL = vi.panLeft;
+                const float pR = vi.panRight;
                 for (int i = 0; i < numSamples; ++i)
                 {
                     float s = vi.voice.process();
-                    left[i] += s;
-                    right[i] += s;
+                    left[i]  += s * pL;
+                    right[i] += s * pR;
                 }
                 ++activeCount;
             }
@@ -490,4 +507,19 @@ void SynthEngine::getFMOperatorParams(int opIndex,
         ratio = 1.0f; level = 1.0f; feedback = 0.0f;
         attack = 0.01f; decay = 0.1f; sustain = 0.7f; release = 0.3f;
     }
+}
+
+void SynthEngine::setUnisonVoices(int n)
+{
+    unisonVoiceCount = juce::jlimit(1, MAX_VOICES, n);
+}
+
+void SynthEngine::setUnisonDetune(float semitones)
+{
+    unisonDetuneSemitones = juce::jmax(0.0f, semitones);
+}
+
+void SynthEngine::setUnisonWidth(float w)
+{
+    unisonWidthAmount = juce::jlimit(0.0f, 1.0f, w);
 }

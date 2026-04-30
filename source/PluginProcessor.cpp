@@ -213,6 +213,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
             juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
     }
 
+    // Unison parameters
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"unisonVoices", 1}, "Unison Voices",
+        juce::StringArray{"1", "2", "3", "4", "5", "6", "7", "8"}, 0));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"unisonDetune", 1}, "Unison Detune",
+        juce::NormalisableRange<float>(0.0f, 100.0f), 20.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"unisonWidth", 1}, "Unison Width",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 1.0f));
+
     return layout;
 }
 
@@ -396,6 +407,11 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         synthEngine.setOscillatorWaveform(osc, wf);
         synthEngine.setOscillatorWavePosition(osc, *apvts.getRawParameterValue(prefix + "WavePos"));
     }
+
+    // Unison
+    synthEngine.setUnisonVoices(static_cast<int>(*apvts.getRawParameterValue("unisonVoices")) + 1);
+    synthEngine.setUnisonDetune(*apvts.getRawParameterValue("unisonDetune") / 100.0f);
+    synthEngine.setUnisonWidth(*apvts.getRawParameterValue("unisonWidth"));
 
     synthEngine.setFMAlgorithm(
         static_cast<int>(*apvts.getRawParameterValue("fmAlgorithm")) + 1

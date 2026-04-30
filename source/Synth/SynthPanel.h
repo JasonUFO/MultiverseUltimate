@@ -208,7 +208,7 @@ private:
     LFODisplay lfoDisplay;
 
     // Section rects: set in resized(), used in paint()
-    juce::Rectangle<int> oscSectionRect, filterSectionRect, envSectionRect;
+    juce::Rectangle<int> oscSectionRect, unisonSectionRect, filterSectionRect, envSectionRect;
     juce::Rectangle<int> modeBadgeRect;
 
     // 3 Oscillator strips
@@ -259,6 +259,13 @@ private:
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attackAttach, decayAttach, sustainAttach, releaseAttach;
     };
     std::array<FMOpControls, 4> fmOps;
+
+    // Unison controls
+    juce::Label        unisonVoicesLabel, unisonDetuneLabel, unisonWidthLabel;
+    juce::ComboBox     unisonVoicesBox;
+    MidiLearnSlider    unisonDetuneSlider, unisonWidthSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> unisonVoicesAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>   unisonDetuneAttach, unisonWidthAttach;
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     std::unique_ptr<SliderAttachment> attackAttach, decayAttach, sustainAttach, releaseAttach;

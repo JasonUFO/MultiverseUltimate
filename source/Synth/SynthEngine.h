@@ -39,6 +39,11 @@ public:
     void setOscillatorWaveform(int index, WaveformType wf);
     void setOscillatorWavePosition(int index, float pos);
 
+    // Unison controls
+    void setUnisonVoices(int n);
+    void setUnisonDetune(float semitones);
+    void setUnisonWidth(float w);
+
     // FM mode controls
     void setSynthMode(SynthMode mode);
     SynthMode getSynthMode() const { return synthMode; }
@@ -86,6 +91,9 @@ private:
         Voice voice;
         bool inUse = false;
         int lastUseTime = 0;
+        float unisonDetuneOffset = 0.0f;
+        float panLeft  = 1.0f;
+        float panRight = 1.0f;
     };
 
     struct FMVoiceInfo
@@ -140,4 +148,9 @@ private:
     float sampleRate = 44100.0f;
     double pitchBend = 0.0;
     int voiceCounter = 0;
+
+    // Unison state
+    int   unisonVoiceCount       = 1;
+    float unisonDetuneSemitones  = 0.2f;
+    float unisonWidthAmount      = 1.0f;
 };
