@@ -70,9 +70,16 @@
 ## Broken
 - None
 
-## Phase 5.1 — Preset Browser (NEXT)
-- PresetManager class already exists in PluginProcessor (XML serialisation)
-- Need: preset browser UI panel (save/load/rename presets by name)
-- Add a "Presets" button or strip to the PluginEditor header
-- Presets should persist via getStateInformation/setStateInformation (APVTS already wired)
-- Start with: save current state as named preset, list saved presets, load selected preset
+## Phase 5.1 — Preset Browser (COMPLETED)
+- PresetManager: saveState/loadState/deletePreset/scanPresetsDirectory implemented; presets saved to ~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/*.mvpreset
+- PresetBrowserPanel: name TextEditor + Save, ListBox of presets + Load/Delete buttons
+- PluginEditor: "Presets" toggle button in header; browser appears as 160px collapsible panel above tabs
+- Double-click a preset in the list to load it
+
+## Phase 5.1 Add Preset Banks (COMPLETED)
+- Organized presets into categories: Init, Bass, Lead, Pad, Drums, FX
+- Added bank selector dropdown (Factory/User) above preset list
+- Bank files stored in separate subfolders under ~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/
+- Factory bank is read-only; User bank allows save/delete
+- Import/Export buttons for individual presets using FileChooser (launchAsync API)
+- createFactoryPresetsIfNeeded() creates category subdirectories automatically

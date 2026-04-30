@@ -5,6 +5,8 @@
 class PresetManager
 {
 public:
+    enum Bank { Factory, User };
+
     PresetManager();
 
     void loadPreset(const juce::String& path);
@@ -26,10 +28,25 @@ public:
     int getPresetCount() const              { return presetFiles.size(); }
     std::vector<Preset> getPresets() const  { return presets; }
 
+    // Bank support
+    juce::StringArray getBankNames() const;
+    void setCurrentBank(int bank);
+    int getCurrentBank() const { return currentBank; }
+    bool isCurrentBankReadOnly() const { return currentBank == Factory; }
+
+    // Import/Export
+    void importPreset(const juce::File& sourceFile);
+    void exportPreset(int index, const juce::File& destFile);
+    void exportBank(const juce::File& destDirectory);
+
 private:
     std::vector<Preset> presets;
     int currentPresetIndex = 0;
     juce::File presetsDirectory;
     juce::Array<juce::File> presetFiles;
     juce::StringArray       presetNames;
+
+    int currentBank = User;
+    juce::File getBankDirectory() const;
+    void createFactoryPresetsIfNeeded();
 };

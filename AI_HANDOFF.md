@@ -70,6 +70,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | 4.2 | ModulationMatrixPanel MIDI Learn - MidiLearnSlider type for amountSlider; no init() (not APVTS) |
 | 4.3 | SamplerPanel MIDI Learn - added samplerVolume/samplerPan APVTS params + MidiLearnSliders with init() |
 | 5.1 | Preset Browser - PresetBrowserPanel (save/load/delete), PresetManager file I/O to ~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/ |
+| 5.1 | Preset Banks - Added Factory/User banks, category subfolders (Init/Bass/Lead/Pad/Drums/FX), bank selector dropdown, import/export buttons |
 | 4.3 | Tooltips - TooltipWindow in PluginEditor, setTooltip() on all controls across all 8 panels, "?" help button in header |
 
 ## Next Steps

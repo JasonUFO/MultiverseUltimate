@@ -6,7 +6,55 @@ PresetManager::PresetManager()
     presetsDirectory = juce::File::getSpecialLocation(juce::File::userHomeDirectory)
                            .getChildFile("Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate");
     presetsDirectory.createDirectory();
+    createFactoryPresetsIfNeeded();
     scanPresetsDirectory();
+}
+
+juce::StringArray PresetManager::getBankNames() const
+{
+    return { "User", "Factory" };
+}
+
+void PresetManager::setCurrentBank(int bank)
+{
+    if (bank == Factory || bank == User)
+    {
+        currentBank = bank;
+        scanPresetsDirectory();
+    }
+}
+
+juce::File PresetManager::getBankDirectory() const
+{
+    if (currentBank == Factory)
+        return presetsDirectory.getChildFile("Factory");
+    return presetsDirectory.getChildFile("User");
+}
+
+void PresetManager::createFactoryPresetsIfNeeded()
+{
+    auto factoryDir = presetsDirectory.getChildFile("Factory");
+    factoryDir.createDirectory();
+
+    juce::StringArray categories = { "Init", "Bass", "Lead", "Pad", "Drums", "FX" };
+    for (const auto& cat : categories)
+    {
+        auto dir = factoryDir.getChildFile(cat);
+        if (!dir.exists())
+            dir.createDirectory();
+    }
+
+    // Create Init preset if none exist
+    if (factoryDir.findChildFiles(juce::File::findFiles, false, "*.mvpreset").isEmpty())
+    {
+        // Create basic init preset file
+        juce::XmlElement xml("PRESET");
+        xml.setAttribute("name", "Init");
+        xml.setAttribute("category", "Init");
+        xml.setAttribute("author", "MultiphaseAudio");
+        auto initFile = factoryDir.getChildFile("Init").getChildFile("Init.mvpreset");
+        initFile.replaceWithText(xml.toString());
+    }
 }
 
 void PresetManager::loadPreset(const juce::String& path)
@@ -77,8 +125,25 @@ void PresetManager::previousPreset()
 
 void PresetManager::saveState(const juce::String& name, const juce::MemoryBlock& state)
 {
-    presetsDirectory.createDirectory();
-    auto file = presetsDirectory.getChildFile(name + ".mvpreset");
+    auto bankDir = getBankDirectory();
+    bankDir.createDirectory();
+
+    // Determine category subfolder from current preset if loading from XML
+    juce::String category = "Init";
+    auto tempFile = bankDir.getChildFile("_temp_.mvpreset");
+    tempFile.replaceWithData(state.getData(), state.getSize());
+
+    if (auto xml = juce::XmlDocument::parse(tempFile))
+    {
+        category = xml->getStringAttribute("category", "Init");
+        if (!juce::StringArray({ "Init", "Bass", "Lead", "Pad", "Drums", "FX" }).contains(category))
+            category = "Init";
+    }
+    tempFile.deleteFile();
+
+    auto catDir = bankDir.getChildFile(category);
+    catDir.createDirectory();
+    auto file = catDir.getChildFile(name + ".mvpreset");
     file.replaceWithData(state.getData(), state.getSize());
     scanPresetsDirectory();
 }
@@ -103,11 +168,30 @@ void PresetManager::scanPresetsDirectory()
 {
     presetFiles.clear();
     presetNames.clear();
-    if (!presetsDirectory.isDirectory())
-        return;
+
+    auto bankDir = getBankDirectory();
+    if (!bankDir.isDirectory())
+        bankDir.createDirectory();
 
     juce::Array<juce::File> found;
-    presetsDirectory.findChildFiles(found, juce::File::findFiles, false, "*.mvpreset");
+
+    // Scan category subdirectories
+    juce::StringArray categories = { "Init", "Bass", "Lead", "Pad", "Drums", "FX" };
+    for (const auto& cat : categories)
+    {
+        auto catDir = bankDir.getChildFile(cat);
+        if (catDir.isDirectory())
+        {
+            juce::Array<juce::File> catFiles;
+            catDir.findChildFiles(catFiles, juce::File::findFiles, false, "*.mvpreset");
+            found.addArray(catFiles);
+        }
+    }
+
+    // Also scan root of bank dir for unorganized presets
+    juce::Array<juce::File> rootFiles;
+    bankDir.findChildFiles(rootFiles, juce::File::findFiles, false, "*.mvpreset");
+    found.addArray(rootFiles);
 
     struct AlphaSort
     {
@@ -124,4 +208,40 @@ void PresetManager::scanPresetsDirectory()
         presetFiles.add(f);
         presetNames.add(f.getFileNameWithoutExtension());
     }
+}
+
+void PresetManager::importPreset(const juce::File& sourceFile)
+{
+    if (!sourceFile.existsAsFile())
+        return;
+
+    auto bankDir = getBankDirectory();
+    bankDir.createDirectory();
+
+    juce::String category = "Init";
+    if (auto xml = juce::XmlDocument::parse(sourceFile))
+        category = xml->getStringAttribute("category", "Init");
+
+    if (!juce::StringArray({ "Init", "Bass", "Lead", "Pad", "Drums", "FX" }).contains(category))
+        category = "Init";
+
+    auto catDir = bankDir.getChildFile(category);
+    catDir.createDirectory();
+    auto destFile = catDir.getChildFile(sourceFile.getFileName());
+    sourceFile.copyFileTo(destFile);
+    scanPresetsDirectory();
+}
+
+void PresetManager::exportPreset(int index, const juce::File& destFile)
+{
+    if (index < 0 || index >= presetFiles.size())
+        return;
+    presetFiles[index].copyFileTo(destFile);
+}
+
+void PresetManager::exportBank(const juce::File& destDirectory)
+{
+    destDirectory.createDirectory();
+    for (auto& f : presetFiles)
+        f.copyFileTo(destDirectory.getChildFile(f.getFileName()));
 }

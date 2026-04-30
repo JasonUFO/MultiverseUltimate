@@ -4,6 +4,12 @@
 PresetBrowserPanel::PresetBrowserPanel(PluginProcessor& p)
     : processorRef(p)
 {
+    auto banks = processorRef.getPresetManager().getBankNames();
+    bankSelector.addItemList(banks, 1);
+    bankSelector.setSelectedItemIndex(processorRef.getPresetManager().getCurrentBank(), juce::dontSendNotification);
+    bankSelector.addListener(this);
+    addAndMakeVisible(bankSelector);
+
     nameLabel.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
     addAndMakeVisible(nameLabel);
 
@@ -14,9 +20,13 @@ PresetBrowserPanel::PresetBrowserPanel(PluginProcessor& p)
     saveButton.addListener(this);
     loadButton.addListener(this);
     deleteButton.addListener(this);
+    importButton.addListener(this);
+    exportButton.addListener(this);
     addAndMakeVisible(saveButton);
     addAndMakeVisible(loadButton);
     addAndMakeVisible(deleteButton);
+    addAndMakeVisible(importButton);
+    addAndMakeVisible(exportButton);
 
     presetList.setColour(juce::ListBox::backgroundColourId, juce::Colour(0xff1e1e1e));
     presetList.setColour(juce::ListBox::outlineColourId, juce::Colour(0xff444444));
@@ -37,6 +47,16 @@ void PresetBrowserPanel::resized()
 {
     auto area = getLocalBounds().reduced(6, 4);
 
+    // Bank selector row
+    auto bankRow = area.removeFromTop(26);
+    juce::Label bankLabel("Bank:", "Bank:");
+    bankLabel.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
+    bankLabel.setBounds(bankRow.removeFromLeft(44));
+    addAndMakeVisible(bankLabel);
+    bankSelector.setBounds(bankRow.reduced(0, 2));
+
+    area.removeFromTop(4);
+
     // Top row: label + name editor + save button
     auto topRow = area.removeFromTop(26);
     nameLabel.setBounds(topRow.removeFromLeft(44));
@@ -46,11 +66,15 @@ void PresetBrowserPanel::resized()
 
     area.removeFromTop(4);
 
-    // Remaining: list on left, load/delete on right
+    // Remaining: list on left, buttons on right
     auto btnCol = area.removeFromRight(64);
     loadButton.setBounds  (btnCol.removeFromTop(26).reduced(2, 1));
     btnCol.removeFromTop(4);
     deleteButton.setBounds(btnCol.removeFromTop(26).reduced(2, 1));
+    btnCol.removeFromTop(4);
+    importButton.setBounds(btnCol.removeFromTop(26).reduced(2, 1));
+    btnCol.removeFromTop(4);
+    exportButton.setBounds(btnCol.removeFromTop(26).reduced(2, 1));
 
     area.removeFromRight(4);
     presetList.setBounds(area);
@@ -88,10 +112,21 @@ void PresetBrowserPanel::buttonClicked(juce::Button* b)
     if (b == &saveButton)   saveCurrentPreset();
     if (b == &loadButton)   loadSelectedPreset();
     if (b == &deleteButton) deleteSelectedPreset();
+    if (b == &importButton) importPreset();
+    if (b == &exportButton) exportPreset();
+}
+
+void PresetBrowserPanel::comboBoxChanged(juce::ComboBox*)
+{
+    processorRef.getPresetManager().setCurrentBank(bankSelector.getSelectedItemIndex());
+    refresh();
 }
 
 void PresetBrowserPanel::saveCurrentPreset()
 {
+    if (processorRef.getPresetManager().isCurrentBankReadOnly())
+        return;
+
     auto name = nameEditor.getText().trim();
     if (name.isEmpty())
         return;
@@ -124,4 +159,37 @@ void PresetBrowserPanel::refresh()
 {
     presetList.updateContent();
     presetList.repaint();
+}
+
+void PresetBrowserPanel::importPreset()
+{
+    juce::FileChooser chooser("Import Preset", juce::File(), "*.mvpreset");
+    chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+        [this](const juce::FileChooser& fc)
+        {
+            auto results = fc.getResults();
+            if (!results.isEmpty())
+            {
+                processorRef.getPresetManager().importPreset(results.getReference(0));
+                refresh();
+            }
+        });
+}
+
+void PresetBrowserPanel::exportPreset()
+{
+    int row = presetList.getSelectedRow();
+    if (row < 0)
+        return;
+
+    juce::FileChooser chooser("Export Preset", juce::File(), "*.mvpreset");
+    chooser.launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+        [this, row](const juce::FileChooser& fc)
+        {
+            auto results = fc.getResults();
+            if (!results.isEmpty())
+            {
+                processorRef.getPresetManager().exportPreset(row, results.getReference(0));
+            }
+        });
 }
