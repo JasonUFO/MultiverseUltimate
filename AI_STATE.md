@@ -88,4 +88,9 @@
 - None
 
 ## Next Step
-- None — all planned features complete
+All planned features complete. Candidate directions for next session:
+1. Polish pass — spectrum/oscilloscope visualizer, knob labels, color-coded tabs
+2. More modulation sources — step sequencer mod, random/S&H, velocity, envelope follower
+3. MPE support — per-note pitch/pressure/slide
+4. Granular engine — Granular mode alongside Classic/FM/Wavetable
+5. Chord/strum mode — chord shapes from single notes

@@ -77,7 +77,12 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Phase B | Macro Controls (8 macros, DAW-automatable, nameable, right-click assign, preset-persistent) |
 
 ## Next Steps
-- All planned features complete
+All planned features complete. Candidate directions:
+- Polish pass (visualizers, labels, color-coded tabs)
+- More modulation sources (step seq mod, random/S&H, velocity, envelope follower)
+- MPE support (per-note pitch/pressure/slide)
+- Granular engine (new synthesis mode)
+- Chord/strum mode
 
 ---
 
