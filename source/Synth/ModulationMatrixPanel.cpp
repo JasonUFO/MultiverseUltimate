@@ -16,11 +16,11 @@ namespace {
 
 ModulationMatrixPanel::Row::Row()
 {
-    for (int i = 0; i <= static_cast<int>(ModSourceType::Random); ++i)
+    for (int i = 0; i <= static_cast<int>(ModSourceType::EnvelopeFollower); ++i)
         sourceBox.addItem(ModulationMatrix::getSourceName(static_cast<ModSourceType>(i)), i + 1);
     sourceBox.setSelectedId(1, juce::dontSendNotification);
 
-    for (int i = 0; i <= static_cast<int>(ModTargetType::EffectMix); ++i)
+    for (int i = 0; i <= static_cast<int>(ModTargetType::GranularPitchScatter); ++i)
         targetBox.addItem(ModulationMatrix::getTargetName(static_cast<ModTargetType>(i)), i + 1);
     targetBox.setSelectedId(1, juce::dontSendNotification);
 

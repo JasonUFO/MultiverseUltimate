@@ -11,6 +11,7 @@
 #include "Effects/EffectsPanel.h"
 #include "Presets/PresetBrowserPanel.h"
 #include "Macros/MacroPanel.h"
+#include "Granular/GranularPanel.h"
 
 class PluginEditor : public juce::AudioProcessorEditor,
                      public juce::Button::Listener,
@@ -37,6 +38,7 @@ private:
     SynthPanel            synthPanel;
     EffectsPanel          effectsPanel;
     MacroPanel            macroPanel;
+    GranularPanel         granularPanel;
     juce::TabbedComponent tabs;
 
     // Preset browser

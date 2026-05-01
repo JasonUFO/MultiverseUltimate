@@ -2,7 +2,7 @@
 
 ## Project Identity
 - **Name:** MultiverseUltimate
-- **Type:** Hybrid Synthesizer (FM + Subtractive + Sampler + Drum Sequencer)
+- **Type:** Hybrid Synthesizer (FM + Subtractive + Granular + Sampler + Drum Sequencer)
 - **Format:** VST3 / AU (macOS)
 - **Framework:** JUCE 8
 - **Language:** C++17
@@ -17,6 +17,7 @@
 | Engine | Description |
 |--------|-------------|
 | SynthEngine | 16-voice classic (3 osc/voice: Classic or Wavetable) / 8-voice FM |
+| GranularEngine | 16-voice granular, 32 grains/voice (512 total), file or built-in source |
 | DrumSequencer | Sample-based, 32 voices |
 | SamplerEngine | Zone-based playback, 16 voices |
 | Effects | Chorus → Distortion → EQ → Compressor → Delay → Reverb (reorderable chain) |
@@ -28,9 +29,10 @@
 ## Signal Flow
 
 ```
-MIDI → Sequencer → SynthEngine  ─┐
-MIDI → DrumSequencer            ─┼─► Effect Chain ──► Output
-MIDI → SamplerEngine            ─┘
+MIDI → Sequencer → SynthEngine   ─┐
+MIDI → GranularEngine            ─┤
+MIDI → DrumSequencer             ─┼─► Effect Chain ──► Output
+MIDI → SamplerEngine             ─┘
 ModulationMatrix → all DSP parameters (pitch, cutoff, volume, …)
 ```
 
@@ -43,13 +45,14 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 ## What Works
 
 - SynthEngine (16-voice classic with 3 osc/voice + FM 8-voice), DrumSequencer, SamplerEngine — all produce audio ✅
+- GranularEngine (16-voice × 32 grains, 4 env shapes, pitch scatter, spray, density, stereo spread, file loading) ✅
 - 3 oscillators per voice: Classic (math-based) or Wavetable (2048-sample table, 4 waves, position scan) ✅
 - Voice modes: Poly / Mono / Legato with portamento (per-sample semitone-space glide) ✅
 - All 6 effects with full parameter control and MIDI Learn ✅
 - Effect chain reordering — drag-to-reorder strip, order persists in presets ✅
 - ModulationMatrix — LFO → pitch/cutoff/volume/effects ✅
 - Melodic Sequencer, DAW transport sync ✅
-- Full state persistence (XML) including 3 oscillators + effect chain order ✅
+- Full state persistence (XML) including 3 oscillators + effect chain order + granular source path ✅
 - MIDI Learn on all effect panel knobs ✅
 - Undo/Redo (Cmd+Z / Cmd+Shift+Z) ✅
 - Filter oversampling (Off/2x/4x/Auto) ✅
@@ -75,13 +78,13 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Phase 3 | Wavetable file loading per oscillator strip |
 | Phase A | Voice Modes (Poly/Mono/Legato) + Portamento + "Porta Always" |
 | Phase B | Macro Controls (8 macros, DAW-automatable, nameable, right-click assign, preset-persistent) |
+| Granular | Granular engine — 16 voices × 32 grains, file loading, 4 env shapes, full ADSR, new "Granular" tab |
+| 2+5 | Velocity/NoteNumber/Random/EnvelopeFollower sources wired; 5 granular mod targets added; MAX_MOD_TARGETS=24 |
 
 ## Next Steps
-All planned features complete. Candidate directions:
+Candidate directions:
 - Polish pass (visualizers, labels, color-coded tabs)
-- More modulation sources (step seq mod, random/S&H, velocity, envelope follower)
 - MPE support (per-note pitch/pressure/slide)
-- Granular engine (new synthesis mode)
 - Chord/strum mode
 
 ---
@@ -92,6 +95,7 @@ All planned features complete. Candidate directions:
 |--------|-------|
 | Polyphony (classic) | 16 voices |
 | Polyphony (FM) | 8 voices |
+| Polyphony (granular) | 16 voices × 32 grains |
 | Polyphony (sampler) | 16 voices |
 | Drum voices | 32 (4/track) |
 | Manufacturer code | `MpAu` |
@@ -116,3 +120,7 @@ All planned features complete. Candidate directions:
 - `Voice::setFrequencyDirect(hz)` sets `baseFrequency` and calls `updateOscillatorFrequencies()` without touching the envelope — used by the glide loop.
 - `Voice::setNoteLegato(note)` updates `midiNote` + `baseFrequency` only — no envelope retrigger. Used in Legato mode on gate-open note changes.
 - APVTS params added by Phase A: `voiceMode` (Choice 0–2), `portamento` (Float 0–2s), `portaAlways` (Bool).
+- GranularEngine source buffer: `juce::ScopedTryLock` in processBlock (non-blocking); if lock fails, silence for that block — safe for audio thread.
+- GranularVoice grain pool: `GrainState grains[32]` — stack-allocated, no heap. Grain steal: first inactive slot, fallback index 0.
+- Granular pitch ratio: `exp2f((midiNote - 60) / 12.0f)` × `exp2f(scatterSemitones / 12.0f)`.
+- GranularEngine file loading: `juce::LagrangeInterpolator` for resampling, stereo conversion, writes under `juce::ScopedLock`.

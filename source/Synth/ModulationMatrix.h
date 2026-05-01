@@ -7,7 +7,7 @@
 #include "JuceHeader.h"
 
 constexpr int MAX_MOD_SOURCES = 16;
-constexpr int MAX_MOD_TARGETS = 16;
+constexpr int MAX_MOD_TARGETS = 24;
 constexpr int MAX_MOD_CONNECTIONS = 32;
 
 enum class ModSourceType : uint8_t
@@ -22,7 +22,8 @@ enum class ModSourceType : uint8_t
     Aftertouch,
     ModWheel,
     PitchBend,
-    Random
+    Random,
+    EnvelopeFollower
 };
 
 enum class ModTargetType : uint8_t
@@ -41,7 +42,12 @@ enum class ModTargetType : uint8_t
     EffectParam1,
     EffectParam2,
     EffectParam3,
-    EffectMix
+    EffectMix,
+    GranularPosition,
+    GranularDensity,
+    GranularGrainSize,
+    GranularSpray,
+    GranularPitchScatter
 };
 
 struct ModConnection
@@ -112,6 +118,7 @@ public:
             case ModSourceType::ModWheel: return "Mod Wheel";
             case ModSourceType::PitchBend: return "Pitch Bend";
             case ModSourceType::Random: return "Random";
+            case ModSourceType::EnvelopeFollower: return "Env Follower";
         }
         return "";
     }
@@ -135,6 +142,11 @@ public:
             case ModTargetType::EffectParam2: return "Effect Param 2";
             case ModTargetType::EffectParam3: return "Effect Param 3";
             case ModTargetType::EffectMix: return "Effect Mix";
+            case ModTargetType::GranularPosition: return "Gran Position";
+            case ModTargetType::GranularDensity: return "Gran Density";
+            case ModTargetType::GranularGrainSize: return "Gran Grain Size";
+            case ModTargetType::GranularSpray: return "Gran Spray";
+            case ModTargetType::GranularPitchScatter: return "Gran Pitch Scatter";
         }
         return "";
     }

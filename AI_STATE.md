@@ -81,6 +81,28 @@
 - 3 new APVTS params: voiceMode (Choice), portamento (Float 0–2s, skew 0.4), portaAlways (Bool)
 - UI: VOICE ComboBox + PORTA horizontal slider + "Always" toggle in SynthPanel header row (zero height cost)
 
+### Granular Engine (2026-05-01)
+- GranularEngine: standalone top-level engine, member of PluginProcessor alongside SynthEngine/SamplerEngine
+- 16 voices × 32 grains/voice = 512 grain objects pre-allocated (no heap alloc in processBlock)
+- GrainState: POD struct (readPos, readSpeed, durationSamples, phase, phaseInc, pan, reverse)
+- GranularVoice: per-voice ADSR + grain pool + spawn timer; processBlock accumulates L/R grain output
+- GranularEngine: source buffer (pre-allocated), built-in 2s sine-sweep default, file loading via AudioFormatManager + LagrangeInterpolator resampling, stereo normalization
+- 12 APVTS params: granularPosition, granularGrainSize, granularSpray, granularDensity, granularPitchScatter, granularEnvShape (Choice), granularReverse (Bool), granularStereoSpread, granularAttack/Decay/Sustain/Release
+- 4 grain envelope shapes: Gaussian, Hann, Trapezoid, Triangle
+- Pitch: readSpeed = pitchRatio * exp2(scatter/12), pitchRatio = exp2((midiNote-60)/12)
+- GranularPanel: new "Granular" tab — LOAD GR button, 6 grain control knobs + env shape combo + reverse toggle + ADSR strip; all sliders are MidiLearnSlider
+- State persistence: GranularEngine XML block (source file path) in getStateInformation/setStateInformation
+- MIDI routing: noteOn/noteOff/allNotesOff wired in processBlock alongside synth/sampler
+
+### Feature 2 + 5 — New Modulation Sources & Granular Targets (2026-05-01)
+- **Velocity**: wired to `ModSourceType::Velocity` on each noteOn (0→1, most-recent note)
+- **Note Number**: wired to `ModSourceType::NoteNumber` on each noteOn (note/127)
+- **Random/S&H**: wired to `ModSourceType::Random` on each noteOn (new random per note)
+- **Envelope Follower**: new `ModSourceType::EnvelopeFollower` — tracks peak amplitude of output buffer, 300ms decay, pushed to matrix each block
+- **Granular targets**: 5 new `ModTargetType` values — `GranularPosition`, `GranularDensity` (×32 scale), `GranularGrainSize` (×0.25), `GranularSpray`, `GranularPitchScatter` (×12 semitones)
+- `MAX_MOD_TARGETS` raised from 16 → 24 to accommodate new targets
+- Modulation Matrix panel source/target dropdowns extended to show all new entries
+
 ## In Progress
 - None
 
@@ -88,9 +110,7 @@
 - None
 
 ## Next Step
-All planned features complete. Candidate directions for next session:
+Candidate directions for next session:
 1. Polish pass — spectrum/oscilloscope visualizer, knob labels, color-coded tabs
-2. More modulation sources — step sequencer mod, random/S&H, velocity, envelope follower
-3. MPE support — per-note pitch/pressure/slide
-4. Granular engine — Granular mode alongside Classic/FM/Wavetable
-5. Chord/strum mode — chord shapes from single notes
+2. MPE support — per-note pitch/pressure/slide
+3. Chord/strum mode — chord shapes from single notes

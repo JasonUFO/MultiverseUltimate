@@ -43,6 +43,15 @@
         <FILE id="Mm0003" name="MacroPanel.h"     compile="0" resource="0" file="source/Macros/MacroPanel.h"/>
         <FILE id="Mm0004" name="MacroPanel.cpp"   compile="1" resource="0" file="source/Macros/MacroPanel.cpp"/>
       </GROUP>
+      <GROUP id="GrpGran" name="Granular">
+        <FILE id="Gr0001" name="GrainState.h"       compile="0" resource="0" file="source/Granular/GrainState.h"/>
+        <FILE id="Gr0002" name="GranularVoice.h"    compile="0" resource="0" file="source/Granular/GranularVoice.h"/>
+        <FILE id="Gr0003" name="GranularVoice.cpp"  compile="1" resource="0" file="source/Granular/GranularVoice.cpp"/>
+        <FILE id="Gr0004" name="GranularEngine.h"   compile="0" resource="0" file="source/Granular/GranularEngine.h"/>
+        <FILE id="Gr0005" name="GranularEngine.cpp" compile="1" resource="0" file="source/Granular/GranularEngine.cpp"/>
+        <FILE id="Gr0006" name="GranularPanel.h"    compile="0" resource="0" file="source/Granular/GranularPanel.h"/>
+        <FILE id="Gr0007" name="GranularPanel.cpp"  compile="1" resource="0" file="source/Granular/GranularPanel.cpp"/>
+      </GROUP>
       <GROUP id="GrpPst" name="Presets">
         <FILE id="Dd0001" name="Preset.h"          compile="0" resource="0" file="source/Presets/Preset.h"/>
         <FILE id="Dd0002" name="Preset.cpp"        compile="1" resource="0" file="source/Presets/Preset.cpp"/>

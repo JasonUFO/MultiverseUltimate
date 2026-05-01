@@ -241,6 +241,43 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
             "Macro " + juce::String(m),
             juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
 
+    // Granular engine parameters
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"granularPosition", 1}, "Gran Position",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"granularGrainSize", 1}, "Grain Size",
+        juce::NormalisableRange<float>(0.01f, 0.5f, 0.0f, 0.4f), 0.08f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"granularSpray", 1}, "Spray",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.1f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"granularDensity", 1}, "Density",
+        juce::NormalisableRange<float>(1.0f, 64.0f, 0.0f, 0.4f), 12.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"granularPitchScatter", 1}, "Pitch Scatter",
+        juce::NormalisableRange<float>(0.0f, 24.0f), 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"granularEnvShape", 1}, "Env Shape",
+        juce::StringArray{"Gaussian", "Hann", "Trapezoid", "Triangle"}, 1));
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"granularReverse", 1}, "Reverse", false));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"granularStereoSpread", 1}, "Stereo Spread",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"granularAttack", 1}, "Gran Attack",
+        juce::NormalisableRange<float>(0.001f, 5.0f, 0.0f, 0.4f), 0.01f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"granularDecay", 1}, "Gran Decay",
+        juce::NormalisableRange<float>(0.001f, 5.0f, 0.0f, 0.4f), 0.1f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"granularSustain", 1}, "Gran Sustain",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.7f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"granularRelease", 1}, "Gran Release",
+        juce::NormalisableRange<float>(0.001f, 10.0f, 0.0f, 0.4f), 0.5f));
+
     return layout;
 }
 
@@ -320,6 +357,7 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
         samplesPerBlock = 512;
 
     synthEngine.prepare (sampleRate, samplesPerBlock);
+    granularEngine.prepare (sampleRate, samplesPerBlock);
     samplerEngine.prepare (sampleRate, samplesPerBlock);
     drumSequencer.prepare (sampleRate, samplesPerBlock);
     sequencer.prepare (sampleRate, drumSequencer.getBPM());
@@ -501,6 +539,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         {
             synthEngine.allNotesOff();
             samplerEngine.allNotesOff();
+            granularEngine.allNotesOff();
             sequencer.stop();
             proSequencer.stop();
         }
@@ -605,8 +644,12 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             sustainedNoteHeld[note] = false;
             if (sostenutoPedalDown)
                 sostenutoNoteHeld[note] = true;
+            modulationMatrix.setModulationValue(ModSourceType::Velocity,    0, vel);
+            modulationMatrix.setModulationValue(ModSourceType::NoteNumber,  0, note / 127.0f);
+            modulationMatrix.setModulationValue(ModSourceType::Random,      0, juce::Random::getSystemRandom().nextFloat());
             synthEngine.noteOn (note, vel);
             samplerEngine.noteOn (note, vel);
+            granularEngine.noteOn (note, vel);
         }
         else if (message.isNoteOff())
         {
@@ -619,6 +662,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             {
                 synthEngine.noteOff (note);
                 samplerEngine.noteOff (note);
+                granularEngine.noteOff (note);
             }
         }
         else if (message.isPitchWheel())
@@ -645,6 +689,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                         {
                             synthEngine.noteOff (n);
                             samplerEngine.noteOff (n);
+                            granularEngine.noteOff (n);
                             sustainedNoteHeld[n] = false;
                         }
                     }
@@ -679,6 +724,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             {
                 synthEngine.allNotesOff();
                 samplerEngine.allNotesOff();
+                granularEngine.allNotesOff();
                 for (int n = 0; n < 128; ++n)
                     sustainedNoteHeld[n] = false;
                 sustainPedalDown = false;
@@ -731,6 +777,9 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         *apvts.getRawParameterValue("lfo3Rate"),
         *apvts.getRawParameterValue("lfo4Rate"),
     };
+
+    // Push envelope follower into modulation matrix before computing sums
+    modulationMatrix.setModulationValue(ModSourceType::EnvelopeFollower, 0, envFollowerLevel);
 
     // Per-block effect parameter modulation
     {
@@ -799,12 +848,40 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     const float pan = juce::jlimit(-1.0f, 1.0f, modSums[static_cast<int>(ModTargetType::AmpPan)]);
 
+    // Granular engine — push params and render (modulated targets use scaled modSums)
+    granularEngine.setPosition(juce::jlimit(0.0f, 1.0f,
+        *apvts.getRawParameterValue("granularPosition")
+        + modSums[static_cast<int>(ModTargetType::GranularPosition)]));
+    granularEngine.setGrainSize(juce::jlimit(0.01f, 0.5f,
+        *apvts.getRawParameterValue("granularGrainSize")
+        + modSums[static_cast<int>(ModTargetType::GranularGrainSize)] * 0.25f));
+    granularEngine.setSpray(juce::jlimit(0.0f, 1.0f,
+        *apvts.getRawParameterValue("granularSpray")
+        + modSums[static_cast<int>(ModTargetType::GranularSpray)]));
+    granularEngine.setDensity(juce::jlimit(1.0f, 64.0f,
+        *apvts.getRawParameterValue("granularDensity")
+        + modSums[static_cast<int>(ModTargetType::GranularDensity)] * 32.0f));
+    granularEngine.setPitchScatter(juce::jlimit(0.0f, 24.0f,
+        *apvts.getRawParameterValue("granularPitchScatter")
+        + modSums[static_cast<int>(ModTargetType::GranularPitchScatter)] * 12.0f));
+    granularEngine.setEnvShape     (static_cast<int>(*apvts.getRawParameterValue("granularEnvShape")));
+    granularEngine.setReverse      (*apvts.getRawParameterValue("granularReverse") > 0.5f);
+    granularEngine.setStereoSpread (*apvts.getRawParameterValue("granularStereoSpread"));
+    granularEngine.setAttack       (*apvts.getRawParameterValue("granularAttack"));
+    granularEngine.setDecay        (*apvts.getRawParameterValue("granularDecay"));
+    granularEngine.setSustain      (*apvts.getRawParameterValue("granularSustain"));
+    granularEngine.setRelease      (*apvts.getRawParameterValue("granularRelease"));
+    granularEngine.setMasterVolume (effVol);
+
     juce::AudioBuffer<float> synthBuffer(2, numSamples);
     juce::AudioBuffer<float> samplerBuffer(2, numSamples);
+    juce::AudioBuffer<float> granularBuffer(2, numSamples);
     synthBuffer.clear();
     samplerBuffer.clear();
+    granularBuffer.clear();
     synthEngine.processBuffer(synthBuffer, numSamples);
     samplerEngine.processBuffer(samplerBuffer, numSamples);
+    granularEngine.processBuffer(granularBuffer, numSamples);
 
     {
         const float svol = *apvts.getRawParameterValue("samplerVolume");
@@ -831,8 +908,9 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         for (int ch = 0; ch < numChannels; ++ch)
         {
             float s = buffer.getReadPointer(ch)[i]
-                    + synthBuffer .getReadPointer(ch)[i]
-                    + samplerBuffer.getReadPointer(ch)[i];
+                    + synthBuffer   .getReadPointer(ch)[i]
+                    + samplerBuffer .getReadPointer(ch)[i]
+                    + granularBuffer.getReadPointer(ch)[i];
             for (int slot = 0; slot < reverbPos; ++slot)
                 s = applyChainEffect(chain[slot], s, ch);
             buffer.getWritePointer(ch)[i] = s;
@@ -871,6 +949,17 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     }
 
     modulationMatrix.advanceLFOs(numSamples);
+
+    // Compute envelope follower from output for use as modulation source next block
+    float blockPeak = 0.0f;
+    for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
+    {
+        const float* data = buffer.getReadPointer(ch);
+        for (int i = 0; i < numSamples; ++i)
+            blockPeak = std::max(blockPeak, std::abs(data[i]));
+    }
+    const float envDecay = std::exp(-static_cast<float>(numSamples) / (static_cast<float>(getSampleRate()) * 0.3f));
+    envFollowerLevel = (blockPeak > envFollowerLevel) ? blockPeak : envFollowerLevel * envDecay;
 }
 
 //==============================================================================
@@ -942,6 +1031,9 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
 
     // Macro manager state
     root.appendChild(macroManager.getState(), nullptr);
+
+    // Granular engine state
+    root.appendChild(granularEngine.getState(), nullptr);
 
     // Add MIDI mappings to state
     updateMidiMappingsInState(root);
@@ -1073,6 +1165,9 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 
     // Load macro manager state
     macroManager.setState(root.getChildWithName("MacroManager"));
+
+    // Load granular engine state
+    granularEngine.setState(root.getChildWithName("GranularEngine"));
 
     undoManager.clearUndoHistory();
 }
