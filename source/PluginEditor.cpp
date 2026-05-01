@@ -9,6 +9,7 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       arpeggiatorPanel (p.getArpeggiator()),
       synthPanel (p),
       effectsPanel (p),
+      macroPanel (p),
       tabs (juce::TabbedButtonBar::TabsAtTop),
       midiLearnButton ("MIDI Learn"),
       midiLearnLabel ("", ""),
@@ -50,6 +51,7 @@ void PluginEditor::setupTabs()
     tabs.addTab ("Sequencer",  juce::Colours::darkgrey, &proSequencerPanel,     false);
     tabs.addTab ("Arp",        juce::Colours::darkgrey, &arpeggiatorPanel,      false);
     tabs.addTab ("Effects",    juce::Colours::darkgrey, &effectsPanel,          false);
+    tabs.addTab ("Macros",     juce::Colours::darkgrey, &macroPanel,            false);
 }
 
 void PluginEditor::setupMidiLearnButton()

@@ -24,12 +24,14 @@ public:
     void mouseDown (const juce::MouseEvent& e) override;
 
 private:
-    PluginProcessor* proc    = nullptr;
+    PluginProcessor* proc         = nullptr;
     juce::String     paramID;
-    bool             mapped  = false; // cached; updated by timer
+    bool             mapped       = false; // cached; updated by timer
+    bool             macroAssigned = false;
 
     void timerCallback() override;
     bool checkHasMapping() const;
+    bool checkHasMacro() const;
     void showContextMenu();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiLearnSlider)

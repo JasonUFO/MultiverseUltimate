@@ -234,6 +234,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
     layout.add(std::make_unique<juce::AudioParameterBool>(
         juce::ParameterID{"portaAlways", 1}, "Porta Always", false));
 
+    // Macro controls (8 DAW-automatable macro knobs, each 0-1)
+    for (int m = 1; m <= 8; ++m)
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"macro" + juce::String(m), 1},
+            "Macro " + juce::String(m),
+            juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+
     return layout;
 }
 
@@ -933,6 +940,9 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     chainState.setProperty("order", static_cast<int>(effectChainOrder.load(std::memory_order_relaxed)), nullptr);
     root.appendChild(chainState, nullptr);
 
+    // Macro manager state
+    root.appendChild(macroManager.getState(), nullptr);
+
     // Add MIDI mappings to state
     updateMidiMappingsInState(root);
 
@@ -1060,6 +1070,9 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 
     // Load MIDI mappings from state
     loadMidiMappingsFromState(root);
+
+    // Load macro manager state
+    macroManager.setState(root.getChildWithName("MacroManager"));
 
     undoManager.clearUndoHistory();
 }

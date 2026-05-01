@@ -61,6 +61,16 @@
 - Wavetable file path persisted in preset XML; distributed to all 16 voices on load
 - Unison: stacked voices with detune spread and stereo width
 
+### Phase B — Macro Controls (2026-05-01)
+- MacroManager: 8 macros, CriticalSection-protected targets array, getState/setState XML persistence
+- 8 APVTS params `macro1`–`macro8` (Float 0→1), fully DAW-automatable
+- MacroPanel: new "Macros" tab, 4×2 grid of rotary knobs, double-click name labels, assignment count buttons
+- Assignment applied on message thread at 30 Hz (setValueNotifyingHost on target params)
+- Right-click any MidiLearnSlider → "Assign to Macro" submenu → tick-marked menu, toggle to unassign
+- Cyan "M" badge on assigned sliders (top-left); orange "L" badge for MIDI-learned (top-right)
+- MacroPanel assignment list popup: shows assigned paramIDs with per-target "Remove" submenu
+- State persistence: MacroManager XML block in getStateInformation/setStateInformation
+
 ### Phase A — Voice Modes (2026-05-01)
 - VoiceMode enum (Poly/Mono/Legato) in SynthEngine
 - Mono note stack (int monoNoteStack[16]) — held-note tracking, no heap alloc, cleared in allNotesOff()
@@ -78,4 +88,4 @@
 - None
 
 ## Next Step
-- Macro controls (8 assignable knobs, right-click param assignment, per-target min/max range, DAW-automatable, nameable, preset-persistent)
+- None — all planned features complete

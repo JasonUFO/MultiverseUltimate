@@ -74,9 +74,10 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | 5.1 | Preset Browser + Factory/User banks with category subfolders |
 | Phase 3 | Wavetable file loading per oscillator strip |
 | Phase A | Voice Modes (Poly/Mono/Legato) + Portamento + "Porta Always" |
+| Phase B | Macro Controls (8 macros, DAW-automatable, nameable, right-click assign, preset-persistent) |
 
 ## Next Steps
-- Macro controls (8 assignable knobs, right-click assignment, per-target range, DAW-automatable)
+- All planned features complete
 
 ---
 

@@ -10,6 +10,7 @@
 #include "Sequencer/ArpeggiatorPanel.h"
 #include "Effects/EffectsPanel.h"
 #include "Presets/PresetBrowserPanel.h"
+#include "Macros/MacroPanel.h"
 
 class PluginEditor : public juce::AudioProcessorEditor,
                      public juce::Button::Listener,
@@ -35,6 +36,7 @@ private:
     ArpeggiatorPanel     arpeggiatorPanel;
     SynthPanel            synthPanel;
     EffectsPanel          effectsPanel;
+    MacroPanel            macroPanel;
     juce::TabbedComponent tabs;
 
     // Preset browser

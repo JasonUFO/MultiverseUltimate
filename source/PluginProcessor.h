@@ -21,6 +21,7 @@
 #include "Sequencer/ProSequencer.h"
 #include "Sequencer/Arpeggiator.h"
 #include "Sequencer/PatternEngine.h"
+#include "Macros/MacroManager.h"
 
 enum class EffectID { Chorus = 0, Distortion = 1, EQ = 2, Compressor = 3, Delay = 4, Reverb = 5 };
 
@@ -72,6 +73,7 @@ public:
     DelayEffect&    getDelay()           { return delay; }
     ReverbEffect&   getReverb()          { return reverb; }
     PresetManager&  getPresetManager()   { return presetManager; }
+    MacroManager&   getMacroManager()    { return macroManager; }
 
     // Effect chain ordering (6 effects, packed as nibbles in a uint32)
     int  getChainSlot(int pos) const noexcept
@@ -85,6 +87,7 @@ public:
 
 public:
     WaveformType baseWaveform = WaveformType::Saw;
+    MacroManager      macroManager;
     SynthEngine       synthEngine;
     SamplerEngine     samplerEngine;
     DelayEffect       delay;
