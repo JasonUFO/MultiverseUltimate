@@ -57,6 +57,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - Undo/Redo (Cmd+Z / Cmd+Shift+Z) ✅
 - Filter oversampling (Off/2x/4x/Auto) ✅
 - Preset system (XML) with Factory/User banks ✅
+- Dark Forge UI theme (`MultiverseTheme`) — neumorphic knobs, sliders, buttons, tabs, menus ✅
 
 ## What Is Broken / Unconnected
 - None
@@ -81,11 +82,15 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Granular | Granular engine — 16 voices × 32 grains, file loading, 4 env shapes, full ADSR, new "Granular" tab |
 | 2+5 | Velocity/NoteNumber/Random/EnvelopeFollower sources wired; 5 granular mod targets added; MAX_MOD_TARGETS=24 |
 | MPE | Per-note pitch bend (±48 st), pressure, slide; MPE Pressure + MPE Slide mod sources; "MPE" toggle in SynthPanel |
+| UI-1 | MultiverseTheme LookAndFeel — Dark Forge design system; neumorphic knobs, sliders, buttons, tabs, menus |
 
 ## Next Steps
-Candidate directions:
-- Polish pass (visualizers, labels, color-coded tabs)
-- Chord/strum mode
+UI Redesign in progress (phases 2–6 remaining):
+- Phase 2: Custom NeuKnob component (replace MidiLearnSlider rotary)
+- Phase 3: Waveform/spectrum display in Synth tab
+- Phase 4: Preset browser redesign
+- Phase 5: Tab bar + header + plugin logo
+- Phase 6: Section card system across all panels
 
 ---
 
@@ -110,7 +115,11 @@ Candidate directions:
 
 - Include JUCE as `<JuceHeader.h>` (angle brackets) — do not revert to quoted path.
 - Sampler class is `MvSamplerVoice` — renamed to avoid conflict with `juce::SamplerVoice`.
-- Font: use `juce::Font(size, juce::Font::bold)` — `juce::Font::Typeface::bold` does not exist in JUCE 8.
+- Font: `juce::Font(size, style)` still compiles in JUCE 8 but is deprecated — use `juce::Font(juce::FontOptions{}.withHeight(size))` for new code. Old form raises `-Wdeprecated-declarations` but does not break the build.
+- `juce::TextEditor::caretColourId` does not exist in JUCE 8 — do not use it.
+- `juce::TableHeaderComponent::separatorColourId` does not exist in JUCE 8 — do not use it.
+- `MultiverseTheme` (`Source/MultiverseTheme.h/.cpp`) is the global LookAndFeel installed in `PluginEditor`. Dark Forge palette constants (`bgBase`, `bgRaised`, `bgDeep`, `accentBlue`, etc.) are `static const` members — include `MultiverseTheme.h` to access them from panels.
+- `MultiverseTheme::drawNeumorphicRect()` is `public static` — callable from panel paint() for section card borders without subclassing.
 - `ModulationMatrix::getActiveConnectionsForTarget()` returns by value (thread-safety fix — do not change to ref/pointer).
 - Effect chain order is packed as 6 nibbles in `std::atomic<uint32_t> effectChainOrder` — `getChainSlot(pos)` / `swapChainSlots(a,b)` are the only API.
 - New effects (Chorus/Distortion/EQ/Compressor) have stereo L/R instances (`chorus[2]`, etc.); Delay is shared mono.

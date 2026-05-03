@@ -1,7 +1,7 @@
 #include "PluginEditor.h"
 
 PluginEditor::PluginEditor (PluginProcessor& p)
-    : AudioProcessorEditor (p), processorRef (p),
+    : AudioProcessorEditor (p), mvTheme(), processorRef (p),
       drumSequencerPanel (p.getDrumSequencer()),
       modulationMatrixPanel (p, p.getModulationMatrix()),
       samplerPanel (p, p.getSamplerEngine()),
@@ -16,6 +16,8 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       midiLearnLabel ("", ""),
       presetBrowserPanel (p)
 {
+    setLookAndFeel (&mvTheme);
+
     setupTabs();
     setupMidiLearnButton();
 
@@ -41,19 +43,20 @@ PluginEditor::PluginEditor (PluginProcessor& p)
 
 PluginEditor::~PluginEditor()
 {
+    setLookAndFeel (nullptr);
 }
 
 void PluginEditor::setupTabs()
 {
-    tabs.addTab ("Synth",      juce::Colours::darkgrey, &synthPanel,            false);
-    tabs.addTab ("Drums",      juce::Colours::darkgrey, &drumSequencerPanel,    false);
-    tabs.addTab ("Modulation", juce::Colours::darkgrey, &modulationMatrixPanel, false);
-    tabs.addTab ("Sampler",    juce::Colours::darkgrey, &samplerPanel,          false);
-    tabs.addTab ("Sequencer",  juce::Colours::darkgrey, &proSequencerPanel,     false);
-    tabs.addTab ("Arp",        juce::Colours::darkgrey, &arpeggiatorPanel,      false);
-    tabs.addTab ("Effects",    juce::Colours::darkgrey, &effectsPanel,          false);
-    tabs.addTab ("Macros",     juce::Colours::darkgrey, &macroPanel,            false);
-    tabs.addTab ("Granular",   juce::Colours::darkgrey, &granularPanel,         false);
+    tabs.addTab ("Synth",      MultiverseTheme::bgBase, &synthPanel,            false);
+    tabs.addTab ("Drums",      MultiverseTheme::bgBase, &drumSequencerPanel,    false);
+    tabs.addTab ("Modulation", MultiverseTheme::bgBase, &modulationMatrixPanel, false);
+    tabs.addTab ("Sampler",    MultiverseTheme::bgBase, &samplerPanel,          false);
+    tabs.addTab ("Sequencer",  MultiverseTheme::bgBase, &proSequencerPanel,     false);
+    tabs.addTab ("Arp",        MultiverseTheme::bgBase, &arpeggiatorPanel,      false);
+    tabs.addTab ("Effects",    MultiverseTheme::bgBase, &effectsPanel,          false);
+    tabs.addTab ("Macros",     MultiverseTheme::bgBase, &macroPanel,            false);
+    tabs.addTab ("Granular",   MultiverseTheme::bgBase, &granularPanel,         false);
 }
 
 void PluginEditor::setupMidiLearnButton()

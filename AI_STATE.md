@@ -115,6 +115,17 @@
 - `allNotesOff()` resets all MPE channel states
 - ModulationMatrixPanel source dropdown extended to show MPE Pressure + MPE Slide
 
+### UI Redesign — Phase 1: MultiverseTheme LookAndFeel (2026-05-03)
+- `Source/MultiverseTheme.h/.cpp` — LookAndFeel_V4 subclass, Dark Forge design system
+- Overrides: drawRotarySlider (neumorphic knob, 270° arc, accent glow tip, pointer line, LED dot),
+  drawLinearSlider (inset track, gradient fill, neumorphic thumb),
+  drawToggleButton (LED pill), drawButtonBackground/Text, drawComboBox,
+  drawTabButton / drawTabAreaBehindFrontButton, drawLabel,
+  drawPopupMenuBackground / drawPopupMenuItem, drawScrollbar
+- Full color palette set via setColour() in constructor (all standard component IDs)
+- Installed in PluginEditor (setLookAndFeel / cleared in destructor)
+- Tab content colors updated to bgBase (#171720) in setupTabs()
+
 ## In Progress
 - None
 
@@ -122,6 +133,9 @@
 - None
 
 ## Next Step
-Candidate directions for next session:
-1. Polish pass — spectrum/oscilloscope visualizer, knob labels, color-coded tabs
-2. Chord/strum mode — chord shapes from single notes
+UI Redesign phases remaining:
+2. Custom NeuKnob component (Phase 2) — replaces MidiLearnSlider rotary with bespoke component
+3. Waveform/spectrum display in Synth tab (Phase 3)
+4. Preset browser redesign (Phase 4)
+5. Tab bar + header + plugin logo (Phase 5)
+6. Section card system across all panels (Phase 6)

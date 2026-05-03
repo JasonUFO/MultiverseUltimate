@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "MultiverseTheme.h"
 #include "DrumSequencer/DrumSequencerPanel.h"
 #include "Synth/ModulationMatrixPanel.h"
 #include "Synth/SynthPanel.h"
@@ -29,6 +30,7 @@ public:
     bool keyPressed (const juce::KeyPress& key) override;
 
 private:
+    MultiverseTheme   mvTheme;
     PluginProcessor& processorRef;
     DrumSequencerPanel    drumSequencerPanel;
     ModulationMatrixPanel modulationMatrixPanel;
