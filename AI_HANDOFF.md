@@ -92,8 +92,16 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | UI-6 | **COMPLETE** — Section card system: neumorphic cards via `drawNeumorphicRect()` applied to all 7 panels (Effects, ModMatrix, Sampler, Seq, Arp, ProSeq, DrumSeq) |
 
 ## Next Steps
-UI Redesign (Phase 7 next session):
-- Phase 7: Polish & Details — wrap remaining panels (SynthPanel, GranularPanel, MacroPanel) in cards; add section dividers/headers; fine-tune card spacing and visual consistency
+UI Redesign (Phase 7 COMPLETE):
+- Phase 7: Polish & Details — all 10 panels now have neumorphic section cards
+
+### Future: Neumorphic Cyberpunk UI (Full Redesign)
+**Plan saved:** `AI_CYBERPUNK_PLAN.md`  
+**Scope:** Full UI replacement (MultiverseTheme → CyberpunkTheme)  
+**Style:** Neumorphic + Cyberpunk (neon cyan/pink/purple on deep void backgrounds)  
+**Approach:** Option C — Figma specs in plan, then implement in C++  
+
+When ready: Read `AI_CYBERPUNK_PLAN.md` → `CLAUDE.md` → `AI_STATE.md` → start implementation.
 
 ---
 

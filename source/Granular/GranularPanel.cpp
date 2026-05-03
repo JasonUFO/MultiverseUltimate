@@ -1,5 +1,6 @@
 #include "GranularPanel.h"
 #include "../PluginProcessor.h"
+#include "../MultiverseTheme.h"
 
 GranularPanel::GranularPanel (PluginProcessor& p) : proc(p)
 {
@@ -105,28 +106,72 @@ void GranularPanel::setupLabel (juce::Label& l)
 
 void GranularPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colour (0xff1e1e1e));
+    g.fillAll (MultiverseTheme::bgBase);
 
-    // Section headers
-    g.setColour (juce::Colour (0xff333333));
-    g.fillRoundedRectangle (getLocalBounds().toFloat().reduced (4.0f), 6.0f);
+    const float cr = 8.0f;
+
+    if (sourceSectionRect.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect(g, sourceSectionRect.toFloat(), cr, 3.0f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(sourceSectionRect.toFloat(), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(sourceSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
+        // Section title
+        g.setColour(MultiverseTheme::textLabel);
+        g.setFont(juce::Font(10.0f, juce::Font::bold));
+        g.drawText("SOURCE", sourceSectionRect.getX() + 8, sourceSectionRect.getY() + 5, 100, 14, juce::Justification::centredLeft);
+    }
+
+    if (grainSectionRect.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect(g, grainSectionRect.toFloat(), cr, 3.0f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(grainSectionRect.toFloat(), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(grainSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
+        // Section title
+        g.setColour(MultiverseTheme::textLabel);
+        g.setFont(juce::Font(10.0f, juce::Font::bold));
+        g.drawText("GRAIN", grainSectionRect.getX() + 8, grainSectionRect.getY() + 5, 100, 14, juce::Justification::centredLeft);
+    }
+
+    if (envelopeSectionRect.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect(g, envelopeSectionRect.toFloat(), cr, 3.0f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(envelopeSectionRect.toFloat(), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(envelopeSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
+        // Section title
+        g.setColour(MultiverseTheme::textLabel);
+        g.setFont(juce::Font(10.0f, juce::Font::bold));
+        g.drawText("VOICE ENVELOPE", envelopeSectionRect.getX() + 8, envelopeSectionRect.getY() + 5, 140, 14, juce::Justification::centredLeft);
+    }
 }
 
 void GranularPanel::resized()
 {
     auto area = getLocalBounds().reduced (8);
 
-    // File load row
-    auto fileRow = area.removeFromTop (28);
+    // SOURCE section: file load row only
+    sourceSectionRect = area.removeFromTop(28 + 6).reduced(0, 0);
+    auto sourceArea = sourceSectionRect.reduced(8);
+
+    auto fileRow = sourceArea.removeFromTop (28);
     loadButton.setBounds (fileRow.removeFromLeft (80).reduced (2));
     fileLabel.setBounds  (fileRow.reduced (4, 2));
 
-    area.removeFromTop (6);
+    area.removeFromTop(6);
+
+    // GRAIN CONTROLS section: rows 1 and 2
+    grainSectionRect = area.removeFromTop(80 + 4 + 80 + 4).reduced(0, 0);
+    auto grainArea = grainSectionRect.reduced(8);
 
     // Row 1: Position, Grain Size, Spray, Density
     {
-        auto row = area.removeFromTop (80);
-        auto labelRow = area.removeFromTop (16);
+        auto row = grainArea.removeFromTop (80);
+        auto labelRow = grainArea.removeFromTop (16);
         const int w = row.getWidth() / 4;
 
         positionSlider .setBounds (row.removeFromLeft(w).reduced(4));
@@ -140,12 +185,12 @@ void GranularPanel::resized()
         densityLabel  .setBounds (labelRow);
     }
 
-    area.removeFromTop (4);
+    grainArea.removeFromTop (4);
 
     // Row 2: Pitch Scatter, Stereo Spread, Env Shape, Reverse
     {
-        auto row      = area.removeFromTop (80);
-        auto labelRow = area.removeFromTop (16);
+        auto row      = grainArea.removeFromTop (80);
+        auto labelRow = grainArea.removeFromTop (16);
         const int w   = row.getWidth() / 4;
 
         pitchScatterSlider.setBounds (row.removeFromLeft(w).reduced(4));
@@ -165,17 +210,21 @@ void GranularPanel::resized()
         juce::ignoreUnused (labelRow);
     }
 
-    area.removeFromTop (8);
+    area.removeFromTop(8);
+
+    // VOICE ENVELOPE section
+    envelopeSectionRect = area.withHeight(18 + 4 + 80);
+    auto envArea = envelopeSectionRect.reduced(8);
 
     // Envelope header
-    envelopeHeader.setBounds (area.removeFromTop (18));
+    envelopeHeader.setBounds (envArea.removeFromTop (18));
 
-    area.removeFromTop (4);
+    envArea.removeFromTop (4);
 
     // Row 3: ADSR
     {
-        auto row      = area.removeFromTop (80);
-        auto labelRow = area.removeFromTop (16);
+        auto row      = envArea.removeFromTop (80);
+        auto labelRow = envArea.removeFromTop (16);
         const int w   = row.getWidth() / 4;
 
         attackSlider .setBounds (row.removeFromLeft(w).reduced(4));

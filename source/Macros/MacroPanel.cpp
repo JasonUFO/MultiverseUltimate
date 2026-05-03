@@ -50,17 +50,37 @@ MacroPanel::~MacroPanel()
 
 void MacroPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff1e1e1e));
+    g.fillAll(MultiverseTheme::bgBase);
+
+    const float cr = 8.0f;
+    if (macroSectionRect.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect(g, macroSectionRect.toFloat(), cr, 3.0f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(macroSectionRect.toFloat(), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(macroSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
+
+        // Section title
+        g.setColour(MultiverseTheme::textLabel);
+        g.setFont(juce::Font(10.0f, juce::Font::bold));
+        g.drawText("MACRO CONTROLS", macroSectionRect.getX() + 8, macroSectionRect.getY() + 5, 200, 14, juce::Justification::centredLeft);
+    }
+
+    // Instruction text
     g.setColour(juce::Colours::white.withAlpha(0.6f));
-    g.setFont(juce::Font(13.0f, juce::Font::bold));
-    g.drawText("MACRO CONTROLS  —  right-click any knob/slider to assign it to a macro",
-               getLocalBounds().removeFromTop(28), juce::Justification::centred, false);
+    g.setFont(juce::Font(11.0f, juce::Font::bold));
+    g.drawText("right-click any knob/slider to assign it to a macro",
+               macroSectionRect.removeFromTop(28).withTrimmedLeft(8), juce::Justification::centredLeft, false);
 }
 
 void MacroPanel::resized()
 {
     auto area = getLocalBounds().reduced(10);
     area.removeFromTop(30);
+
+    // Macro section card wraps all macro knobs
+    macroSectionRect = area;
 
     const int cols  = 4;
     const int cellW = area.getWidth() / cols;

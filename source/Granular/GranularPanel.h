@@ -38,6 +38,9 @@ private:
     NeuKnob sustainSlider;
     NeuKnob releaseSlider;
 
+    // Section rects: set in resized(), used in paint()
+    juce::Rectangle<int> sourceSectionRect, grainSectionRect, envelopeSectionRect;
+
     // Labels
     juce::Label positionLabel    { {}, "Position"  };
     juce::Label grainSizeLabel   { {}, "Grain Size" };

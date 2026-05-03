@@ -211,6 +211,7 @@ private:
 
     // Section rects: set in resized(), used in paint()
     juce::Rectangle<int> oscSectionRect, unisonSectionRect, filterSectionRect, envSectionRect;
+    juce::Rectangle<int> fmSectionRect, voiceSectionRect;
     juce::Rectangle<int> modeBadgeRect;
 
     // 3 Oscillator strips

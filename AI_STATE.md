@@ -190,14 +190,35 @@
 
 ---
 
-## Next Step — START HERE (Phase 7: Polish & Details)
+## Completed (Phase 7 — Polish & Details)
 
-**Potential tasks:**
-- SynthPanel: wrap oscillator strips, FM section, voice mode controls in neumorphic cards
-- GranularPanel: wrap controls and file section in cards
-- MacroPanel: wrap macro knobs section in cards
-- Add subtle section dividers or headers within cards
-- Fine-tune card spacing, corner radii, and shadow offsets for visual consistency
+**Phase 7 COMPLETE** — Neumorphic section cards applied to remaining panels:
+
+- **SynthPanel** — 5 neumorphic cards: OSC, UNISON, FILTER, ENV (Classic mode), FM OPERATORS (FM mode), VOICE MODE (header strip)
+- **GranularPanel** — 3 neumorphic cards: SOURCE (file load), GRAIN (grain controls), VOICE ENVELOPE (ADSR)
+- **MacroPanel** — 1 neumorphic card: MACRO CONTROLS (all 8 macro knobs)
+- All cards use `MultiverseTheme::drawNeumorphicRect()` with consistent `cr=8.0f, offset=3.0f`
+- Section titles drawn via `drawSection()` helper (SynthPanel) or inline (GranularPanel, MacroPanel)
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+---
+
+## Next Session
+
+All Phase 7 tasks complete. Project is in polished state with consistent Dark Forge neumorphic design across all 10 panels.
+
+### Future: Neumorphic Cyberpunk UI (Full Redesign)
+**Plan saved:** `AI_CYBERPUNK_PLAN.md`  
+**Scope:** Full UI replacement (MultiverseTheme → CyberpunkTheme)  
+**Style:** Neumorphic + Cyberpunk (neon cyan/pink/purple on deep void backgrounds)  
+**Approach:** Option C — Figma specs provided in plan, then implement in C++  
+
+When ready to start: Read `AI_CYBERPUNK_PLAN.md` → `CLAUDE.md` → `AI_HANDOFF.md` → start implementation.
+
+Future work (not yet scheduled):
+- Additional UI polish (animations, hover effects)
+- New features (more effects, expanded modulation, etc.)
 
 ---
 

@@ -1,5 +1,6 @@
 #include "SynthPanel.h"
 #include "../PluginProcessor.h"
+#include "../MultiverseTheme.h"
 
 SynthPanel::SynthPanel(PluginProcessor& p)
     : processorRef(p), synthEngine(p.getSynthEngine())
@@ -415,13 +416,15 @@ void SynthPanel::setupLabel(juce::Label& l, const juce::String& text)
 }
 
 void SynthPanel::drawSection(juce::Graphics& g, juce::Rectangle<int> r,
-                              const juce::String& title) const
+                               const juce::String& title) const
 {
-    g.setColour(juce::Colour(0xff0e1c24));
-    g.fillRoundedRectangle(r.toFloat(), 6.0f);
-    g.setColour(juce::Colour(0xff2c3e47));
-    g.drawRoundedRectangle(r.toFloat(), 6.0f, 1.0f);
-    g.setColour(juce::Colour(0xff4fc3f7));
+    const float cr = 8.0f;
+    MultiverseTheme::drawNeumorphicRect(g, r.toFloat(), cr, 3.0f);
+    g.setColour(MultiverseTheme::bgRaised);
+    g.fillRoundedRectangle(r.toFloat(), cr);
+    g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+    g.drawRoundedRectangle(r.toFloat().reduced(0.5f), cr, 1.0f);
+    g.setColour(MultiverseTheme::textLabel);
     g.setFont(juce::Font(10.0f, juce::Font::bold));
     g.drawText(title, r.getX() + 8, r.getY() + 5, 100, 14, juce::Justification::centredLeft);
 }
@@ -484,7 +487,7 @@ void SynthPanel::updateVisibility()
 //==============================================================================
 void SynthPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff1a2530));
+    g.fillAll(MultiverseTheme::bgBase);
 
     const bool isFM = (modeSelector.getSelectedId() == 2);
 
@@ -495,13 +498,24 @@ void SynthPanel::paint(juce::Graphics& g)
         drawSection(g, filterSectionRect, "FILTER");
         drawSection(g, envSectionRect,    "ENV");
     }
+    else
+    {
+        drawSection(g, fmSectionRect, "FM OPERATORS");
+    }
+
+    // Voice mode section
+    if (voiceSectionRect.getHeight() > 0)
+    {
+        drawSection(g, voiceSectionRect, "VOICE MODE");
+    }
 
     // Mode badge
-    const juce::Colour badgeCol = isFM ? juce::Colour(0xff7986cb) : juce::Colour(0xff4fc3f7);
+    const juce::Colour badgeCol = isFM ? MultiverseTheme::accentBlue.withAlpha(0.7f) : MultiverseTheme::accentBlue;
     g.setColour(badgeCol.withAlpha(0.18f));
     g.fillRoundedRectangle(modeBadgeRect.toFloat(), 4.0f);
     g.setColour(badgeCol);
     g.drawRoundedRectangle(modeBadgeRect.toFloat(), 4.0f, 1.0f);
+    g.setColour(badgeCol);
     g.setFont(juce::Font(10.0f, juce::Font::bold));
     g.drawText(isFM ? "FM" : "CLASSIC", modeBadgeRect, juce::Justification::centred);
 }
@@ -515,6 +529,7 @@ void SynthPanel::resized()
     // Header
     {
         auto hdr = area.removeFromTop(46);
+        auto voiceHdr = hdr;
 
         // Buttons on the right first
         auto btnArea = hdr.removeFromRight(176);
@@ -530,6 +545,9 @@ void SynthPanel::resized()
 
         modeBadgeRect = hdr.removeFromLeft(80).reduced(0, 10);
         hdr.removeFromLeft(16);
+
+        // Voice section rect (remaining header area)
+        voiceSectionRect = hdr.reduced(2, 4);
 
         // Voice mode strip (centre)
         voiceModeLabel.setBounds(hdr.removeFromLeft(52).reduced(0, 14));
@@ -548,10 +566,13 @@ void SynthPanel::resized()
 
     if (isFM)
     {
-        auto algRow = area.removeFromTop(46);
+        fmSectionRect = area.withHeight(46 + 8 + 4 * (16 + 60 + 16 + 8));
+        auto fmArea = fmSectionRect.reduced(8);
+
+        auto algRow = fmArea.removeFromTop(46);
         algorithmLabel.setBounds(algRow.removeFromTop(18));
         algorithmSelector.setBounds(algRow.removeFromTop(26));
-        area.removeFromTop(8);
+        fmArea.removeFromTop(8);
 
         const int opKnobW  = 60;
         const int opLabelH = 16;
@@ -559,7 +580,7 @@ void SynthPanel::resized()
         for (int op = 0; op < 4; ++op)
         {
             auto& c    = fmOps[op];
-            auto opRow = area.removeFromTop(opLabelH + opKnobW + opLabelH);
+            auto opRow = fmArea.removeFromTop(opLabelH + opKnobW + opLabelH);
             c.sectionLabel.setBounds(opRow.removeFromTop(opLabelH));
 
             auto knobs = opRow;
@@ -577,8 +598,9 @@ void SynthPanel::resized()
             place(c.decaySlider,    c.decayLabel);
             place(c.sustainSlider,  c.sustainLabel);
             place(c.releaseSlider,  c.releaseLabel);
-            area.removeFromTop(8);
+            fmArea.removeFromTop(8);
         }
+        area.removeFromTop(fmSectionRect.getHeight() + 8);
     }
     else
     {

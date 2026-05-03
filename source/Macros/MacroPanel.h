@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "MacroManager.h"
+#include "../MultiverseTheme.h"
 
 class PluginProcessor;
 
@@ -15,6 +16,8 @@ public:
 
 private:
     PluginProcessor& proc;
+
+    juce::Rectangle<int> macroSectionRect;
 
     struct MacroKnobGroup
     {
