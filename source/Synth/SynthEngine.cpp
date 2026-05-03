@@ -217,6 +217,7 @@ void SynthEngine::noteOff(int note)
 void SynthEngine::allNotesOff()
 {
     monoNoteCount = 0;
+    for (auto& ch : mpeChannels) ch = MpeChannelState{};
 
     for (auto& vi : voices)
     {
@@ -248,8 +249,14 @@ void SynthEngine::setPitchBend(float cents)
     else
     {
         for (auto& vi : voices)
-            if (vi.inUse && vi.voice.isActive())
+        {
+            if (!vi.inUse || !vi.voice.isActive()) continue;
+            // In MPE mode, master-channel bend is additive with per-note member bend
+            if (mpeEnabled && vi.midiChannel >= 2)
+                vi.voice.setPitchBend(cents + mpeChannels[vi.midiChannel - 1].pitchBendSemitones);
+            else
                 vi.voice.setPitchBend(cents);
+        }
     }
 }
 
@@ -683,6 +690,80 @@ void SynthEngine::setPortamento(float sec)
         glideCoeff = 1.0f;
     else
         glideCoeff = 1.0f - std::exp(-1.0f / (portaTime * sampleRate));
+}
+
+void SynthEngine::setMPEEnabled(bool enabled)
+{
+    mpeEnabled = enabled;
+    if (!enabled)
+    {
+        for (auto& ch : mpeChannels) ch = MpeChannelState{};
+        for (auto& vi : voices) vi.midiChannel = 0;
+    }
+}
+
+void SynthEngine::noteOnMPE(int channel, int note, float velocity)
+{
+    if (channel < 2 || channel > 16) return;
+
+    // Reset channel state — prevents stale pitch bend from a recycled channel
+    mpeChannels[channel - 1] = MpeChannelState{};
+
+    // Release any existing voice already bound to this channel
+    for (auto& vi : voices)
+        if (vi.inUse && vi.midiChannel == channel)
+        { vi.voice.noteOff(); vi.inUse = false; break; }
+
+    auto* vi = findFreeVoice();
+    if (vi == nullptr) return;
+
+    vi->voice.noteOn(note, velocity);
+    vi->voice.setPitchBend(static_cast<float>(pitchBend));  // global bend only (member bend is 0 at note start)
+    for (int i = 0; i < 3; ++i)
+    {
+        vi->voice.setOscillatorType(i, oscSettings[i].type);
+        vi->voice.setOscillatorLevel(i, oscSettings[i].level);
+        vi->voice.setOscillatorDetune(i, oscSettings[i].detuneSemitones);
+        vi->voice.setOscillatorWaveform(i, oscSettings[i].classicWaveform);
+        vi->voice.setOscillatorWavePosition(i, oscSettings[i].wavePosition);
+    }
+    vi->panLeft  = 1.0f;
+    vi->panRight = 1.0f;
+    vi->unisonDetuneOffset = 0.0f;
+    vi->midiChannel = channel;
+    vi->inUse = true;
+    vi->lastUseTime = voiceCounter++;
+}
+
+void SynthEngine::noteOffMPE(int channel, int midiNote)
+{
+    if (channel < 2 || channel > 16) return;
+    for (auto& vi : voices)
+        if (vi.inUse && vi.midiChannel == channel && vi.voice.getMidiNote() == midiNote)
+        { vi.voice.noteOff(); break; }
+}
+
+void SynthEngine::setMPEPitchBend(int channel, float semitones)
+{
+    if (channel < 2 || channel > 16) return;
+    mpeChannels[channel - 1].pitchBendSemitones = semitones;
+
+    const float total = static_cast<float>(pitchBend) + semitones;
+    for (auto& vi : voices)
+        if (vi.inUse && vi.midiChannel == channel && vi.voice.isActive())
+        { vi.voice.setPitchBend(total); break; }
+}
+
+void SynthEngine::setMPEPressure(int channel, float pressure)
+{
+    if (channel < 2 || channel > 16) return;
+    mpeChannels[channel - 1].pressure = pressure;
+}
+
+void SynthEngine::setMPESlide(int channel, float slide)
+{
+    if (channel < 2 || channel > 16) return;
+    mpeChannels[channel - 1].slide = slide;
 }
 
 bool SynthEngine::loadWavetableFile(int oscIndex, const juce::File& file)

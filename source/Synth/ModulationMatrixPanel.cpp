@@ -16,7 +16,7 @@ namespace {
 
 ModulationMatrixPanel::Row::Row()
 {
-    for (int i = 0; i <= static_cast<int>(ModSourceType::EnvelopeFollower); ++i)
+    for (int i = 0; i <= static_cast<int>(ModSourceType::MPESlide); ++i)
         sourceBox.addItem(ModulationMatrix::getSourceName(static_cast<ModSourceType>(i)), i + 1);
     sourceBox.setSelectedId(1, juce::dontSendNotification);
 

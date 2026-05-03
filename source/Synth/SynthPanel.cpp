@@ -350,6 +350,12 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     portaAlwaysAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         apvts, "portaAlways", portaAlwaysButton);
 
+    mpeButton.setButtonText("MPE");
+    mpeButton.setTooltip("Enable MPE: per-note pitch bend (±48 st), pressure, and slide from expressive controllers");
+    addAndMakeVisible(mpeButton);
+    mpeAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+        apvts, "mpeEnabled", mpeButton);
+
     // Tooltips
     modeSelector.setTooltip      ("Synthesis mode: Classic (subtractive) for 3 oscillators, or FM");
     waveformSelector.setTooltip  ("Legacy oscillator waveform selector");
@@ -528,6 +534,8 @@ void SynthPanel::resized()
         voiceModeSelector.setBounds(hdr.removeFromLeft(108).reduced(0, 8));
         hdr.removeFromLeft(12);
         portaAlwaysButton.setBounds(hdr.removeFromLeft(68).reduced(4, 12));
+        hdr.removeFromLeft(8);
+        mpeButton.setBounds(hdr.removeFromLeft(48).reduced(4, 12));
         hdr.removeFromLeft(8);
         auto portaCol = hdr.removeFromLeft(180);
         portamentoLabel.setBounds(portaCol.removeFromTop(18));

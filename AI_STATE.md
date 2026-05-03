@@ -103,6 +103,18 @@
 - `MAX_MOD_TARGETS` raised from 16 → 24 to accommodate new targets
 - Modulation Matrix panel source/target dropdowns extended to show all new entries
 
+### MPE Support (2026-05-03)
+- `mpeEnabled` APVTS Bool param; "MPE" ToggleButton in SynthPanel header row
+- Lower Zone: ch 1 = master (global pitch bend ±2 st, pedals, mod wheel); ch 2–15 = member (per-note)
+- Per-note pitch bend: ±48 semitones (MPE standard), additive with master bend
+- Per-note pressure (channel aftertouch on member ch) → `ModSourceType::MPEPressure` mod source
+- Per-note slide CC74 (member ch, neutral 63) → `ModSourceType::MPESlide` mod source (-1..+1)
+- `VoiceInfo::midiChannel` tracks which MIDI channel owns each voice
+- `MpeChannelState[16]` per-channel pitch/pressure/slide in SynthEngine
+- Channel state reset on noteOn (prevents stale bend bleed on channel reuse)
+- `allNotesOff()` resets all MPE channel states
+- ModulationMatrixPanel source dropdown extended to show MPE Pressure + MPE Slide
+
 ## In Progress
 - None
 
@@ -112,5 +124,4 @@
 ## Next Step
 Candidate directions for next session:
 1. Polish pass — spectrum/oscilloscope visualizer, knob labels, color-coded tabs
-2. MPE support — per-note pitch/pressure/slide
-3. Chord/strum mode — chord shapes from single notes
+2. Chord/strum mode — chord shapes from single notes

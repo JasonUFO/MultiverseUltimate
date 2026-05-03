@@ -267,9 +267,11 @@ private:
     juce::ComboBox        voiceModeSelector;
     MidiLearnSlider       portamentoSlider;
     juce::ToggleButton    portaAlwaysButton;
+    juce::ToggleButton    mpeButton;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> voiceModeAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>   portamentoAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>   portaAlwaysAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>   mpeAttach;
 
     // Unison controls
     juce::Label        unisonVoicesLabel, unisonDetuneLabel, unisonWidthLabel;

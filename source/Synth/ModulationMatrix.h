@@ -23,7 +23,9 @@ enum class ModSourceType : uint8_t
     ModWheel,
     PitchBend,
     Random,
-    EnvelopeFollower
+    EnvelopeFollower,
+    MPEPressure,
+    MPESlide
 };
 
 enum class ModTargetType : uint8_t
@@ -119,6 +121,8 @@ public:
             case ModSourceType::PitchBend: return "Pitch Bend";
             case ModSourceType::Random: return "Random";
             case ModSourceType::EnvelopeFollower: return "Env Follower";
+            case ModSourceType::MPEPressure: return "MPE Pressure";
+            case ModSourceType::MPESlide: return "MPE Slide";
         }
         return "";
     }

@@ -233,6 +233,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         juce::NormalisableRange<float>(0.0f, 2.0f, 0.0f, 0.4f), 0.0f));
     layout.add(std::make_unique<juce::AudioParameterBool>(
         juce::ParameterID{"portaAlways", 1}, "Porta Always", false));
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"mpeEnabled", 1}, "MPE", false));
 
     // Macro controls (8 DAW-automatable macro knobs, each 0-1)
     for (int m = 1; m <= 8; ++m)
@@ -627,9 +629,13 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     }
 
     // Process all MIDI (keyboard input + sequencer output)
+    const bool mpeOn = *apvts.getRawParameterValue("mpeEnabled") > 0.5f;
+    synthEngine.setMPEEnabled(mpeOn);
+
     for (const auto metadata : midiMessages)
     {
         auto message = metadata.getMessage();
+        const int ch = message.getChannel();  // 1-based; ch 1 = MPE master
 
         // MIDI Learn / CC-to-parameter mapping
         if (midiLearnActive)
@@ -647,9 +653,12 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             modulationMatrix.setModulationValue(ModSourceType::Velocity,    0, vel);
             modulationMatrix.setModulationValue(ModSourceType::NoteNumber,  0, note / 127.0f);
             modulationMatrix.setModulationValue(ModSourceType::Random,      0, juce::Random::getSystemRandom().nextFloat());
-            synthEngine.noteOn (note, vel);
-            samplerEngine.noteOn (note, vel);
-            granularEngine.noteOn (note, vel);
+            if (mpeOn && ch > 1)
+                synthEngine.noteOnMPE(ch, note, vel);
+            else
+                synthEngine.noteOn(note, vel);
+            samplerEngine.noteOn(note, vel);
+            granularEngine.noteOn(note, vel);
         }
         else if (message.isNoteOff())
         {
@@ -660,74 +669,113 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             }
             else
             {
-                synthEngine.noteOff (note);
-                samplerEngine.noteOff (note);
-                granularEngine.noteOff (note);
+                if (mpeOn && ch > 1)
+                    synthEngine.noteOffMPE(ch, note);
+                else
+                    synthEngine.noteOff(note);
+                samplerEngine.noteOff(note);
+                granularEngine.noteOff(note);
             }
         }
         else if (message.isPitchWheel())
         {
-            basePitchBend = ((message.getPitchWheelValue() - 8192) / 8192.0f) * 2.0f;
+            if (mpeOn && ch > 1)
+            {
+                // Member channel: per-note pitch bend (±48 semitones, standard MPE)
+                const float semitones = ((message.getPitchWheelValue() - 8192) / 8192.0f)
+                                        * SynthEngine::MPE_PITCH_BEND_RANGE;
+                synthEngine.setMPEPitchBend(ch, semitones);
+            }
+            else
+            {
+                // Master channel / non-MPE: global pitch bend (±2 semitones)
+                basePitchBend = ((message.getPitchWheelValue() - 8192) / 8192.0f) * 2.0f;
+            }
+        }
+        else if (message.isChannelPressure())
+        {
+            if (mpeOn && ch > 1)
+            {
+                // Member channel pressure = per-note expression (Z-axis)
+                const float pressure = message.getChannelPressureValue() / 127.0f;
+                synthEngine.setMPEPressure(ch, pressure);
+                modulationMatrix.setModulationValue(ModSourceType::MPEPressure, 0, pressure);
+            }
         }
         else if (message.isController())
         {
             int cc  = message.getControllerNumber();
             int val = message.getControllerValue();
 
-            if (cc == 64)  // sustain pedal
+            if (mpeOn && ch > 1)
             {
-                if (val >= 64)
+                // Member channels: only CC74 (slide / Y-axis); other CCs ignored per MPE spec
+                if (cc == 74)
                 {
-                    sustainPedalDown = true;
+                    // Neutral value is 63, normalise to -1..+1
+                    const float slide = (val - 63) / 63.0f;
+                    synthEngine.setMPESlide(ch, slide);
+                    modulationMatrix.setModulationValue(ModSourceType::MPESlide, 0, slide);
                 }
-                else
+            }
+            else
+            {
+                // Master channel / non-MPE: existing global CC handling
+                if (cc == 64)  // sustain pedal
                 {
+                    if (val >= 64)
+                    {
+                        sustainPedalDown = true;
+                    }
+                    else
+                    {
+                        sustainPedalDown = false;
+                        for (int n = 0; n < 128; ++n)
+                        {
+                            if (sustainedNoteHeld[n])
+                            {
+                                synthEngine.noteOff(n);
+                                samplerEngine.noteOff(n);
+                                granularEngine.noteOff(n);
+                                sustainedNoteHeld[n] = false;
+                            }
+                        }
+                    }
+                }
+                else if (cc == 66)  // sostenuto pedal
+                {
+                    if (val >= 64)
+                    {
+                        sostenutoPedalDown = true;
+                    }
+                    else
+                    {
+                        sostenutoPedalDown = false;
+                        for (int n = 0; n < 128; ++n)
+                        {
+                            if (sostenutoNoteHeld[n])
+                            {
+                                synthEngine.noteOff(n);
+                                samplerEngine.noteOff(n);
+                                sostenutoNoteHeld[n] = false;
+                            }
+                        }
+                    }
+                }
+                else if (cc == 1)  // modulation wheel -> filter cutoff mod
+                {
+                    float modWheel = val / 127.0f;
+                    baseFilterModAmount = modWheel * 10000.0f;
+                }
+                else if (cc == 123)  // all notes off
+                {
+                    synthEngine.allNotesOff();
+                    samplerEngine.allNotesOff();
+                    granularEngine.allNotesOff();
+                    for (int n = 0; n < 128; ++n)
+                        sustainedNoteHeld[n] = false;
                     sustainPedalDown = false;
-                    for (int n = 0; n < 128; ++n)
-                    {
-                        if (sustainedNoteHeld[n])
-                        {
-                            synthEngine.noteOff (n);
-                            samplerEngine.noteOff (n);
-                            granularEngine.noteOff (n);
-                            sustainedNoteHeld[n] = false;
-                        }
-                    }
                 }
-            }
-            else if (cc == 66)  // sostenuto pedal
-            {
-                if (val >= 64)
-                {
-                    sostenutoPedalDown = true;
-                }
-                else
-                {
-                    sostenutoPedalDown = false;
-                    for (int n = 0; n < 128; ++n)
-                    {
-                        if (sostenutoNoteHeld[n])
-                        {
-                            synthEngine.noteOff (n);
-                            samplerEngine.noteOff (n);
-                            sostenutoNoteHeld[n] = false;
-                        }
-                    }
-                }
-            }
-            else if (cc == 1)  // modulation wheel -> filter cutoff mod
-            {
-                float modWheel = val / 127.0f;
-                baseFilterModAmount = modWheel * 10000.0f;
-            }
-            else if (cc == 123)  // all notes off
-            {
-                synthEngine.allNotesOff();
-                samplerEngine.allNotesOff();
-                granularEngine.allNotesOff();
-                for (int n = 0; n < 128; ++n)
-                    sustainedNoteHeld[n] = false;
-                sustainPedalDown = false;
             }
         }
     }

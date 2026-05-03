@@ -60,6 +60,15 @@ public:
     bool loadWavetableFile(int oscIndex, const juce::File& file);
     juce::String getWavetableFilePath(int oscIndex) const;
 
+    // MPE (MIDI Polyphonic Expression) — Lower Zone: master ch 1, member ch 2–15
+    static constexpr float MPE_PITCH_BEND_RANGE = 48.0f;  // semitones, standard MPE
+    void setMPEEnabled(bool enabled);
+    void noteOnMPE(int channel, int midiNote, float velocity);
+    void noteOffMPE(int channel, int midiNote);
+    void setMPEPitchBend(int channel, float semitones);
+    void setMPEPressure(int channel, float pressure);   // 0..1
+    void setMPESlide(int channel, float slide);         // -1..+1 (CC74 centred at 63)
+
     // FM mode controls
     void setSynthMode(SynthMode mode);
     SynthMode getSynthMode() const { return synthMode; }
@@ -110,6 +119,7 @@ private:
         float unisonDetuneOffset = 0.0f;
         float panLeft  = 1.0f;
         float panRight = 1.0f;
+        int midiChannel = 0;  // 0 = unassigned; 2–15 for MPE member channels
     };
 
     struct FMVoiceInfo
@@ -186,4 +196,14 @@ private:
     // Wavetable file loading
     juce::AudioFormatManager formatManager;
     juce::String wavetableFilePaths[3];
+
+    // MPE per-channel state (index 0 = ch 1, …, 15 = ch 16)
+    struct MpeChannelState
+    {
+        float pitchBendSemitones = 0.0f;
+        float pressure = 0.0f;
+        float slide = 0.0f;
+    };
+    MpeChannelState mpeChannels[16];
+    bool mpeEnabled = false;
 };

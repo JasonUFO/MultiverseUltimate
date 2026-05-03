@@ -80,11 +80,11 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Phase B | Macro Controls (8 macros, DAW-automatable, nameable, right-click assign, preset-persistent) |
 | Granular | Granular engine — 16 voices × 32 grains, file loading, 4 env shapes, full ADSR, new "Granular" tab |
 | 2+5 | Velocity/NoteNumber/Random/EnvelopeFollower sources wired; 5 granular mod targets added; MAX_MOD_TARGETS=24 |
+| MPE | Per-note pitch bend (±48 st), pressure, slide; MPE Pressure + MPE Slide mod sources; "MPE" toggle in SynthPanel |
 
 ## Next Steps
 Candidate directions:
 - Polish pass (visualizers, labels, color-coded tabs)
-- MPE support (per-note pitch/pressure/slide)
 - Chord/strum mode
 
 ---
@@ -124,3 +124,8 @@ Candidate directions:
 - GranularVoice grain pool: `GrainState grains[32]` — stack-allocated, no heap. Grain steal: first inactive slot, fallback index 0.
 - Granular pitch ratio: `exp2f((midiNote - 60) / 12.0f)` × `exp2f(scatterSemitones / 12.0f)`.
 - GranularEngine file loading: `juce::LagrangeInterpolator` for resampling, stereo conversion, writes under `juce::ScopedLock`.
+- MPE Lower Zone: ch 1 = master (global bend ±2 st, CC64/66/1/123), ch 2–15 = member (per-note bend ±48 st, channel pressure, CC74 slide).
+- `VoiceInfo::midiChannel` (0 = unassigned; 2–15 for MPE). `MpeChannelState[16]` in SynthEngine holds pitchBend/pressure/slide per channel.
+- MPE channel state reset on `noteOnMPE()` — prevents stale pitch bend bleed when a channel is recycled.
+- CC74 neutral value is 63 (not 0); normalised to -1..+1 before storing in `mpeChannels[].slide`.
+- `ModSourceType::MPEPressure` and `ModSourceType::MPESlide` are the two new mod sources; fed from most-recent member-channel message.
