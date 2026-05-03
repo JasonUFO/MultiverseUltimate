@@ -132,10 +132,23 @@
 ## Broken
 - None
 
-## Next Step
-UI Redesign phases remaining:
-2. Custom NeuKnob component (Phase 2) — replaces MidiLearnSlider rotary with bespoke component
-3. Waveform/spectrum display in Synth tab (Phase 3)
-4. Preset browser redesign (Phase 4)
-5. Tab bar + header + plugin logo (Phase 5)
-6. Section card system across all panels (Phase 6)
+## Next Step — START HERE (Phase 2: NeuKnob)
+
+**Task:** Create `Source/NeuKnob.h/.cpp` — extends `MidiLearnSlider`, adds value-pill tooltip and amber arc for macro-assigned knobs.
+
+**Steps:**
+1. Read `Source/MidiLearnSlider.h/.cpp` and `Source/MultiverseTheme.h` for context
+2. Create `NeuKnob` extending `MidiLearnSlider` — override `paint()` only
+   - Value pill: rounded rect above knob, shows formatted value while mouse over or dragging
+   - Amber arc: when `macroAssigned`, pass a tint colour to the parent draw so the arc uses `accentAmber` instead of `accentBlue`  
+   - Re-use existing badge drawing from `MidiLearnSlider::paint()`
+3. Add NeuKnob.h/.cpp to `Multiverse.jucer`, run Projucer --resave
+4. Swap `MidiLearnSlider` → `NeuKnob` in all rotary-knob panels:
+   SynthPanel, ModulationMatrixPanel, SamplerPanel, EffectsPanel, GranularPanel, MacroPanel
+5. Build, verify badges and tooltip still work, no regressions
+
+**Key facts for this task:**
+- Projucer: `/Users/jason/JUCE/JUCE/Projucer.app/Contents/MacOS/Projucer`
+- MultiverseTheme palette constants are `public static` on `MultiverseTheme` — `#include "MultiverseTheme.h"`
+- `MidiLearnSlider::macroAssigned` is `private` — NeuKnob will need to call `checkHasMacro()` or the timer will surface it via the existing badge flag; consider making `macroAssigned` `protected` in MidiLearnSlider
+- Full design brief is in memory file `project_ui_redesign.md`
