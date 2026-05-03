@@ -1,58 +1,24 @@
-# Phase 5: Remaining UI Panels — Dark Forge Redesign
+# Phase 5 & 6: UI Redesign — COMPLETE
 
-## Goal
-Redesign all remaining UI panels to match the Dark Forge design system established in Phases 1-4.
+## Phase 5: Dark Forge Redesign — ✅ COMPLETE
+All 7 remaining UI panels updated to Dark Forge palette.
+- EffectsPanel, ModulationMatrixPanel, SamplerPanel
+- SequencerPanel, DrumSequencerPanel, ArpeggiatorPanel, ProSequencerPanel
+
+## Phase 6: Section Card System — ✅ COMPLETE
+Neumorphic section cards applied to all panels using `MultiverseTheme::drawNeumorphicRect()`:
+- **EffectsPanel** — 6 cards (Chorus, Distortion, EQ, Compressor, Delay, Reverb)
+- **ModulationMatrixPanel** — each row wrapped in a card
+- **SamplerPanel** — 3 cards (drop zone, zone list, controls)
+- **SequencerPanel** — 4 cards (transport, patterns, step grid, export)
+- **ArpeggiatorPanel** — 3 cards (controls, step grid, editor)
+- **ProSequencerPanel** — 4 cards (transport, lane/mode, step grid, editor)
+- **DrumSequencerPanel** — 4 cards (transport, swing/quant/chain, patterns, grid)
 
 ## Reference Implementation
-- **PresetBrowserPanel** — Neumorphic cards, search bar, category pills (Phase 4 complete)
 - **MultiverseTheme** — `Source/MultiverseTheme.h/.cpp` with Dark Forge palette
 - **NeuKnob** — `Source/NeuKnob.h/.cpp` for rotary sliders
-
-## Panels to Update
-
-### 1. EffectsPanel
-**File:** `Source/Effects/EffectsPanel.h/.cpp`
-- Convert to neumorphic section cards (Chorus, Distortion, EQ, Compressor sections)
-- Use NeuKnob for all rotary sliders
-- 2-column layout with neumorphic card backgrounds
-- Add subtle dividers between effect sections
-
-### 2. ModulationMatrixPanel
-**File:** `Source/Modulation/ModulationMatrixPanel.h/.cpp`
-- Neumorphic card for each modulation route
-- Source/target dropdowns styled with MultiverseTheme
-- Amount sliders: use NeuKnob or styled linear sliders
-- Add/Remove buttons with neumorphic styling
-
-### 3. DrumPanel
-**File:** `Source/Drums/DrumPanel.h/.cpp`
-- Neumorphic card for each drum track
-- Sample load buttons with Dark Forge styling
-- Trigger pads (if applicable) with LED-style feedback
-
-### 4. SamplerPanel
-**File:** `Source/Sampler/SamplerPanel.h/.cpp`
-- Zone display with neumorphic card background
-- Sample load/info section with Dark Forge styling
-- All sliders use NeuKnob
-
-### 5. SequencerPanel
-**File:** `Source/Sequencer/SequencerPanel.h/.cpp`
-- Pattern grid with neumorphic card background
-- Transport controls with Dark Forge styling
-- Step indicators with LED-style feedback
-
-### 6. ArpPanel
-**File:** `Source/Arp/ArpPanel.h/.cpp`
-- Pattern selector with neumorphic styling
-- Rate/Range controls using NeuKnob
-- Arp mode selector with Dark Forge combo box
-
-### 7. ProSeqPanel
-**File:** `Source/ProSeq/ProSeqPanel.h/.cpp`
-- Advanced sequencer UI with neumorphic cards
-- Track lanes with Dark Forge styling
-- Transport/pattern controls
+- **PresetBrowserPanel** — Neumorphic cards, search bar, category pills (Phase 4)
 
 ## Design Patterns to Apply
 
