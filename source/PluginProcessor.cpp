@@ -996,6 +996,13 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         if (numChannels > 1) buffer.getWritePointer(1)[i] *= panGainR;
     }
 
+    // Push mono mix to display FIFO (no allocation — writes directly to pre-allocated buffer)
+    {
+        const float* L = buffer.getReadPointer(0);
+        const float* R = numChannels > 1 ? buffer.getReadPointer(1) : L;
+        pushDisplaySamples(L, R, numSamples);
+    }
+
     modulationMatrix.advanceLFOs(numSamples);
 
     // Compute envelope follower from output for use as modulation source next block
@@ -1266,6 +1273,34 @@ float PluginProcessor::applyChainEffect(int effectID, float sample, int ch)
         case static_cast<int>(EffectID::Delay):      return delay.process(sample);
         default:                                     return sample; // Reverb handled separately
     }
+}
+
+//==============================================================================
+// Display FIFO
+
+void PluginProcessor::pushDisplaySamples(const float* L, const float* R, int n) noexcept
+{
+    int start1, size1, start2, size2;
+    const int toWrite = juce::jmin(n, DISPLAY_FIFO_SIZE);
+    displayFifo.prepareToWrite(toWrite, start1, size1, start2, size2);
+    for (int i = 0; i < size1; ++i)
+        displayFifoBuffer[start1 + i] = (L[i] + R[i]) * 0.5f;
+    for (int i = 0; i < size2; ++i)
+        displayFifoBuffer[start2 + i] = (L[size1 + i] + R[size1 + i]) * 0.5f;
+    displayFifo.finishedWrite(size1 + size2);
+}
+
+int PluginProcessor::pullDisplaySamples(float* dest, int maxSamples) noexcept
+{
+    const int avail  = displayFifo.getNumReady();
+    const int toRead = juce::jmin(avail, maxSamples);
+    if (toRead <= 0) return 0;
+    int start1, size1, start2, size2;
+    displayFifo.prepareToRead(toRead, start1, size1, start2, size2);
+    if (size1 > 0) juce::FloatVectorOperations::copy(dest,         displayFifoBuffer + start1, size1);
+    if (size2 > 0) juce::FloatVectorOperations::copy(dest + size1, displayFifoBuffer + start2, size2);
+    displayFifo.finishedRead(size1 + size2);
+    return size1 + size2;
 }
 
 //==============================================================================

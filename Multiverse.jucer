@@ -113,6 +113,8 @@
         <FILE id="Gg0019" name="ModulationMatrixPanel.cpp" compile="1" resource="0" file="source/Synth/ModulationMatrixPanel.cpp"/>
         <FILE id="Gg0020" name="SynthPanel.h"              compile="0" resource="0" file="source/Synth/SynthPanel.h"/>
         <FILE id="Gg0021" name="SynthPanel.cpp"            compile="1" resource="0" file="source/Synth/SynthPanel.cpp"/>
+        <FILE id="Gg0022" name="SynthDisplay.h"            compile="0" resource="0" file="source/Synth/SynthDisplay.h"/>
+        <FILE id="Gg0023" name="SynthDisplay.cpp"          compile="1" resource="0" file="source/Synth/SynthDisplay.cpp"/>
       </GROUP>
     </GROUP>
   </MAINGROUP>

@@ -101,10 +101,10 @@ void PluginEditor::resized()
     helpButton.setBounds      (header.removeFromRight (28).reduced (2, 4));
     midiLearnLabel.setBounds  (header.reduced (4, 4));
 
-    // Preset browser (collapsible, 160px)
+    // Preset browser (collapsible, 220px)
     if (presetsVisible)
     {
-        presetBrowserPanel.setBounds (area.removeFromTop (160));
+        presetBrowserPanel.setBounds (area.removeFromTop (220));
         presetBrowserPanel.setVisible (true);
     }
     else

@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "SynthEngine.h"
 #include "../NeuKnob.h"
+#include "SynthDisplay.h"
 
 class PluginProcessor;
 
@@ -204,8 +205,9 @@ private:
     juce::TextButton loadPresetButton { "Load" };
 
     // Classic-mode visualisations
-    OscDisplay oscDisplay;
-    LFODisplay lfoDisplay;
+    OscDisplay   oscDisplay;
+    LFODisplay   lfoDisplay;
+    SynthDisplay synthDisplay;
 
     // Section rects: set in resized(), used in paint()
     juce::Rectangle<int> oscSectionRect, unisonSectionRect, filterSectionRect, envSectionRect;

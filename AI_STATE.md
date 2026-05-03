@@ -136,32 +136,46 @@
   instead of hardcoded accentBlue — enabling per-component arc color
 - Deployed to: SynthPanel, EffectsPanel, GranularPanel, ModulationMatrixPanel, SamplerPanel
 
+### UI Redesign — Phase 3: SynthDisplay (2026-05-03)
+- `Source/Synth/SynthDisplay.h/.cpp` — real-time oscilloscope + FFT spectrum analyzer
+- Lock-free ring buffer: `PluginProcessor::displayFifo` (AbstractFifo, 4096 samples) + `displayFifoBuffer[4096]`
+- Audio thread pushes post-effect stereo mono-mix via `pushDisplaySamples()` (no allocation, no locks)
+- UI thread pulls via `pullDisplaySamples()` at 30 Hz (juce::Timer)
+- Oscilloscope: left 45% of display — 512-sample ring view, accentBlue 1.5px stroke + glow layer
+- FFT spectrum: right 55% — 1024-point FFT (order 10), Hann window, log-frequency x-axis (20Hz–22kHz), accentPurple→accentBlue gradient bars, peak-hold dots
+- Fast attack / slow release smoothing (fftMag[] *= 0.92 on decay), peak hold decays at 0.998/frame
+- Inset neumorphic frame: dark offset shadow + light rim, #0D0D18 background, 8% white grid
+- SynthPanel: LFODisplay hidden; SynthDisplay shown (90px height) in Classic mode, hidden in FM mode
+- Both SynthDisplay.h/.cpp added to Multiverse.jucer (Gg0022/Gg0023); Projucer --resave run; build OK
+
+### UI Redesign — Phase 4: Preset Browser Redesign (2026-05-03)
+- `Source/Presets/PresetBrowserPanel.h/.cpp` — fully redesigned for Dark Forge design system
+- 220px slide-in panel, #171720 background
+- Search bar: neumorphic inset input with real-time filtering (`TextEditor::Listener`)
+- Category: horizontal pill tabs (All/Init/Bass/Lead/Pad/Drums/FX), accent on active (radio group)
+- Filtered preset indices: `filteredPresetIndices` array rebuilt on search/category change
+- Preset list: neumorphic raised cards (32px row height); active = accent border + glow + bright text
+- `rebuildFilter()` filters by category + search text; `setActiveCategory()` for pill toggle
+- PluginEditor: preset browser height updated from 160px → 220px
+- Build verified OK
+
 ## In Progress
 - None
 
 ## Broken
 - None
 
-## Next Step — START HERE (Phase 3: Waveform/Spectrum Display)
+## Next Step — START HERE (Phase 5: Remaining UI Panels)
 
-**Task:** Add a real-time oscilloscope + FFT spectrum analyzer display to the Synth tab.
+**Task:** Redesign remaining UI panels to match Dark Forge design system.
 
-**Steps:**
-1. Read `Source/Synth/SynthPanel.h/.cpp` and `Source/PluginProcessor.h` for current OscDisplay/LFODisplay and audio buffer access
-2. Create `Source/Synth/SynthDisplay.h/.cpp`:
-   - Left half: oscilloscope (ring buffer of output samples, drawn as waveform)
-   - Right half: FFT spectrum (juce::dsp::FFT, bar or line, accent gradient)
-   - Neumorphic deep-inset frame (use `MultiverseTheme::drawNeumorphicRect` with inset shadows)
-   - Background `#0D0D18`, grid lines at 8% white, waveform `accentBlue` 1.5px stroke
-3. Wire audio data: PluginProcessor pushes post-effect stereo samples into a lock-free ring buffer (or `juce::AbstractFifo`); SynthDisplay reads on the message thread at 30 Hz via juce::Timer
-4. Add SynthDisplay to SynthPanel, replace or supplement OscDisplay/LFODisplay
-5. Add SynthDisplay.h/.cpp to Multiverse.jucer, run Projucer --resave
-6. Build + verify no audio-thread allocations
+**Panels to update:**
+- EffectsPanel (Chorus/Distortion/EQ/Compressor sections)
+- ModulationMatrixPanel (source/target dropdowns, amount sliders)
+- DrumPanel / SamplerPanel / SequencerPanel / ArpPanel / ProSeqPanel
 
 **Key facts:**
-- Projucer: `/Users/jason/JUCE/JUCE/Projucer.app/Contents/MacOS/Projucer`
-- Full design brief is in memory file `project_ui_redesign.md`
-- Audio thread must NOT allocate — ring buffer must be pre-allocated (e.g. 4096 samples)
-- `juce::dsp::FFT` requires power-of-2 order; 1024-point (order 10) is fast and looks good at 30 fps
-- SynthPanel uses NeuKnob (not MidiLearnSlider) as of Phase 2
-- `MultiverseTheme::drawNeumorphicRect` is `public static` — call it directly from SynthDisplay::paint()
+- Phase 4 is DONE — Preset Browser Redesign complete
+- Theme: `Source/MultiverseTheme.h/.cpp` with Dark Forge palette
+- NeuKnob: `Source/NeuKnob.h/.cpp` for rotary sliders
+- PresetBrowserPanel: reference implementation for neumorphic cards + search/category UI

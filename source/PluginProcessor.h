@@ -145,7 +145,15 @@ public:
     bool dawWasPlaying = false;
     float envFollowerLevel = 0.0f;
 
+    // Display FIFO — audio thread writes, UI thread reads (30 Hz)
+    static constexpr int DISPLAY_FIFO_SIZE = 4096;
+    juce::AbstractFifo displayFifo { DISPLAY_FIFO_SIZE };
+    float              displayFifoBuffer[DISPLAY_FIFO_SIZE] {};
+
+    int  pullDisplaySamples(float* dest, int maxSamples) noexcept;
+
 private:
+    void pushDisplaySamples(const float* L, const float* R, int n) noexcept;
     float applyChainEffect(int effectID, float sample, int ch);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)

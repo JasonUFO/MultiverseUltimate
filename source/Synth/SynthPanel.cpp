@@ -122,6 +122,8 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     oscDisplay.setWaveform(processorRef.baseWaveform);
     addAndMakeVisible(oscDisplay);
     addAndMakeVisible(lfoDisplay);
+    synthDisplay.setProcessor(&processorRef);
+    addAndMakeVisible(synthDisplay);
 
     // Preset buttons
     savePresetButton.onClick = [this]
@@ -432,7 +434,8 @@ void SynthPanel::updateVisibility()
     waveformLabel.setVisible(!isFM);
     waveformSelector.setVisible(!isFM);
     oscDisplay.setVisible(!isFM);
-    lfoDisplay.setVisible(!isFM);
+    lfoDisplay.setVisible(false);
+    synthDisplay.setVisible(!isFM);
 
     // 3 Osc controls visibility
     for (auto& c : oscControls)
@@ -685,7 +688,7 @@ void SynthPanel::resized()
         }
         area.removeFromTop(8);
 
-        // LFO display
-        lfoDisplay.setBounds(area.removeFromTop(55));
+        // Waveform / spectrum display
+        synthDisplay.setBounds(area.removeFromTop(90));
     }
 }

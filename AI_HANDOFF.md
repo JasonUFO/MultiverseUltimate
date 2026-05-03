@@ -59,6 +59,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - Preset system (XML) with Factory/User banks ✅
 - Dark Forge UI theme (`MultiverseTheme`) — neumorphic knobs, sliders, buttons, tabs, menus ✅
 - NeuKnob (`Source/NeuKnob.h/.cpp`) — value pill on hover/drag, amber arc when macro-assigned ✅
+- SynthDisplay (`Source/Synth/SynthDisplay.h/.cpp`) — real-time oscilloscope (left) + FFT spectrum (right), 30 Hz, lock-free FIFO ✅
 
 ## What Is Broken / Unconnected
 - None
@@ -85,12 +86,12 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | MPE | Per-note pitch bend (±48 st), pressure, slide; MPE Pressure + MPE Slide mod sources; "MPE" toggle in SynthPanel |
 | UI-1 | MultiverseTheme LookAndFeel — Dark Forge design system; neumorphic knobs, sliders, buttons, tabs, menus |
 | UI-2 | NeuKnob — extends MidiLearnSlider; value pill on hover/drag; amber arc when macro-assigned |
+| UI-3 | SynthDisplay — real-time oscilloscope + FFT spectrum; lock-free AbstractFifo FIFO in PluginProcessor |
+| UI-4 | PresetBrowserPanel — Dark Forge redesign, 220px, search bar, category pills, neumorphic cards |
 
 ## Next Steps
-UI Redesign in progress (phases 3–6 remaining):
-- **Phase 3:** Waveform/spectrum display in Synth tab (oscilloscope + FFT, neumorphic deep inset)
-- Phase 4: Preset browser redesign
-- Phase 5: Tab bar + header + plugin logo
+UI Redesign in progress (phases 5–6 remaining):
+- Phase 5: Redesign remaining UI panels (Effects, ModulationMatrix, Drum, Sampler, Sequencer, Arp, ProSeq)
 - Phase 6: Section card system across all panels
 
 ---
@@ -141,3 +142,5 @@ UI Redesign in progress (phases 3–6 remaining):
 - `ModSourceType::MPEPressure` and `ModSourceType::MPESlide` are the two new mod sources; fed from most-recent member-channel message.
 - `NeuKnob` extends `MidiLearnSlider` — use NeuKnob everywhere you'd use MidiLearnSlider; it's a drop-in. Value pill fires from paint() (isMouseOver/isMouseButtonDown check). Amber arc managed by ArcTimer (inner juce::Timer struct, 10 Hz), calls setColour/removeColour only on state change to avoid repaint storms. `MultiverseTheme::drawRotarySlider` uses `slider.findColour(rotarySliderFillColourId)` — component-level setColour overrides the LookAndFeel color.
 - `juce::Font::getStringWidthFloat` does not exist in this project's JUCE version — use character-count estimation or `getStringWidth` (int) for pill sizing.
+- `SynthDisplay`: lives at `Source/Synth/SynthDisplay.h/.cpp`. Ring buffer: `RING_SIZE=2048`, `ringWritePos` (masked with `& (RING_SIZE-1)`). FFT: `juce::dsp::FFT fft{FFT_ORDER}` (order 10, 1024-point). Audio data arrives via `PluginProcessor::pullDisplaySamples(float*, int)` (public, message-thread safe). `pushDisplaySamples` is private, called at end of processBlock after pan.
+- `PresetBrowserPanel` (`Source/Presets/PresetBrowserPanel.h/.cpp`): inherits `juce::ListBoxModel` + `Button::Listener` + `ComboBox::Listener`. Uses `juce::ListBox presetList`. Shown as 160px collapsible panel above tabs in `PluginEditor` (toggled by "Presets" button in header). `refresh()` calls `presetList.updateContent()`. Phase 4 redesign: keep all logic, only change `paint()`, `resized()`, `paintListBoxItem()`, and visual styling.
