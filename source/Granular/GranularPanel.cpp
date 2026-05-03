@@ -85,7 +85,7 @@ GranularPanel::GranularPanel (PluginProcessor& p) : proc(p)
     addAndMakeVisible (envelopeHeader);
 }
 
-void GranularPanel::setupSlider (MidiLearnSlider& s, const juce::String& paramID,
+void GranularPanel::setupSlider (NeuKnob& s, const juce::String& paramID,
                                   const juce::String& tooltip)
 {
     s.setSliderStyle (juce::Slider::RotaryVerticalDrag);

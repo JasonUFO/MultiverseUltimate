@@ -1,7 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "SynthEngine.h"
-#include "../MidiLearnSlider.h"
+#include "../NeuKnob.h"
 
 class PluginProcessor;
 
@@ -216,10 +216,10 @@ private:
     {
         juce::Label        sectionLabel;
         juce::ComboBox     typeSelector;
-        MidiLearnSlider    levelSlider;
-        MidiLearnSlider    detuneSlider;
+        NeuKnob    levelSlider;
+        NeuKnob    detuneSlider;
         juce::ComboBox     waveformSelector;
-        MidiLearnSlider    wavePosSlider;
+        NeuKnob    wavePosSlider;
         juce::Label        levelLabel, detuneLabel, wavePosLabel;
         juce::TextButton   loadWTButton { "LOAD WT" };
         juce::Label        wtFileLabel;
@@ -231,12 +231,12 @@ private:
 
     // Envelope
     juce::Label  envSectionLabel;
-    MidiLearnSlider attackSlider, decaySlider, sustainSlider, releaseSlider;
+    NeuKnob attackSlider, decaySlider, sustainSlider, releaseSlider;
     juce::Label  attackLabel, decayLabel, sustainLabel, releaseLabel;
 
     // Filter
     juce::Label    filterSectionLabel;
-    MidiLearnSlider cutoffSlider, resonanceSlider;
+    NeuKnob cutoffSlider, resonanceSlider;
     juce::Label    cutoffLabel, resonanceLabel;
     juce::Label    oversamplingLabel;
     juce::ComboBox oversamplingSelector;
@@ -253,8 +253,8 @@ private:
     struct FMOpControls
     {
         juce::Label  sectionLabel;
-        MidiLearnSlider ratioSlider, levelSlider, feedbackSlider;
-        MidiLearnSlider attackSlider, decaySlider, sustainSlider, releaseSlider;
+        NeuKnob ratioSlider, levelSlider, feedbackSlider;
+        NeuKnob attackSlider, decaySlider, sustainSlider, releaseSlider;
         juce::Label  ratioLabel, levelLabel, feedbackLabel;
         juce::Label  attackLabel, decayLabel, sustainLabel, releaseLabel;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> ratioAttach, levelAttach, feedbackAttach;
@@ -265,7 +265,7 @@ private:
     // Voice mode / portamento (header strip)
     juce::Label           voiceModeLabel, portamentoLabel;
     juce::ComboBox        voiceModeSelector;
-    MidiLearnSlider       portamentoSlider;
+    NeuKnob       portamentoSlider;
     juce::ToggleButton    portaAlwaysButton;
     juce::ToggleButton    mpeButton;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> voiceModeAttach;
@@ -276,7 +276,7 @@ private:
     // Unison controls
     juce::Label        unisonVoicesLabel, unisonDetuneLabel, unisonWidthLabel;
     juce::ComboBox     unisonVoicesBox;
-    MidiLearnSlider    unisonDetuneSlider, unisonWidthSlider;
+    NeuKnob    unisonDetuneSlider, unisonWidthSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> unisonVoicesAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>   unisonDetuneAttach, unisonWidthAttach;
 

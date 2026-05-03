@@ -23,6 +23,8 @@ public:
     void paint (juce::Graphics& g) override;
     void mouseDown (const juce::MouseEvent& e) override;
 
+    bool isMacroAssigned() const { return macroAssigned; }
+
 private:
     PluginProcessor* proc         = nullptr;
     juce::String     paramID;

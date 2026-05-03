@@ -1,6 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
-#include "../MidiLearnSlider.h"
+#include "../NeuKnob.h"
 
 class PluginProcessor;
 
@@ -45,35 +45,35 @@ private:
 
     // --- Chorus ---
     juce::Label chorusSectionLabel;
-    MidiLearnSlider chorusRateSlider, chorusDepthSlider, chorusMixSlider;
+    NeuKnob chorusRateSlider, chorusDepthSlider, chorusMixSlider;
     juce::Label chorusRateLabel, chorusDepthLabel, chorusMixLabel;
 
     // --- Distortion ---
     juce::Label distortionSectionLabel;
-    MidiLearnSlider distDriveSlider, distToneSlider, distMixSlider;
+    NeuKnob distDriveSlider, distToneSlider, distMixSlider;
     juce::Label distDriveLabel, distToneLabel, distMixLabel;
 
     // --- EQ ---
     juce::Label eqSectionLabel;
-    MidiLearnSlider eqLowSlider, eqMidSlider, eqHighSlider;
+    NeuKnob eqLowSlider, eqMidSlider, eqHighSlider;
     juce::Label eqLowLabel, eqMidLabel, eqHighLabel;
 
     // --- Compressor ---
     juce::Label compressorSectionLabel;
-    MidiLearnSlider compThreshSlider, compRatioSlider, compAttackSlider, compReleaseSlider, compMakeupSlider;
+    NeuKnob compThreshSlider, compRatioSlider, compAttackSlider, compReleaseSlider, compMakeupSlider;
     juce::Label compThreshLabel, compRatioLabel, compAttackLabel, compReleaseLabel, compMakeupLabel;
 
     // --- Delay ---
     juce::Label delaySectionLabel;
-    MidiLearnSlider delayTimeSlider, delayFeedbackSlider, delayMixSlider;
+    NeuKnob delayTimeSlider, delayFeedbackSlider, delayMixSlider;
     juce::Label delayTimeLabel, delayFeedbackLabel, delayMixLabel;
 
     // --- Reverb ---
     juce::Label reverbSectionLabel;
-    MidiLearnSlider reverbRoomSlider, reverbDampSlider, reverbWetSlider;
+    NeuKnob reverbRoomSlider, reverbDampSlider, reverbWetSlider;
     juce::Label reverbRoomLabel, reverbDampLabel, reverbWetLabel;
 
-    MidiLearnSlider reverbPreDelaySlider, reverbLFDampSlider, reverbWidthSlider;
+    NeuKnob reverbPreDelaySlider, reverbLFDampSlider, reverbWidthSlider;
     juce::Label reverbPreDelayLabel, reverbLFDampLabel, reverbWidthLabel;
     juce::ToggleButton reverbFreezeButton;
     juce::Label reverbFreezeLabel;

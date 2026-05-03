@@ -58,6 +58,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - Filter oversampling (Off/2x/4x/Auto) ✅
 - Preset system (XML) with Factory/User banks ✅
 - Dark Forge UI theme (`MultiverseTheme`) — neumorphic knobs, sliders, buttons, tabs, menus ✅
+- NeuKnob (`Source/NeuKnob.h/.cpp`) — value pill on hover/drag, amber arc when macro-assigned ✅
 
 ## What Is Broken / Unconnected
 - None
@@ -83,11 +84,11 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | 2+5 | Velocity/NoteNumber/Random/EnvelopeFollower sources wired; 5 granular mod targets added; MAX_MOD_TARGETS=24 |
 | MPE | Per-note pitch bend (±48 st), pressure, slide; MPE Pressure + MPE Slide mod sources; "MPE" toggle in SynthPanel |
 | UI-1 | MultiverseTheme LookAndFeel — Dark Forge design system; neumorphic knobs, sliders, buttons, tabs, menus |
+| UI-2 | NeuKnob — extends MidiLearnSlider; value pill on hover/drag; amber arc when macro-assigned |
 
 ## Next Steps
-UI Redesign in progress (phases 2–6 remaining):
-- Phase 2: Custom NeuKnob component (replace MidiLearnSlider rotary)
-- Phase 3: Waveform/spectrum display in Synth tab
+UI Redesign in progress (phases 3–6 remaining):
+- **Phase 3:** Waveform/spectrum display in Synth tab (oscilloscope + FFT, neumorphic deep inset)
 - Phase 4: Preset browser redesign
 - Phase 5: Tab bar + header + plugin logo
 - Phase 6: Section card system across all panels
@@ -138,3 +139,5 @@ UI Redesign in progress (phases 2–6 remaining):
 - MPE channel state reset on `noteOnMPE()` — prevents stale pitch bend bleed when a channel is recycled.
 - CC74 neutral value is 63 (not 0); normalised to -1..+1 before storing in `mpeChannels[].slide`.
 - `ModSourceType::MPEPressure` and `ModSourceType::MPESlide` are the two new mod sources; fed from most-recent member-channel message.
+- `NeuKnob` extends `MidiLearnSlider` — use NeuKnob everywhere you'd use MidiLearnSlider; it's a drop-in. Value pill fires from paint() (isMouseOver/isMouseButtonDown check). Amber arc managed by ArcTimer (inner juce::Timer struct, 10 Hz), calls setColour/removeColour only on state change to avoid repaint storms. `MultiverseTheme::drawRotarySlider` uses `slider.findColour(rotarySliderFillColourId)` — component-level setColour overrides the LookAndFeel color.
+- `juce::Font::getStringWidthFloat` does not exist in this project's JUCE version — use character-count estimation or `getStringWidth` (int) for pill sizing.

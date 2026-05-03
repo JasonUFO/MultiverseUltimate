@@ -66,7 +66,7 @@
 - 8 APVTS params `macro1`–`macro8` (Float 0→1), fully DAW-automatable
 - MacroPanel: new "Macros" tab, 4×2 grid of rotary knobs, double-click name labels, assignment count buttons
 - Assignment applied on message thread at 30 Hz (setValueNotifyingHost on target params)
-- Right-click any MidiLearnSlider → "Assign to Macro" submenu → tick-marked menu, toggle to unassign
+- Right-click any NeuKnob/MidiLearnSlider → "Assign to Macro" submenu → tick-marked menu, toggle to unassign
 - Cyan "M" badge on assigned sliders (top-left); orange "L" badge for MIDI-learned (top-right)
 - MacroPanel assignment list popup: shows assigned paramIDs with per-target "Remove" submenu
 - State persistence: MacroManager XML block in getStateInformation/setStateInformation
@@ -90,7 +90,7 @@
 - 12 APVTS params: granularPosition, granularGrainSize, granularSpray, granularDensity, granularPitchScatter, granularEnvShape (Choice), granularReverse (Bool), granularStereoSpread, granularAttack/Decay/Sustain/Release
 - 4 grain envelope shapes: Gaussian, Hann, Trapezoid, Triangle
 - Pitch: readSpeed = pitchRatio * exp2(scatter/12), pitchRatio = exp2((midiNote-60)/12)
-- GranularPanel: new "Granular" tab — LOAD GR button, 6 grain control knobs + env shape combo + reverse toggle + ADSR strip; all sliders are MidiLearnSlider
+- GranularPanel: new "Granular" tab — LOAD GR button, 6 grain control knobs + env shape combo + reverse toggle + ADSR strip; all sliders are NeuKnob
 - State persistence: GranularEngine XML block (source file path) in getStateInformation/setStateInformation
 - MIDI routing: noteOn/noteOff/allNotesOff wired in processBlock alongside synth/sampler
 
@@ -126,29 +126,42 @@
 - Installed in PluginEditor (setLookAndFeel / cleared in destructor)
 - Tab content colors updated to bgBase (#171720) in setupTabs()
 
+### UI Redesign — Phase 2: NeuKnob (2026-05-03)
+- `Source/NeuKnob.h/.cpp` — extends MidiLearnSlider; drop-in replacement
+- Value pill: rounded rect centered above knob (bgDeep fill, accentBlue border, 9px text),
+  appears while mouse is over or button down, rotary style only
+- Amber arc: arcTimer (10 Hz) watches isMacroAssigned(); sets rotarySliderFillColourId to
+  accentAmber on component when assigned, removes override when unassigned
+- MultiverseTheme::drawRotarySlider now uses slider.findColour(rotarySliderFillColourId)
+  instead of hardcoded accentBlue — enabling per-component arc color
+- Deployed to: SynthPanel, EffectsPanel, GranularPanel, ModulationMatrixPanel, SamplerPanel
+
 ## In Progress
 - None
 
 ## Broken
 - None
 
-## Next Step — START HERE (Phase 2: NeuKnob)
+## Next Step — START HERE (Phase 3: Waveform/Spectrum Display)
 
-**Task:** Create `Source/NeuKnob.h/.cpp` — extends `MidiLearnSlider`, adds value-pill tooltip and amber arc for macro-assigned knobs.
+**Task:** Add a real-time oscilloscope + FFT spectrum analyzer display to the Synth tab.
 
 **Steps:**
-1. Read `Source/MidiLearnSlider.h/.cpp` and `Source/MultiverseTheme.h` for context
-2. Create `NeuKnob` extending `MidiLearnSlider` — override `paint()` only
-   - Value pill: rounded rect above knob, shows formatted value while mouse over or dragging
-   - Amber arc: when `macroAssigned`, pass a tint colour to the parent draw so the arc uses `accentAmber` instead of `accentBlue`  
-   - Re-use existing badge drawing from `MidiLearnSlider::paint()`
-3. Add NeuKnob.h/.cpp to `Multiverse.jucer`, run Projucer --resave
-4. Swap `MidiLearnSlider` → `NeuKnob` in all rotary-knob panels:
-   SynthPanel, ModulationMatrixPanel, SamplerPanel, EffectsPanel, GranularPanel, MacroPanel
-5. Build, verify badges and tooltip still work, no regressions
+1. Read `Source/Synth/SynthPanel.h/.cpp` and `Source/PluginProcessor.h` for current OscDisplay/LFODisplay and audio buffer access
+2. Create `Source/Synth/SynthDisplay.h/.cpp`:
+   - Left half: oscilloscope (ring buffer of output samples, drawn as waveform)
+   - Right half: FFT spectrum (juce::dsp::FFT, bar or line, accent gradient)
+   - Neumorphic deep-inset frame (use `MultiverseTheme::drawNeumorphicRect` with inset shadows)
+   - Background `#0D0D18`, grid lines at 8% white, waveform `accentBlue` 1.5px stroke
+3. Wire audio data: PluginProcessor pushes post-effect stereo samples into a lock-free ring buffer (or `juce::AbstractFifo`); SynthDisplay reads on the message thread at 30 Hz via juce::Timer
+4. Add SynthDisplay to SynthPanel, replace or supplement OscDisplay/LFODisplay
+5. Add SynthDisplay.h/.cpp to Multiverse.jucer, run Projucer --resave
+6. Build + verify no audio-thread allocations
 
-**Key facts for this task:**
+**Key facts:**
 - Projucer: `/Users/jason/JUCE/JUCE/Projucer.app/Contents/MacOS/Projucer`
-- MultiverseTheme palette constants are `public static` on `MultiverseTheme` — `#include "MultiverseTheme.h"`
-- `MidiLearnSlider::macroAssigned` is `private` — NeuKnob will need to call `checkHasMacro()` or the timer will surface it via the existing badge flag; consider making `macroAssigned` `protected` in MidiLearnSlider
 - Full design brief is in memory file `project_ui_redesign.md`
+- Audio thread must NOT allocate — ring buffer must be pre-allocated (e.g. 4096 samples)
+- `juce::dsp::FFT` requires power-of-2 order; 1024-point (order 10) is fast and looks good at 30 fps
+- SynthPanel uses NeuKnob (not MidiLearnSlider) as of Phase 2
+- `MultiverseTheme::drawNeumorphicRect` is `public static` — call it directly from SynthDisplay::paint()

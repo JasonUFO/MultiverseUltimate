@@ -1,6 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
-#include "../MidiLearnSlider.h"
+#include "../NeuKnob.h"
 #include "GranularEngine.h"
 
 class PluginProcessor;
@@ -22,21 +22,21 @@ private:
     juce::Label       fileLabel;
 
     // Grain controls
-    MidiLearnSlider positionSlider;
-    MidiLearnSlider grainSizeSlider;
-    MidiLearnSlider spraySlider;
-    MidiLearnSlider densitySlider;
-    MidiLearnSlider pitchScatterSlider;
-    MidiLearnSlider stereoSpreadSlider;
+    NeuKnob positionSlider;
+    NeuKnob grainSizeSlider;
+    NeuKnob spraySlider;
+    NeuKnob densitySlider;
+    NeuKnob pitchScatterSlider;
+    NeuKnob stereoSpreadSlider;
 
     juce::ComboBox  envShapeCombo;
     juce::ToggleButton reverseButton { "Reverse" };
 
     // Voice envelope
-    MidiLearnSlider attackSlider;
-    MidiLearnSlider decaySlider;
-    MidiLearnSlider sustainSlider;
-    MidiLearnSlider releaseSlider;
+    NeuKnob attackSlider;
+    NeuKnob decaySlider;
+    NeuKnob sustainSlider;
+    NeuKnob releaseSlider;
 
     // Labels
     juce::Label positionLabel    { {}, "Position"  };
@@ -70,7 +70,7 @@ private:
     std::unique_ptr<SliderAttach> sustainAttach;
     std::unique_ptr<SliderAttach> releaseAttach;
 
-    void setupSlider (MidiLearnSlider& s, const juce::String& paramID,
+    void setupSlider (NeuKnob& s, const juce::String& paramID,
                       const juce::String& tooltip);
     void setupLabel  (juce::Label& l);
     void loadSourceFile();

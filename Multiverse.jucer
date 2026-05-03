@@ -16,6 +16,8 @@
       <FILE id="Aa0006" name="MidiLearnSlider.cpp" compile="1" resource="0" file="source/MidiLearnSlider.cpp"/>
       <FILE id="Aa0007" name="MultiverseTheme.h"   compile="0" resource="0" file="source/MultiverseTheme.h"/>
       <FILE id="Aa0008" name="MultiverseTheme.cpp" compile="1" resource="0" file="source/MultiverseTheme.cpp"/>
+      <FILE id="Aa0009" name="NeuKnob.h"           compile="0" resource="0" file="source/NeuKnob.h"/>
+      <FILE id="Aa0010" name="NeuKnob.cpp"         compile="1" resource="0" file="source/NeuKnob.cpp"/>
       <GROUP id="GrpDrm" name="DrumSequencer">
         <FILE id="Bb0001" name="DrumSequencer.h"       compile="0" resource="0" file="source/DrumSequencer/DrumSequencer.h"/>
         <FILE id="Bb0002" name="DrumSequencer.cpp"     compile="1" resource="0" file="source/DrumSequencer/DrumSequencer.cpp"/>

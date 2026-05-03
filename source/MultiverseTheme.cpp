@@ -150,7 +150,7 @@ void MultiverseTheme::drawRotarySlider (juce::Graphics& g,
                                          int x, int y, int w, int h,
                                          float sliderPos,
                                          float startAngle, float endAngle,
-                                         juce::Slider& /*slider*/)
+                                         juce::Slider& slider)
 {
     const float radius = juce::jmin (w / 2.0f, h / 2.0f) - 6.0f;
     if (radius < 4.0f) return;
@@ -195,22 +195,23 @@ void MultiverseTheme::drawRotarySlider (juce::Graphics& g,
     }
 
     // --- Fill arc ---
+    const juce::Colour arcColour = slider.findColour (juce::Slider::rotarySliderFillColourId);
     const float currentAngle = startAngle + sliderPos * (endAngle - startAngle);
     if (sliderPos > 0.001f)
     {
         juce::Path fillArc;
         fillArc.addCentredArc (cx, cy, arcRadius, arcRadius, 0.0f,
                                 startAngle, currentAngle, true);
-        g.setColour (accentBlue);
+        g.setColour (arcColour);
         g.strokePath (fillArc, juce::PathStrokeType (trackWidth,
             juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
         // Glowing tip dot
         const float tipX = cx + arcRadius * std::sin (currentAngle);
         const float tipY = cy - arcRadius * std::cos (currentAngle);
-        g.setColour (accentBlue.withAlpha (0.25f));
+        g.setColour (arcColour.withAlpha (0.25f));
         g.fillEllipse (tipX - 5.0f, tipY - 5.0f, 10.0f, 10.0f);
-        g.setColour (accentBlue.withAlpha (0.7f));
+        g.setColour (arcColour.withAlpha (0.7f));
         g.fillEllipse (tipX - 3.0f, tipY - 3.0f,  6.0f,  6.0f);
     }
 
@@ -239,10 +240,10 @@ void MultiverseTheme::drawRotarySlider (juce::Graphics& g,
     const float dotR = 2.5f;
     if (sliderPos > 0.001f)
     {
-        g.setColour (accentBlue.withAlpha (0.35f));
+        g.setColour (arcColour.withAlpha (0.35f));
         g.fillEllipse (cx - dotR * 1.8f, cy - dotR * 1.8f, dotR * 3.6f, dotR * 3.6f);
     }
-    g.setColour (sliderPos > 0.001f ? accentBlue : juce::Colour (0xff1e2030));
+    g.setColour (sliderPos > 0.001f ? arcColour : juce::Colour (0xff1e2030));
     g.fillEllipse (cx - dotR, cy - dotR, dotR * 2.0f, dotR * 2.0f);
 }
 

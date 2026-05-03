@@ -1,7 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "ModulationMatrix.h"
-#include "../MidiLearnSlider.h"
+#include "../NeuKnob.h"
 
 class ModulationMatrixPanel : public juce::Component,
                                 public juce::Timer
@@ -17,7 +17,7 @@ private:
     struct Row : public juce::Component
     {
         juce::ComboBox sourceBox, targetBox;
-        MidiLearnSlider amountSlider;
+        NeuKnob amountSlider;
         juce::TextButton deleteButton{ "X" };
 
         std::function<void()> onDelete;

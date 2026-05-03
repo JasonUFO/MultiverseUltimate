@@ -1,6 +1,6 @@
 #pragma once
 #include "SamplerEngine.h"
-#include "../MidiLearnSlider.h"
+#include "../NeuKnob.h"
 #include <JuceHeader.h>
 #include <vector>
 #include <memory>
@@ -66,9 +66,9 @@ private:
     juce::Slider xfadeSlider;
 
     juce::Label        samplerVolumeLabel { {}, "Vol:" };
-    MidiLearnSlider    samplerVolumeSlider;
+    NeuKnob    samplerVolumeSlider;
     juce::Label        samplerPanLabel    { {}, "Pan:" };
-    MidiLearnSlider    samplerPanSlider;
+    NeuKnob    samplerPanSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> samplerVolumeAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> samplerPanAttach;
 
