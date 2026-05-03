@@ -311,6 +311,41 @@ void DrumSequencerPanel::paint (juce::Graphics& g)
      g.setFont (juce::Font (12.0f, juce::Font::bold));
      g.drawText ("DRUM SEQUENCER", getLocalBounds().removeFromTop (24), juce::Justification::centred);
 
+    // Draw neumorphic section cards
+    const float cr = 8.0f;
+    if (transportBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect (g, transportBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (transportBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (transportBounds.toFloat().reduced (0.5f), cr, 1.0f);
+    }
+    if (swingBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect (g, swingBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (swingBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (swingBounds.toFloat().reduced (0.5f), cr, 1.0f);
+    }
+    if (patternBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect (g, patternBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (patternBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (patternBounds.toFloat().reduced (0.5f), cr, 1.0f);
+    }
+    if (gridBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect (g, gridBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (gridBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (gridBounds.toFloat().reduced (0.5f), cr, 1.0f);
+    }
+
     if (isDragOver)
     {
         g.setColour (MultiverseTheme::accentBlue.withAlpha (0.25f));
@@ -324,7 +359,8 @@ void DrumSequencerPanel::resized()
 
     area.removeFromTop (24);  // title
 
-    // Row 1: BPM + transport + position + copy/paste
+    // Row 1: BPM + transport + position + copy/paste (transport card)
+    transportBounds = area.withHeight (28);
     auto row1 = area.removeFromTop (28);
     bpmLabel.setBounds (row1.removeFromLeft (36));
     bpmSlider.setBounds (row1.removeFromLeft (140));
@@ -341,7 +377,8 @@ void DrumSequencerPanel::resized()
 
     area.removeFromTop (4);
 
-    // Row 2: Swing + Quant + Chain
+    // Row 2: Swing + Quant + Chain (swing card)
+    swingBounds = area.withHeight (24);
     auto row2 = area.removeFromTop (24);
     swingLabel.setBounds (row2.removeFromLeft (42));
     swingSlider.setBounds (row2.removeFromLeft (130));
@@ -359,7 +396,8 @@ void DrumSequencerPanel::resized()
 
     area.removeFromTop (4);
 
-    // Pattern row
+    // Pattern row (pattern card)
+    patternBounds = area.withHeight (22);
     auto patRow = area.removeFromTop (22);
     int patW = patRow.getWidth() / MAX_DRUM_PATTERNS;
     for (auto& btn : patternButtons)
@@ -369,6 +407,9 @@ void DrumSequencerPanel::resized()
 
     int trackRowHeight = area.getHeight() / juce::jmax (1, DRUM_TRACK_COUNT);
     if (trackRowHeight < 18) trackRowHeight = 18;
+
+    // Step grid card (covers track rows + step grid)
+    gridBounds = area.withHeight (trackRowHeight * DRUM_TRACK_COUNT);
 
     auto stepArea = area.removeFromRight (area.getWidth() * 3 / 4);
 

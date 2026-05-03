@@ -64,6 +64,9 @@ private:
     juce::Slider noteOffsetSlider, octaveSlider, velocitySlider, gateSlider;
     juce::ToggleButton tieBtn { "Tie" };
 
+    // Section card bounds
+    juce::Rectangle<int> controlsBounds, stepGridBounds, editorBounds;
+
     void selectStep (int step);
     void refreshStepEditor();
     void refreshStepGrid();

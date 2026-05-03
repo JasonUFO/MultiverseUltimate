@@ -174,25 +174,34 @@
 ## Broken
 - None
 
-## Next Step — START HERE (Phase 6: Section Card System)
+## Completed (Phase 6 — Section Card System)
 
-**Task:** Apply section card system (neumorphic cards with `MultiverseTheme::drawNeumorphicRect`) across all panels for consistent visual structure.
+**Phase 6 COMPLETE** — Neumorphic section cards applied across all panels using `MultiverseTheme::drawNeumorphicRect()`:
 
-**Panels to update:**
-- EffectsPanel — wrap Chorus/Distortion/EQ/Compressor/Delay/Reverb sections in neumorphic cards
-- ModulationMatrixPanel — wrap each modulation row in a neumorphic card
-- SamplerPanel — wrap drop zone, zone list, and control sections in cards
-- SequencerPanel / ArpPanel / ProSeqPanel — wrap step grids and editors in cards
-- DrumSequencerPanel — wrap track rows and step grid in cards
+- **EffectsPanel** — 6 neumorphic cards: Chorus, Distortion, EQ, Compressor, Delay, Reverb sections
+- **ModulationMatrixPanel** — each modulation row wrapped in a neumorphic card
+- **SamplerPanel** — 3 neumorphic cards: drop zone, zone list, controls section
+- **SequencerPanel** — 4 neumorphic cards: transport, pattern slots, step grid, export button
+- **ArpeggiatorPanel** — 3 neumorphic cards: controls, step grid (2 rows), step editor
+- **ProSequencerPanel** — 4 neumorphic cards: transport, lane/mode controls, step grid, step editor
+- **DrumSequencerPanel** — 4 neumorphic cards: transport, swing/quant/chain, pattern row, step grid + track rows
 
-**Key facts:**
-- Phase 5 is DONE — all remaining UI panels updated to Dark Forge palette
-- `MultiverseTheme::drawNeumorphicRect()` is the standard helper for neumorphic cards
-- Reference: PresetBrowserPanel `paintListBoxItem()` for card style (accent border when selected)
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+---
+
+## Next Step — START HERE (Phase 7: Polish & Details)
+
+**Potential tasks:**
+- SynthPanel: wrap oscillator strips, FM section, voice mode controls in neumorphic cards
+- GranularPanel: wrap controls and file section in cards
+- MacroPanel: wrap macro knobs section in cards
+- Add subtle section dividers or headers within cards
+- Fine-tune card spacing, corner radii, and shadow offsets for visual consistency
 
 ---
 
 ## Session End: 2026-05-03
-- Phase 5 complete: all 7 remaining panels updated to Dark Forge palette
+- Phase 6 complete: section card system applied to all 7 panels
 - Build verified: VST3 + AU both succeed
 - Plugins installed to ~/Library/Audio/Plug-Ins/

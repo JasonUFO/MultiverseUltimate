@@ -92,4 +92,7 @@ private:
     void applyPlayMode         (ProPlayMode mode);
     void showNoteMenu          (int stepIdx);
     void exportMidi            ();
+
+    // Section card bounds
+    juce::Rectangle<int> transportBounds, laneModeBounds, stepGridBounds, editorBounds;
 };

@@ -99,6 +99,9 @@ private:
     bool isDragOver = false;
     juce::Label dropLabel;
 
+    // Section card bounds
+    juce::Rectangle<int> transportBounds, swingBounds, patternBounds, gridBounds;
+
     void updatePatternButtons();
     void refreshStepDisplay();
     void showVelocityMenu (int track, int step);

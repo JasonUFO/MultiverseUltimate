@@ -108,6 +108,18 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
 {
     g.fillAll(MultiverseTheme::bgBase);
 
+    // Draw neumorphic cards for each row
+    const float cr = 6.0f;
+    for (const auto& b : rowBounds)
+    {
+        if (b.getHeight() <= 0) continue;
+        MultiverseTheme::drawNeumorphicRect(g, b.toFloat().reduced(1.0f), cr, 2.5f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(b.toFloat().reduced(1.0f), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(b.toFloat().reduced(1.5f), cr, 1.0f);
+    }
+
     // Column headers — x positions mirror Row::resized() with PADDING offset
     const int rowLeft = PADDING + 2;
     g.setColour(MultiverseTheme::textSecondary);
@@ -136,10 +148,13 @@ void ModulationMatrixPanel::resized()
 
     b.removeFromTop(COL_HDR_H + 4);
 
+    rowBounds.clear();
     for (auto& row : rows)
     {
-        row->setBounds(b.removeFromTop(ROW_H));
-        b.removeFromTop(ROW_GAP);
+        auto rb = b.withHeight(ROW_H);
+        rowBounds.push_back(rb);
+        row->setBounds(rb);
+        b.removeFromTop(ROW_H + ROW_GAP);
     }
 }
 

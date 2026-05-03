@@ -152,13 +152,31 @@ void ArpeggiatorPanel::paint (juce::Graphics& g)
 {
     g.fillAll (MultiverseTheme::bgBase);
 
-    if (selectedStep >= 0)
+    // Draw neumorphic section cards
+    const float cr = 8.0f;
+    if (controlsBounds.getHeight() > 0)
     {
-        auto box = getLocalBounds().removeFromBottom (100).reduced (6, 4).toFloat();
-        g.setColour (MultiverseTheme::bgDeep);
-        g.fillRoundedRectangle (box, 4.0f);
-        g.setColour (MultiverseTheme::shadowLight);
-        g.drawRoundedRectangle (box, 4.0f, 1.0f);
+        MultiverseTheme::drawNeumorphicRect (g, controlsBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (controlsBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (controlsBounds.toFloat().reduced (0.5f), cr, 1.0f);
+    }
+    if (stepGridBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect (g, stepGridBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (stepGridBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (stepGridBounds.toFloat().reduced (0.5f), cr, 1.0f);
+    }
+    if (editorBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect (g, editorBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (editorBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (editorBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
 }
 
@@ -166,9 +184,11 @@ void ArpeggiatorPanel::resized()
 {
     auto area = getLocalBounds().reduced (6);
 
-    // ── Header row ───────────────────────────────────────────────────────────
+    // ── Header row ────────────────────────────────────────────────────
     titleLabel.setBounds (area.removeFromTop (28).reduced (10, 0));
 
+    // Controls card
+    controlsBounds = area.withHeight (24);
     auto ctrlRow = area.removeFromTop (24);
     enableBtn.setBounds (ctrlRow.removeFromLeft (70).reduced (0, 2));
 
@@ -182,8 +202,9 @@ void ArpeggiatorPanel::resized()
 
     area.removeFromTop (8);
 
-    // ── Step editor (bottom) ─────────────────────────────────────────────────
-    auto editorArea  = area.removeFromBottom (100).reduced (0, 4);
+    // ── Step editor (bottom) ─────────────────────────────────────────
+    editorBounds  = area.removeFromBottom (100).reduced (0, 4);
+    auto editorArea = editorBounds;
     stepEditorTitle.setBounds (editorArea.removeFromTop (20));
 
     auto placeCtrl = [&](juce::Label& lbl, juce::Component& ctrl, int lw, int cw)
@@ -202,7 +223,9 @@ void ArpeggiatorPanel::resized()
 
     area.removeFromTop (8);
 
-    // ── Step grid (2 rows of 16) ────────���─��──────────────────────────────
+    // ── Step grid (2 rows of 16) ───────────────────────────────────
+    stepGridBounds = area.withHeight (48 * 2 + 4);
+
     auto grid1 = area.removeFromTop (48);
     const int btnW = grid1.getWidth() / 16;
     for (int s = 0; s < 16; ++s)

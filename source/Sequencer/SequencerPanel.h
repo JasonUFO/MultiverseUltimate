@@ -53,6 +53,9 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
     int lastHighlightedStep = -1;
 
+    // Section card bounds
+    juce::Rectangle<int> transportBounds, patternBounds, stepGridBounds, exportBounds;
+
     void showNoteMenu (int stepIndex);
     void exportMidi();
     void updatePatternButtons();

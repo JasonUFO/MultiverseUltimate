@@ -89,10 +89,11 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | UI-3 | SynthDisplay — real-time oscilloscope + FFT spectrum; lock-free FIFO in PluginProcessor |
 | UI-4 | PresetBrowserPanel — Dark Forge redesign, 220px, search bar, category pills, neumorphic cards |
 | UI-5 | **COMPLETE** — EffectsPanel, ModulationMatrixPanel, SamplerPanel, SequencerPanel, DrumSequencerPanel, ArpeggiatorPanel, ProSequencerPanel all updated to Dark Forge palette |
+| UI-6 | **COMPLETE** — Section card system: neumorphic cards via `drawNeumorphicRect()` applied to all 7 panels (Effects, ModMatrix, Sampler, Seq, Arp, ProSeq, DrumSeq) |
 
 ## Next Steps
-UI Redesign (Phase 6 next session):
-- Phase 6: Section card system — wrap sections in neumorphic cards using `MultiverseTheme::drawNeumorphicRect()` across all panels
+UI Redesign (Phase 7 next session):
+- Phase 7: Polish & Details — wrap remaining panels (SynthPanel, GranularPanel, MacroPanel) in cards; add section dividers/headers; fine-tune card spacing and visual consistency
 
 ---
 

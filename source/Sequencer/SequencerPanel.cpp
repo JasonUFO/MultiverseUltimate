@@ -244,6 +244,41 @@ void SequencerPanel::paint (juce::Graphics& g)
 {
     g.fillAll (MultiverseTheme::bgBase);
 
+     // Draw neumorphic section cards
+     const float cr = 8.0f;
+     if (transportBounds.getHeight() > 0)
+     {
+         MultiverseTheme::drawNeumorphicRect (g, transportBounds.toFloat(), cr, 3.0f);
+         g.setColour (MultiverseTheme::bgRaised);
+         g.fillRoundedRectangle (transportBounds.toFloat(), cr);
+         g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+         g.drawRoundedRectangle (transportBounds.toFloat().reduced (0.5f), cr, 1.0f);
+     }
+     if (patternBounds.getHeight() > 0)
+     {
+         MultiverseTheme::drawNeumorphicRect (g, patternBounds.toFloat(), cr, 3.0f);
+         g.setColour (MultiverseTheme::bgRaised);
+         g.fillRoundedRectangle (patternBounds.toFloat(), cr);
+         g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+         g.drawRoundedRectangle (patternBounds.toFloat().reduced (0.5f), cr, 1.0f);
+     }
+     if (stepGridBounds.getHeight() > 0)
+     {
+         MultiverseTheme::drawNeumorphicRect (g, stepGridBounds.toFloat(), cr, 3.0f);
+         g.setColour (MultiverseTheme::bgRaised);
+         g.fillRoundedRectangle (stepGridBounds.toFloat(), cr);
+         g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+         g.drawRoundedRectangle (stepGridBounds.toFloat().reduced (0.5f), cr, 1.0f);
+     }
+     if (exportBounds.getHeight() > 0)
+     {
+         MultiverseTheme::drawNeumorphicRect (g, exportBounds.toFloat(), cr, 3.0f);
+         g.setColour (MultiverseTheme::bgRaised);
+         g.fillRoundedRectangle (exportBounds.toFloat(), cr);
+         g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+         g.drawRoundedRectangle (exportBounds.toFloat().reduced (0.5f), cr, 1.0f);
+     }
+
      g.setColour (MultiverseTheme::textSecondary);
      g.setFont (juce::Font (10.5f, juce::Font::bold));
      g.drawText ("SEQUENCER / ARPEGGIATOR", getLocalBounds().removeFromTop (20), juce::Justification::centred);
@@ -254,7 +289,8 @@ void SequencerPanel::resized()
     auto area = getLocalBounds().reduced (6);
     area.removeFromTop (20); // title
 
-    // Controls row
+    // Controls row (transport card)
+    transportBounds = area.withHeight (26);
     auto controls = area.removeFromTop (26);
     bpmLabel.setBounds (controls.removeFromLeft (30));
     bpmSlider.setBounds (controls.removeFromLeft (130));
@@ -267,7 +303,8 @@ void SequencerPanel::resized()
 
     area.removeFromTop (4);
 
-    // Pattern slots row
+    // Pattern slots row (pattern card)
+    patternBounds = area.withHeight (22);
     auto patRow = area.removeFromTop (22);
     int patW = patRow.getWidth() / MAX_PATTERNS;
     for (auto& btn : patternButtons)
@@ -275,7 +312,8 @@ void SequencerPanel::resized()
 
     area.removeFromTop (5);
 
-    // Step grid
+    // Step grid (step grid card)
+    stepGridBounds = area.withHeight (58);
     auto stepRow = area.removeFromTop (58);
     int btnW = stepRow.getWidth() / MAX_STEPS;
     for (auto& btn : stepButtons)
@@ -283,7 +321,8 @@ void SequencerPanel::resized()
 
     area.removeFromTop (5);
 
-    // Export button
+    // Export button (export card)
+    exportBounds = area.withHeight (26);
     auto exportRow = area.removeFromTop (26);
     exportButton.setBounds (exportRow.withSizeKeepingCentre (120, 22));
 }

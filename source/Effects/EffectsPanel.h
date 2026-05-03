@@ -78,6 +78,10 @@ private:
     juce::ToggleButton reverbFreezeButton;
     juce::Label reverbFreezeLabel;
 
+    // Section card bounds (filled in resized())
+    juce::Rectangle<int> chorusSectionBounds, distortionSectionBounds, eqSectionBounds;
+    juce::Rectangle<int> compressorSectionBounds, delaySectionBounds, reverbSectionBounds;
+
     void setupSlider(juce::Slider& s, double min, double max, double value, double skew = 1.0);
     void setupLabel (juce::Label& l, const juce::String& text);
 

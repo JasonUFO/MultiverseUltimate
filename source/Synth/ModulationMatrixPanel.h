@@ -32,6 +32,7 @@ private:
     juce::Label titleLabel;
     juce::TextButton addButton{ "+" };
     std::vector<std::unique_ptr<Row>> rows;
+    std::vector<juce::Rectangle<int>> rowBounds; // for card drawing
     int lastConnectionCount = -1;
 
     void rebuild();

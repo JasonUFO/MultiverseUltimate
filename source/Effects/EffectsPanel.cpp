@@ -321,6 +321,57 @@ void EffectsPanel::setupLabel(juce::Label& l, const juce::String& text)
 void EffectsPanel::paint(juce::Graphics& g)
 {
     g.fillAll(MultiverseTheme::bgBase);
+
+    // Draw neumorphic section cards
+    const float cr = 8.0f;
+    if (chorusSectionBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect(g, chorusSectionBounds.toFloat(), cr, 3.0f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(chorusSectionBounds.toFloat(), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(chorusSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
+    }
+    if (distortionSectionBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect(g, distortionSectionBounds.toFloat(), cr, 3.0f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(distortionSectionBounds.toFloat(), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(distortionSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
+    }
+    if (eqSectionBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect(g, eqSectionBounds.toFloat(), cr, 3.0f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(eqSectionBounds.toFloat(), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(eqSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
+    }
+    if (compressorSectionBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect(g, compressorSectionBounds.toFloat(), cr, 3.0f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(compressorSectionBounds.toFloat(), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(compressorSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
+    }
+    if (delaySectionBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect(g, delaySectionBounds.toFloat(), cr, 3.0f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(delaySectionBounds.toFloat(), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(delaySectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
+    }
+    if (reverbSectionBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect(g, reverbSectionBounds.toFloat(), cr, 3.0f);
+        g.setColour(MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle(reverbSectionBounds.toFloat(), cr);
+        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.drawRoundedRectangle(reverbSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
+    }
 }
 
 void EffectsPanel::resized()
@@ -354,6 +405,7 @@ void EffectsPanel::resized()
     // Chorus
     {
         auto sec = leftCol.removeFromTop(sectionH);
+        chorusSectionBounds = sec;
         chorusSectionLabel.setBounds(sec.removeFromTop(labelH));
         placeKnob(sec, chorusRateSlider,  chorusRateLabel);
         placeKnob(sec, chorusDepthSlider, chorusDepthLabel);
@@ -364,6 +416,7 @@ void EffectsPanel::resized()
     // Distortion
     {
         auto sec = leftCol.removeFromTop(sectionH);
+        distortionSectionBounds = sec;
         distortionSectionLabel.setBounds(sec.removeFromTop(labelH));
         placeKnob(sec, distDriveSlider, distDriveLabel);
         placeKnob(sec, distToneSlider,  distToneLabel);
@@ -374,6 +427,7 @@ void EffectsPanel::resized()
     // EQ
     {
         auto sec = leftCol.removeFromTop(sectionH);
+        eqSectionBounds = sec;
         eqSectionLabel.setBounds(sec.removeFromTop(labelH));
         placeKnob(sec, eqLowSlider,  eqLowLabel);
         placeKnob(sec, eqMidSlider,  eqMidLabel);
@@ -385,6 +439,7 @@ void EffectsPanel::resized()
     // Compressor (5 knobs)
     {
         auto sec = rightCol.removeFromTop(sectionH);
+        compressorSectionBounds = sec;
         compressorSectionLabel.setBounds(sec.removeFromTop(labelH));
         placeKnob(sec, compThreshSlider,  compThreshLabel);
         placeKnob(sec, compRatioSlider,   compRatioLabel);
@@ -397,6 +452,7 @@ void EffectsPanel::resized()
     // Delay
     {
         auto sec = rightCol.removeFromTop(sectionH);
+        delaySectionBounds = sec;
         delaySectionLabel.setBounds(sec.removeFromTop(labelH));
         placeKnob(sec, delayTimeSlider,     delayTimeLabel);
         placeKnob(sec, delayFeedbackSlider, delayFeedbackLabel);
@@ -407,6 +463,7 @@ void EffectsPanel::resized()
     // Reverb row 1
     {
         auto sec = rightCol.removeFromTop(sectionH);
+        reverbSectionBounds = sec;
         reverbSectionLabel.setBounds(sec.removeFromTop(labelH));
         placeKnob(sec, reverbRoomSlider, reverbRoomLabel);
         placeKnob(sec, reverbDampSlider, reverbDampLabel);

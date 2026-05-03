@@ -300,14 +300,39 @@ void ProSequencerPanel::paint (juce::Graphics& g)
                 getLocalBounds().removeFromTop (28).reduced (10, 0),
                 juce::Justification::centredLeft);
 
-    // Step editor panel background
-    if (selectedStep >= 0)
+    // Draw neumorphic section cards
+    const float cr = 8.0f;
+    if (transportBounds.getHeight() > 0)
     {
-        auto box = getLocalBounds().removeFromBottom (116).reduced (6, 4).toFloat();
-        g.setColour (MultiverseTheme::bgDeep);
-        g.fillRoundedRectangle (box, 4.0f);
-        g.setColour (MultiverseTheme::shadowLight);
-        g.drawRoundedRectangle (box, 4.0f, 1.0f);
+        MultiverseTheme::drawNeumorphicRect (g, transportBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (transportBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (transportBounds.toFloat().reduced (0.5f), cr, 1.0f);
+    }
+    if (laneModeBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect (g, laneModeBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (laneModeBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (laneModeBounds.toFloat().reduced (0.5f), cr, 1.0f);
+    }
+    if (stepGridBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect (g, stepGridBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (stepGridBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (stepGridBounds.toFloat().reduced (0.5f), cr, 1.0f);
+    }
+    if (editorBounds.getHeight() > 0)
+    {
+        MultiverseTheme::drawNeumorphicRect (g, editorBounds.toFloat(), cr, 3.0f);
+        g.setColour (MultiverseTheme::bgRaised);
+        g.fillRoundedRectangle (editorBounds.toFloat(), cr);
+        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (editorBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
 }
 
@@ -316,7 +341,8 @@ void ProSequencerPanel::resized()
     auto area = getLocalBounds().reduced (6);
     area.removeFromTop (28);  // title
 
-    // ── Transport row ──────────────────────────────────────────────────────
+    // ── Transport row ──────────────────────────────────────────────
+    transportBounds = area.withHeight (26);
     auto transportRow = area.removeFromTop (26);
     bpmLabel.setBounds  (transportRow.removeFromLeft (30));
     bpmSlider.setBounds (transportRow.removeFromLeft (130));
@@ -329,7 +355,8 @@ void ProSequencerPanel::resized()
 
     area.removeFromTop (4);
 
-    // ── Lane selector + mode controls ─────────────────────────────────────
+    // ── Lane selector + mode controls ─────────────────────────────
+    laneModeBounds = area.withHeight (28);
     auto topRow = area.removeFromTop (28);
     for (int i = 0; i < PRO_SEQ_LANES; ++i)
         laneButtons[i].setBounds (topRow.removeFromLeft (82).reduced (2, 1));
@@ -345,8 +372,9 @@ void ProSequencerPanel::resized()
 
     area.removeFromTop (6);
 
-    // ── Step editor (bottom) ───────────────────────────────────────────────
-    auto editorArea   = area.removeFromBottom (116).reduced (0, 4);
+    // ── Step editor (bottom) ───────────────────────────────────────
+    editorBounds   = area.removeFromBottom (116).reduced (0, 4);
+    auto editorArea   = editorBounds;
     auto editorInner  = editorArea.reduced (10, 6);
 
     stepEditorTitle.setBounds (editorInner.removeFromTop (20));
@@ -372,16 +400,19 @@ void ProSequencerPanel::resized()
 
     area.removeFromBottom (4);
 
-    // ── Step grid row 1 (steps 1-16) ──────────────────────────────────────
+    // ── Step grid row 1 (steps 1-16) ──────────────────────────────
     row1Label.setBounds (area.removeFromTop (14).reduced (2, 0));
     auto row1 = area.removeFromTop (64);
+    // Step grid card bounds (rows 1 + 2 together)
+    stepGridBounds = stepGridBounds.withHeight (14 + 4 + 64 + 4 + 14 + 4 + 64);
+    stepGridBounds = stepGridBounds.withPosition (row1Label.getBounds().getPosition());
     const int btnW = row1.getWidth() / 16;
     for (int s = 0; s < 16; ++s)
         stepButtons[s].setBounds (row1.removeFromLeft (btnW).reduced (1));
 
     area.removeFromTop (4);
 
-    // ── Step grid row 2 (steps 17-32) ─────────────────────────────────────
+    // ── Step grid row 2 (steps 17-32) ─────────────────────────────
     row2Label.setBounds (area.removeFromTop (14).reduced (2, 0));
     auto row2 = area.removeFromTop (64);
     for (int s = 16; s < 32; ++s)

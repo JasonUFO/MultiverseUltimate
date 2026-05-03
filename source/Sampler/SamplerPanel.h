@@ -75,5 +75,8 @@ private:
     PluginProcessor& processorRef;
     bool isDragOver = false;
 
+    // Section card bounds
+    juce::Rectangle<int> dropZoneBounds, zoneListBounds, controlsBounds;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SamplerPanel)
 };
