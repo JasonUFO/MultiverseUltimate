@@ -206,37 +206,28 @@
 
 ## Next Session
 
-All Phase 7 tasks complete. Project is in polished state with consistent Dark Forge neumorphic design across all 10 panels.
+**Step 1 COMPLETE:** Code reverted to MultiverseTheme (Dark Forge) at commit e9644d3.
 
-### Future: Neumorphic Cyberpunk UI (Full Redesign)
-**Plan saved:** `AI_CYBERPUNK_PLAN.md`  
-**Scope:** Full UI replacement (MultiverseTheme → CyberpunkTheme)  
-**Style:** Neumorphic + Cyberpunk (neon cyan/pink/purple on deep void backgrounds)  
-**Approach:** Option C — Figma specs provided in plan, then implement in C++  
+**Figma-First Cyberpunk UI Process:**
+1. ✅ Revert C++ code back to MultiverseTheme (Dark Forge) — DONE
+2. **Create Figma designs FIRST** — proper mockups with neumorphic cyberpunk style
+3. **Get sign-off** on Figma visuals
+4. ** THEN implement** in C++ to match Figma designs exactly
 
-When ready to start: Read `AI_CYBERPUNK_PLAN.md` → `CLAUDE.md` → `AI_HANDOFF.md` → start implementation.
+**Figma scope:** Neon cyberpunk palette (`neonCyan`/`neonPink`/`neonPurple` on `bgVoid`), glow effects, same layout/structure as current Dark Forge.
 
-Future work (not yet scheduled):
-- Additional UI polish (animations, hover effects)
-- New features (more effects, expanded modulation, etc.)
+**Start Figma:** Read `AI_CYBERPUNK_PLAN.md` for full spec — color palette, component specs, panel layouts.
 
 ---
 
-## Session End: 2026-05-03
-- Phase 6 complete: section card system applied to all 7 panels
-- Build verified: VST3 + AU both succeed
-- Plugins installed to ~/Library/Audio/Plug-Ins/
-- GitHub backup: commit 490d77e pushed to main
+## Session Start: 2026-05-03
+- Reverted to Phase 7 (Dark Forge) — CyberpunkTheme implementation removed
+- Ready for Figma-first cyberpunk UI design process
+- All 10 panels have consistent Dark Forge neumorphic design
 
----
+**Figma SVGs created in `Figmacomponents/`:**
+- Component SVGs: `neumorphic_card.svg`, `neuknob.svg`, `toggle_pill.svg`
+- Panel SVGs: `synth_panel.svg`, `drums_panel.svg`, `modulation_panel.svg`, `sampler_panel.svg`, `sequencer_panel.svg`, `proseq_panel.svg`, `arp_panel.svg`, `effects_panel.svg`, `granular_panel.svg`, `macros_panel.svg`
+- Build guide: `FIGMA_BUILD_GUIDE.md` with exact values for colors, effects, components
 
-## Next Session: Phase 7 (Polish & Details)
-
-**Phase 7 tasks:**
-- SynthPanel: wrap oscillator strips, FM section, voice mode controls in neumorphic cards
-- GranularPanel: wrap controls and file section in cards
-- MacroPanel: wrap macro knobs section in cards
-- Add subtle section dividers or headers within cards
-- Fine-tune card spacing, corner radii, and shadow offsets for visual consistency
-
-**Start by reading:** `AI_STATE.md` → `AI_HANDOFF.md` → `CLAUDE.md`
+**Next:** Get sign-off on SVG mockups → Implement C++ to match Figma designs exactly

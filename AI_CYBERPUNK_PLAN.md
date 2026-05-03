@@ -1,8 +1,8 @@
 # Multiverse Ultimate — Neumorphic Cyberpunk UI Plan
 
-**Status:** Design complete, ready for implementation in future session  
+**Status:** Figma SVGs created, ready for sign-off  
 **Scope:** Full UI replacement (MultiverseTheme → CyberpunkTheme)  
-**Approach:** Option C — Figma specs provided, then implement in C++
+**Approach:** Figma-first — SVGs in `Figmacomponents/` ready for review
 
 ---
 

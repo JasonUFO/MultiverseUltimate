@@ -1,0 +1,53 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Drums Panel Mockup -->
+  <defs>
+    <radialGradient id="discGrad" cx="35%" cy="35%">
+      <stop offset="0%" stop-color="#1C1C36"/>
+      <stop offset="100%" stop-color="#16162A"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#0A0A12"/>
+  
+  <!-- Tab bar -->
+  <rect width="1200" height="32" fill="#0D0D1A"/>
+  <line x1="0" y1="32" x2="1200" y2="32" stroke="#25253D" stroke-width="1" opacity="0.4"/>
+  <rect x="100" y="0" width="100" height="32" fill="#00F0FF" opacity="0.13"/>
+  <line x1="100" y1="30" x2="200" y2="30" stroke="#00F0FF" stroke-width="2"/>
+  <text x="150" y="20" font-family="Inter, sans-serif" font-size="11" fill="#00F0FF" text-anchor="middle">Drums</text>
+  
+  <!-- Card1: Transport -->
+  <rect x="19" y="51" width="1162" height="80" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="48" width="1162" height="80" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="48" width="1162" height="80" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="61" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">TRANSPORT</text>
+  
+  <!-- Card2: Swing/Quant/Chain -->
+  <rect x="19" y="143" width="400" height="100" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="140" width="400" height="100" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="140" width="400" height="100" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="153" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">SWING / QUANT / CHAIN</text>
+  
+  <!-- Card3: Pattern slots -->
+  <rect x="435" y="143" width="300" height="100" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="432" y="140" width="300" height="100" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="432" y="140" width="300" height="100" rx="8" fill="#1A1A2E"/>
+  <text x="440" y="153" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">PATTERNS</text>
+  
+  <!-- Card4: Step grid + 8 track rows -->
+  <rect x="19" y="253" width="1162" height="500" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="250" width="1162" height="500" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="250" width="1162" height="500" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="263" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">STEP SEQUENCER - 8 TRACKS</text>
+  
+  <!-- Track rows (simplified) -->
+  <rect x="20" y="275" width="1150" height="50" rx="4" fill="#12121F"/>
+  <rect x="20" y="335" width="1150" height="50" rx="4" fill="#12121F"/>
+  <rect x="20" y="395" width="1150" height="50" rx="4" fill="#12121F"/>
+  <rect x="20" y="455" width="1150" height="50" rx="4" fill="#12121F"/>
+  <rect x="20" y="515" width="1150" height="50" rx="4" fill="#12121F"/>
+  <rect x="20" y="575" width="1150" height="50" rx="4" fill="#12121F"/>
+  <rect x="20" y="635" width="1150" height="50" rx="4" fill="#12121F"/>
+  <rect x="20" y="695" width="1150" height="50" rx="4" fill="#12121F"/>
+</svg>

@@ -1,0 +1,88 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Synth Panel Mockup - Dark Forge to Cyberpunk -->
+  <defs>
+    <radialGradient id="discGrad" cx="35%" cy="35%">
+      <stop offset="0%" stop-color="#1C1C36"/>
+      <stop offset="100%" stop-color="#16162A"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#0A0A12"/>
+  
+  <!-- Tab bar -->
+  <rect width="1200" height="32" fill="#0D0D1A"/>
+  <line x1="0" y1="32" x2="1200" y2="32" stroke="#25253D" stroke-width="1" opacity="0.4"/>
+  <!-- Active tab (Synth) -->
+  <rect x="0" y="0" width="100" height="32" fill="#00F0FF" opacity="0.13"/>
+  <line x1="0" y1="30" x2="100" y2="30" stroke="#00F0FF" stroke-width="2"/>
+  <text x="50" y="20" font-family="Inter, sans-serif" font-size="11" fill="#00F0FF" text-anchor="middle">Synth</text>
+  
+  <!-- Card 1: OSC (3 oscillator strips) -->
+  <rect x="19" y="51" width="562" height="200" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="48" width="562" height="200" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="48" width="562" height="200" rx="8" fill="#1A1A2E"/>
+  <rect x="16" y="48" width="562" height="200" rx="8" fill="none" stroke="#00F0FF" stroke-width="1" opacity="0.2"/>
+  <text x="24" y="61" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">OSC</text>
+  
+  <!-- 3 oscillator knobs (simplified) -->
+  <circle cx="120" cy="140" r="30" fill="url(#discGrad)"/>
+  <circle cx="120" cy="140" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="120" cy="140" r="30" fill="#050510" opacity="0.70"/>
+  <text x="120" y="165" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Level</text>
+  
+  <circle cx="280" cy="140" r="30" fill="url(#discGrad)"/>
+  <circle cx="280" cy="140" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="280" cy="140" r="30" fill="#050510" opacity="0.70"/>
+  <text x="280" y="165" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Detune</text>
+  
+  <circle cx="440" cy="140" r="30" fill="url(#discGrad)"/>
+  <circle cx="440" cy="140" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="440" cy="140" r="30" fill="#050510" opacity="0.70"/>
+  <text x="440" y="165" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Wave</text>
+  
+  <!-- Card 2: UNISON -->
+  <rect x="19" y="258" width="270" height="120" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="255" width="270" height="120" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="255" width="270" height="120" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="268" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">UNISON</text>
+  
+  <!-- Card 3: FILTER -->
+  <rect x="19" y="381" width="562" height="280" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="378" width="562" height="280" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="378" width="562" height="280" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="391" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">FILTER</text>
+  
+  <!-- Card 4: ENV (ADSR) -->
+  <rect x="597" y="51" width="587" height="300" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="594" y="48" width="587" height="300" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="594" y="48" width="587" height="300" rx="8" fill="#1A1A2E"/>
+  <text x="602" y="61" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">ENV</text>
+  
+  <!-- ADSR knobs -->
+  <circle cx="680" cy="180" r="30" fill="url(#discGrad)"/>
+  <circle cx="680" cy="180" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="680" cy="180" r="30" fill="#050510" opacity="0.70"/>
+  <text x="680" y="205" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Attack</text>
+  
+  <circle cx="790" cy="180" r="30" fill="url(#discGrad)"/>
+  <circle cx="790" cy="180" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="790" cy="180" r="30" fill="#050510" opacity="0.70"/>
+  <text x="790" y="205" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Decay</text>
+  
+  <circle cx="900" cy="180" r="30" fill="url(#discGrad)"/>
+  <circle cx="900" cy="180" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="900" cy="180" r="30" fill="#050510" opacity="0.70"/>
+  <text x="900" y="205" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Sustain</text>
+  
+  <circle cx="1010" cy="180" r="30" fill="url(#discGrad)"/>
+  <circle cx="1010" cy="180" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="1010" cy="180" r="30" fill="#050510" opacity="0.70"/>
+  <text x="1010" y="205" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Release</text>
+  
+  <!-- Card 5: VOICE MODE -->
+  <rect x="597" y="357" width="587" height="120" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="594" y="354" width="587" height="120" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="594" y="354" width="587" height="120" rx="8" fill="#1A1A2E"/>
+  <text x="602" y="367" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">VOICE MODE</text>
+</svg>

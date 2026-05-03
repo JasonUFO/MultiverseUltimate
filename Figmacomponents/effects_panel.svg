@@ -1,0 +1,189 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="discGrad" cx="35%" cy="35%">
+      <stop offset="0%" stop-color="#1C1C36"/>
+      <stop offset="100%" stop-color="#16162A"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#0A0A12"/>
+  
+  <!-- Tab bar -->
+  <rect width="1200" height="32" fill="#0D0D1A"/>
+  <line x1="0" y1="32" x2="1200" y2="32" stroke="#25253D" stroke-width="1" opacity="0.4"/>
+  <rect x="700" y="0" width="100" height="32" fill="#00F0FF" opacity="0.13"/>
+  <line x1="700" y1="30" x2="800" y2="30" stroke="#00F0FF" stroke-width="2"/>
+  <text x="750" y="20" font-family="Inter, sans-serif" font-size="11" fill="#00F0FF" text-anchor="middle">Effects</text>
+  
+  <!-- Card0: Effect Chain Strip (top) -->
+  <rect x="19" y="51" width="1162" height="60" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="48" width="1162" height="60" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="48" width="1162" height="60" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="61" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">EFFECT CHAIN</text>
+  
+  <!-- Chain boxes -->
+  <rect x="20" y="70" width="180" height="30" rx="4" fill="#12121F"/>
+  <text x="110" y="90" font-family="Inter, sans-serif" font-size="9" fill="#00F0FF" text-anchor="middle">CHORUS</text>
+  <rect x="210" y="70" width="180" height="30" rx="4" fill="#12121F"/>
+  <text x="300" y="90" font-family="Inter, sans-serif" font-size="9" fill="#00F0FF" text-anchor="middle">DISTORTION</text>
+  <rect x="400" y="70" width="180" height="30" rx="4" fill="#12121F"/>
+  <text x="490" y="90" font-family="Inter, sans-serif" font-size="9" fill="#00F0FF" text-anchor="middle">EQ</text>
+  <rect x="590" y="70" width="180" height="30" rx="4" fill="#12121F"/>
+  <text x="680" y="90" font-family="Inter, sans-serif" font-size="9" fill="#00F0FF" text-anchor="middle">COMP</text>
+  <rect x="780" y="70" width="180" height="30" rx="4" fill="#12121F"/>
+  <text x="870" y="90" font-family="Inter, sans-serif" font-size="9" fill="#00F0FF" text-anchor="middle">DELAY</text>
+  <rect x="970" y="70" width="180" height="30" rx="4" fill="#12121F"/>
+  <text x="1060" y="90" font-family="Inter, sans-serif" font-size="9" fill="#00F0FF" text-anchor="middle">REVERB</text>
+  
+  <!-- LEFT COLUMN -->
+  
+  <!-- Card1: Chorus -->
+  <rect x="19" y="127" width="550" height="180" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="124" width="550" height="180" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="124" width="550" height="180" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="137" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">CHORUS</text>
+  
+  <!-- Chorus knobs -->
+  <circle cx="110" cy="210" r="25" fill="url(#discGrad)"/>
+  <circle cx="110" cy="210" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="110" cy="210" r="25" fill="#050510" opacity="0.70"/>
+  <text x="110" y="242" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Rate</text>
+  
+  <circle cx="230" cy="210" r="25" fill="url(#discGrad)"/>
+  <circle cx="230" cy="210" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="230" cy="210" r="25" fill="#050510" opacity="0.70"/>
+  <text x="230" y="242" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Depth</text>
+  
+  <circle cx="350" cy="210" r="25" fill="url(#discGrad)"/>
+  <circle cx="350" cy="210" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="350" cy="210" r="25" fill="#050510" opacity="0.70"/>
+  <text x="350" y="242" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Mix</text>
+  
+  <!-- Card2: Distortion -->
+  <rect x="19" y="323" width="550" height="180" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="320" width="550" height="180" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="320" width="550" height="180" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="333" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">DISTORTION</text>
+  
+  <!-- Distortion knobs -->
+  <circle cx="110" cy="410" r="25" fill="url(#discGrad)"/>
+  <circle cx="110" cy="410" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="110" cy="410" r="25" fill="#050510" opacity="0.70"/>
+  <text x="110" y="442" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Drive</text>
+  
+  <circle cx="230" cy="410" r="25" fill="url(#discGrad)"/>
+  <circle cx="230" cy="410" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="230" cy="410" r="25" fill="#050510" opacity="0.70"/>
+  <text x="230" y="442" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Tone</text>
+  
+  <circle cx="350" cy="410" r="25" fill="url(#discGrad)"/>
+  <circle cx="350" cy="410" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="350" cy="410" r="25" fill="#050510" opacity="0.70"/>
+  <text x="350" y="442" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Mix</text>
+  
+  <!-- Card3: EQ -->
+  <rect x="19" y="519" width="550" height="250" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="516" width="550" height="250" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="516" width="550" height="250" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="529" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">3-BAND EQ</text>
+  
+  <!-- EQ knobs (Low, Mid, High) -->
+  <circle cx="110" cy="620" r="25" fill="url(#discGrad)"/>
+  <circle cx="110" cy="620" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="110" cy="620" r="25" fill="#050510" opacity="0.70"/>
+  <text x="110" y="652" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Low</text>
+  
+  <circle cx="230" cy="620" r="25" fill="url(#discGrad)"/>
+  <circle cx="230" cy="620" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="230" cy="620" r="25" fill="#050510" opacity="0.70"/>
+  <text x="230" y="652" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Mid</text>
+  
+  <circle cx="350" cy="620" r="25" fill="url(#discGrad)"/>
+  <circle cx="350" cy="620" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="350" cy="620" r="25" fill="#050510" opacity="0.70"/>
+  <text x="350" y="652" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">High</text>
+  
+  <!-- RIGHT COLUMN -->
+  
+  <!-- Card4: Compressor -->
+  <rect x="597" y="127" width="550" height="240" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="594" y="124" width="550" height="240" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="594" y="124" width="550" height="240" rx="8" fill="#1A1A2E"/>
+  <text x="602" y="137" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">COMPRESSOR</text>
+  
+  <!-- Compressor knobs -->
+  <circle cx="690" cy="210" r="25" fill="url(#discGrad)"/>
+  <circle cx="690" cy="210" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="690" cy="210" r="25" fill="#050510" opacity="0.70"/>
+  <text x="690" y="242" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Thresh</text>
+  
+  <circle cx="810" cy="210" r="25" fill="url(#discGrad)"/>
+  <circle cx="810" cy="210" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="810" cy="210" r="25" fill="#050510" opacity="0.70"/>
+  <text x="810" y="242" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Ratio</text>
+  
+  <circle cx="930" cy="210" r="25" fill="url(#discGrad)"/>
+  <circle cx="930" cy="210" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="930" cy="210" r="25" fill="#050510" opacity="0.70"/>
+  <text x="930" y="242" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Attack</text>
+  
+  <circle cx="1050" cy="210" r="25" fill="url(#discGrad)"/>
+  <circle cx="1050" cy="210" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="1050" cy="210" r="25" fill="#050510" opacity="0.70"/>
+  <text x="1050" y="242" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Release</text>
+  
+  <circle cx="690" cy="280" r="25" fill="url(#discGrad)"/>
+  <circle cx="690" cy="280" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="690" cy="280" r="25" fill="#050510" opacity="0.70"/>
+  <text x="690" y="312" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Makeup</text>
+  
+  <!-- Card5: Delay -->
+  <rect x="597" y="381" width="550" height="180" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="594" y="378" width="550" height="180" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="594" y="378" width="550" height="180" rx="8" fill="#1A1A2E"/>
+  <text x="602" y="391" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">DELAY</text>
+  
+  <!-- Delay knobs -->
+  <circle cx="690" cy="470" r="25" fill="url(#discGrad)"/>
+  <circle cx="690" cy="470" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="690" cy="470" r="25" fill="#050510" opacity="0.70"/>
+  <text x="690" y="502" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Time</text>
+  
+  <circle cx="810" cy="470" r="25" fill="url(#discGrad)"/>
+  <circle cx="810" cy="470" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="810" cy="470" r="25" fill="#050510" opacity="0.70"/>
+  <text x="810" y="502" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Fdbk</text>
+  
+  <circle cx="930" cy="470" r="25" fill="url(#discGrad)"/>
+  <circle cx="930" cy="470" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="930" cy="470" r="25" fill="#050510" opacity="0.70"/>
+  <text x="930" y="502" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Mix</text>
+  
+  <!-- Card6: Reverb -->
+  <rect x="597" y="577" width="550" height="200" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="594" y="574" width="550" height="200" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="594" y="574" width="550" height="200" rx="8" fill="#1A1A2E"/>
+  <text x="602" y="587" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">REVERB</text>
+  
+  <!-- Reverb knobs -->
+  <circle cx="690" cy="660" r="25" fill="url(#discGrad)"/>
+  <circle cx="690" cy="660" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="690" cy="660" r="25" fill="#050510" opacity="0.70"/>
+  <text x="690" y="692" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Size</text>
+  
+  <circle cx="810" cy="660" r="25" fill="url(#discGrad)"/>
+  <circle cx="810" cy="660" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="810" cy="660" r="25" fill="#050510" opacity="0.70"/>
+  <text x="810" y="692" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Damp</text>
+  
+  <circle cx="930" cy="660" r="25" fill="url(#discGrad)"/>
+  <circle cx="930" cy="660" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="930" cy="660" r="25" fill="#050510" opacity="0.70"/>
+  <text x="930" y="692" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Width</text>
+  
+  <circle cx="1050" cy="660" r="25" fill="url(#discGrad)"/>
+  <circle cx="1050" cy="660" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="1050" cy="660" r="25" fill="#050510" opacity="0.70"/>
+  <text x="1050" y="692" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Mix</text>
+</svg>

@@ -95,13 +95,27 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 UI Redesign (Phase 7 COMPLETE):
 - Phase 7: Polish & Details — all 10 panels now have neumorphic section cards
 
-### Future: Neumorphic Cyberpunk UI (Full Redesign)
+### Cyberpunk UI (Figma-First Approach)
 **Plan saved:** `AI_CYBERPUNK_PLAN.md`  
 **Scope:** Full UI replacement (MultiverseTheme → CyberpunkTheme)  
 **Style:** Neumorphic + Cyberpunk (neon cyan/pink/purple on deep void backgrounds)  
-**Approach:** Option C — Figma specs in plan, then implement in C++  
 
-When ready: Read `AI_CYBERPUNK_PLAN.md` → `CLAUDE.md` → `AI_STATE.md` → start implementation.
+**Current state:** Code reverted to Dark Forge (commit e9644d3). CyberpunkTheme implementation removed.
+
+**Figma-first process:**
+1. ✅ Revert C++ code back to MultiverseTheme (Dark Forge) — DONE
+2. Create Figma designs FIRST with proper neumorphic cyberpunk mockups
+3. Get visual sign-off on Figma designs
+4. Implement C++ to match Figma designs exactly
+
+**Figma scope:** Same layout/structure as current Dark Forge, but with neon cyberpunk palette + glow effects.
+
+**Figma assets created (`Figmacomponents/`):**
+- 3 component SVGs (neumorphic card, NeuKnob, toggle pill)
+- 10 panel SVGs (all panels mocked up)
+- `FIGMA_BUILD_GUIDE.md` with exact copy-paste values for Figma
+
+When ready: Review SVGs in `Figmacomponents/` → Get sign-off → Read `AI_CYBERPUNK_PLAN.md` → Implement C++
 
 ---
 

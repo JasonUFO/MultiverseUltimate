@@ -1,0 +1,90 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="discGrad" cx="35%" cy="35%">
+      <stop offset="0%" stop-color="#1C1C36"/>
+      <stop offset="100%" stop-color="#16162A"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#0A0A12"/>
+  
+  <!-- Tab bar -->
+  <rect width="1200" height="32" fill="#0D0D1A"/>
+  <line x1="0" y1="32" x2="1200" y2="32" stroke="#25253D" stroke-width="1" opacity="0.4"/>
+  <rect x="800" y="0" width="100" height="32" fill="#00F0FF" opacity="0.13"/>
+  <line x1="800" y1="30" x2="900" y2="30" stroke="#00F0FF" stroke-width="2"/>
+  <text x="850" y="20" font-family="Inter, sans-serif" font-size="11" fill="#00F0FF" text-anchor="middle">Granular</text>
+  
+  <!-- Card1: SOURCE (file load) -->
+  <rect x="19" y="51" width="1162" height="150" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="48" width="1162" height="150" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="48" width="1162" height="150" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="61" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">SOURCE</text>
+  <rect x="500" y="85" width="200" height="80" rx="4" fill="none" stroke="#00F0FF" stroke-width="1" opacity="0.3"/>
+  <text x="600" y="130" font-family="Inter, sans-serif" font-size="11" fill="#8888AA" text-anchor="middle">LOAD GR</text>
+  
+  <!-- Card2: GRAIN CONTROLS -->
+  <rect x="19" y="217" width="1162" height="250" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="214" width="1162" height="250" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="214" width="1162" height="250" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="227" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">GRAIN CONTROLS</text>
+  
+  <!-- Grain control knobs -->
+  <circle cx="120" cy="320" r="25" fill="url(#discGrad)"/>
+  <circle cx="120" cy="320" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="120" cy="320" r="25" fill="#050510" opacity="0.70"/>
+  <text x="120" y="352" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Position</text>
+  
+  <circle cx="240" cy="320" r="25" fill="url(#discGrad)"/>
+  <circle cx="240" cy="320" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="240" cy="320" r="25" fill="#050510" opacity="0.70"/>
+  <text x="240" y="352" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Size</text>
+  
+  <circle cx="360" cy="320" r="25" fill="url(#discGrad)"/>
+  <circle cx="360" cy="320" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="360" cy="320" r="25" fill="#050510" opacity="0.70"/>
+  <text x="360" y="352" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Spray</text>
+  
+  <circle cx="480" cy="320" r="25" fill="url(#discGrad)"/>
+  <circle cx="480" cy="320" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="480" cy="320" r="25" fill="#050510" opacity="0.70"/>
+  <text x="480" y="352" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Density</text>
+  
+  <circle cx="600" cy="320" r="25" fill="url(#discGrad)"/>
+  <circle cx="600" cy="320" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="600" cy="320" r="25" fill="#050510" opacity="0.70"/>
+  <text x="600" y="352" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Scatter</text>
+  
+  <circle cx="720" cy="320" r="25" fill="url(#discGrad)"/>
+  <circle cx="720" cy="320" r="25" fill="#25253D" opacity="0.55"/>
+  <circle cx="720" cy="320" r="25" fill="#050510" opacity="0.70"/>
+  <text x="720" y="352" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Spread</text>
+  
+  <!-- Card3: VOICE ENVELOPE (ADSR) -->
+  <rect x="19" y="483" width="1162" height="280" rx="8" fill="#25253D" opacity="0.45"/>
+  <rect x="16" y="480" width="1162" height="280" rx="8" fill="#050510" opacity="0.65"/>
+  <rect x="16" y="480" width="1162" height="280" rx="8" fill="#1A1A2E"/>
+  <text x="24" y="493" font-family="Inter, sans-serif" font-size="10" font-weight="bold" fill="#8888AA">VOICE ENVELOPE</text>
+  
+  <!-- ADSR knobs -->
+  <circle cx="200" cy="600" r="30" fill="url(#discGrad)"/>
+  <circle cx="200" cy="600" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="200" cy="600" r="30" fill="#050510" opacity="0.70"/>
+  <text x="200" y="635" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Attack</text>
+  
+  <circle cx="400" cy="600" r="30" fill="url(#discGrad)"/>
+  <circle cx="400" cy="600" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="400" cy="600" r="30" fill="#050510" opacity="0.70"/>
+  <text x="400" y="635" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Decay</text>
+  
+  <circle cx="600" cy="600" r="30" fill="url(#discGrad)"/>
+  <circle cx="600" cy="600" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="600" cy="600" r="30" fill="#050510" opacity="0.70"/>
+  <text x="600" y="635" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Sustain</text>
+  
+  <circle cx="800" cy="600" r="30" fill="url(#discGrad)"/>
+  <circle cx="800" cy="600" r="30" fill="#25253D" opacity="0.55"/>
+  <circle cx="800" cy="600" r="30" fill="#050510" opacity="0.70"/>
+  <text x="800" y="635" font-family="Inter, sans-serif" font-size="9" fill="#8888AA" text-anchor="middle">Release</text>
+</svg>
