@@ -1,5 +1,6 @@
 #include "SamplerPanel.h"
 #include "../PluginProcessor.h"
+#include "../MultiverseTheme.h"
 
 SamplerPanel::SamplerPanel (PluginProcessor& p, SamplerEngine& engine)
     : samplerEngine (engine), zoneListModel (*this), processorRef (p)
@@ -118,39 +119,39 @@ SamplerPanel::~SamplerPanel()
     zoneList.setModel (nullptr);
 }
 
-void SamplerPanel::paint (juce::Graphics& g)
+ void SamplerPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colour (22, 22, 32));
+     g.fillAll (MultiverseTheme::bgBase);
 
-    // Title bar
-     auto titleArea = getLocalBounds().removeFromTop (24);
-     g.setColour (juce::Colour (40, 40, 60));
-     g.fillRect (titleArea);
-     g.setColour (juce::Colours::white);
-     g.setFont (juce::Font (13.0f, juce::Font::bold));
-     g.drawText ("SAMPLER", titleArea, juce::Justification::centred);
+     // Title bar
+      auto titleArea = getLocalBounds().removeFromTop (24);
+      g.setColour (MultiverseTheme::bgRaised.darker (0.2f));
+      g.fillRect (titleArea);
+      g.setColour (MultiverseTheme::textPrimary);
+      g.setFont (juce::Font (13.0f, juce::Font::bold));
+      g.drawText ("SAMPLER", titleArea, juce::Justification::centred);
 
-    // Drop zone (shown when empty or dragging)
-    if (ownedZones.empty() || isDragOver)
-    {
-        auto dropArea = getLocalBounds()
-                            .removeFromTop (24 + 54)
-                            .removeFromBottom (54)
-                            .reduced (8, 4);
+     // Drop zone (shown when empty or dragging)
+     if (ownedZones.empty() || isDragOver)
+     {
+         auto dropArea = getLocalBounds()
+                             .removeFromTop (24 + 54)
+                             .removeFromBottom (54)
+                             .reduced (8, 4);
 
-        g.setColour (isDragOver ? juce::Colour (60, 110, 180) : juce::Colour (38, 38, 55));
-        g.fillRoundedRectangle (dropArea.toFloat(), 5.0f);
-        g.setColour (juce::Colours::white.withAlpha (isDragOver ? 0.9f : 0.4f));
-        g.drawRoundedRectangle (dropArea.toFloat(), 5.0f, 1.5f);
-        g.setFont (12.0f);
-        g.drawText (isDragOver ? "Release to load" : "Drop audio files here",
-                    dropArea, juce::Justification::centred);
-    }
+         g.setColour (isDragOver ? MultiverseTheme::accentBlue.withAlpha (0.3f) : MultiverseTheme::bgRaised);
+         g.fillRoundedRectangle (dropArea.toFloat(), 5.0f);
+         g.setColour (isDragOver ? MultiverseTheme::accentBlue.withAlpha (0.6f) : MultiverseTheme::textMuted);
+         g.drawRoundedRectangle (dropArea.toFloat(), 5.0f, 1.5f);
+         g.setFont (12.0f);
+         g.drawText (isDragOver ? "Release to load" : "Drop audio files here",
+                     dropArea, juce::Justification::centred);
+     }
 
-    // Separator above controls
-    int sepY = 24 + 54 + 4 + 110 + 4;
-    g.setColour (juce::Colour (50, 50, 70));
-    g.drawHorizontalLine (sepY, 8.0f, static_cast<float> (getWidth() - 8));
+     // Separator above controls
+     int sepY = 24 + 54 + 4 + 110 + 4;
+     g.setColour (MultiverseTheme::shadowLight);
+     g.drawHorizontalLine (sepY, 8.0f, static_cast<float> (getWidth() - 8));
 }
 
 void SamplerPanel::resized()
@@ -294,22 +295,22 @@ int SamplerPanel::ZoneListModel::getNumRows()
     return static_cast<int> (panel.ownedZones.size());
 }
 
-void SamplerPanel::ZoneListModel::paintListBoxItem (
-    int row, juce::Graphics& g, int w, int h, bool selected)
+ void SamplerPanel::ZoneListModel::paintListBoxItem (
+     int row, juce::Graphics& g, int w, int h, bool selected)
 {
-    g.fillAll (selected ? juce::Colour (55, 85, 130) : juce::Colour (28, 28, 38));
+     g.fillAll (selected ? MultiverseTheme::accentBlue.withAlpha (0.25f) : MultiverseTheme::bgDeep);
 
-    if (row < 0 || row >= static_cast<int> (panel.ownedZones.size()))
-        return;
+     if (row < 0 || row >= static_cast<int> (panel.ownedZones.size()))
+         return;
 
-    const auto& zone = *panel.ownedZones[static_cast<size_t> (row)];
-    g.setColour (juce::Colours::white.withAlpha (0.85f));
-    g.setFont (11.5f);
+     const auto& zone = *panel.ownedZones[static_cast<size_t> (row)];
+     g.setColour (MultiverseTheme::textPrimary.withAlpha (0.85f));
+     g.setFont (11.5f);
 
-    juce::String text = zone.name + "   ["
-        + juce::String (zone.loNote) + "-" + juce::String (zone.hiNote) + "]"
-        + "  vel " + juce::String (zone.loVel) + "-" + juce::String (zone.hiVel);
-    g.drawText (text, 6, 0, w - 6, h, juce::Justification::centredLeft, true);
+     juce::String text = zone.name + "   ["
+         + juce::String (zone.loNote) + "-" + juce::String (zone.hiNote) + "]"
+         + "  vel " + juce::String (zone.loVel) + "-" + juce::String (zone.hiVel);
+     g.drawText (text, 6, 0, w - 6, h, juce::Justification::centredLeft, true);
 }
 
 void SamplerPanel::ZoneListModel::listBoxItemClicked (int row, const juce::MouseEvent&)

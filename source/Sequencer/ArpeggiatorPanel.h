@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include "../MultiverseTheme.h"
 #include "Arpeggiator.h"
 
 class ArpStepButton : public juce::Component
@@ -14,8 +15,8 @@ public:
     {
         auto bounds = getLocalBounds().toFloat().reduced (1.5f);
 
-        juce::Colour bg = active ? juce::Colour (0xff2a5faa) : juce::Colour (0xff1a1a2e);
-        juce::Colour border = active ? juce::Colour (0xff4488dd) : juce::Colour (0xff333355);
+        juce::Colour bg = active ? MultiverseTheme::accentBlue.darker (0.2f) : MultiverseTheme::bgRaised;
+        juce::Colour border = active ? MultiverseTheme::accentBlue : MultiverseTheme::shadowLight;
 
         g.setColour (bg);
         g.fillRoundedRectangle (bounds, 4.0f);

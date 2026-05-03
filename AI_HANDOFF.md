@@ -86,13 +86,13 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | MPE | Per-note pitch bend (±48 st), pressure, slide; MPE Pressure + MPE Slide mod sources; "MPE" toggle in SynthPanel |
 | UI-1 | MultiverseTheme LookAndFeel — Dark Forge design system; neumorphic knobs, sliders, buttons, tabs, menus |
 | UI-2 | NeuKnob — extends MidiLearnSlider; value pill on hover/drag; amber arc when macro-assigned |
-| UI-3 | SynthDisplay — real-time oscilloscope + FFT spectrum; lock-free AbstractFifo FIFO in PluginProcessor |
+| UI-3 | SynthDisplay — real-time oscilloscope + FFT spectrum; lock-free FIFO in PluginProcessor |
 | UI-4 | PresetBrowserPanel — Dark Forge redesign, 220px, search bar, category pills, neumorphic cards |
+| UI-5 | **COMPLETE** — EffectsPanel, ModulationMatrixPanel, SamplerPanel, SequencerPanel, DrumSequencerPanel, ArpeggiatorPanel, ProSequencerPanel all updated to Dark Forge palette |
 
 ## Next Steps
-UI Redesign in progress (phases 5–6 remaining):
-- Phase 5: Redesign remaining UI panels (Effects, ModulationMatrix, Drum, Sampler, Sequencer, Arp, ProSeq)
-- Phase 6: Section card system across all panels
+UI Redesign (Phase 6 next session):
+- Phase 6: Section card system — wrap sections in neumorphic cards using `MultiverseTheme::drawNeumorphicRect()` across all panels
 
 ---
 

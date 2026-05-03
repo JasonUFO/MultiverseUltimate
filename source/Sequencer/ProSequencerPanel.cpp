@@ -1,4 +1,5 @@
 #include "ProSequencerPanel.h"
+#include "../MultiverseTheme.h"
 
 // =============================================================================
 // ProStepButton
@@ -17,18 +18,18 @@ void ProStepButton::paint (juce::Graphics& g)
     juce::Colour bg, border;
     if (highlighted)
     {
-        bg     = juce::Colour (0xffcc5500);
-        border = juce::Colour (0xffff8844);
+        bg     = MultiverseTheme::accentAmber;
+        border = MultiverseTheme::accentAmber.brighter (0.3f);
     }
     else if (active)
     {
-        bg     = juce::Colour (0xff2a5faa);
-        border = juce::Colour (0xff4488dd);
+        bg     = MultiverseTheme::accentBlue.darker (0.2f);
+        border = MultiverseTheme::accentBlue;
     }
     else
     {
-        bg     = juce::Colour (0xff1a1a2e);
-        border = juce::Colour (0xff333355);
+        bg     = MultiverseTheme::bgRaised;
+        border = MultiverseTheme::shadowLight;
     }
 
     g.setColour (bg);
@@ -45,16 +46,16 @@ void ProStepButton::paint (juce::Graphics& g)
                     juce::Justification::centred);
 
         // Velocity bar at the bottom when not highlighted
-        if (!highlighted && velocity > 0.0f)
+        if (!highlighted && velocity >0.0f)
         {
             auto bar = bounds.removeFromBottom (5.0f).reduced (2.0f, 0.0f);
-            g.setColour (juce::Colour (0x4488ccff));
+            g.setColour (MultiverseTheme::accentBlue.darker (0.3f));
             g.fillRoundedRectangle (bar, 2.0f);
-            g.setColour (juce::Colour (0xff88ccff));
+            g.setColour (MultiverseTheme::accentBlue);
             g.fillRoundedRectangle (bar.withWidth (bar.getWidth() * velocity), 2.0f);
         }
+        }
     }
-}
 
 void ProStepButton::mouseDown (const juce::MouseEvent& e)
 {
@@ -79,7 +80,7 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
     // Transport row
     bpmLabel.setText ("BPM", juce::dontSendNotification);
     bpmLabel.setJustificationType (juce::Justification::centredRight);
-    bpmLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    bpmLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (bpmLabel);
 
     bpmSlider.setRange (40.0, 240.0, 0.5);
@@ -124,7 +125,7 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
 
     // Play mode controls
     playModeLabel.setText ("Mode:", juce::dontSendNotification);
-    playModeLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    playModeLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (playModeLabel);
 
     fwdBtn.setClickingTogglesState (true);
@@ -143,7 +144,7 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
 
     // Num steps
     numStepsLabel.setText ("Steps:", juce::dontSendNotification);
-    numStepsLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    numStepsLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (numStepsLabel);
 
     numStepsBox.addItem ("8",  1);
@@ -165,14 +166,13 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
     addAndMakeVisible (numStepsBox);
 
     // Row labels
-    auto dimColour = juce::Colour (0xff555577);
     row1Label.setText ("Steps 1 – 16", juce::dontSendNotification);
-    row1Label.setColour (juce::Label::textColourId, dimColour);
+    row1Label.setColour (juce::Label::textColourId, MultiverseTheme::textMuted);
     row1Label.setFont (juce::Font (9.5f));
     addAndMakeVisible (row1Label);
 
     row2Label.setText ("Steps 17 – 32", juce::dontSendNotification);
-    row2Label.setColour (juce::Label::textColourId, dimColour);
+    row2Label.setColour (juce::Label::textColourId, MultiverseTheme::textMuted);
     row2Label.setFont (juce::Font (9.5f));
     addAndMakeVisible (row2Label);
 
@@ -200,12 +200,12 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
 
     // Step editor header
     stepEditorTitle.setText ("Click a step to edit", juce::dontSendNotification);
-    stepEditorTitle.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    stepEditorTitle.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (stepEditorTitle);
 
     // Note picker
     noteLabel.setText ("Note:", juce::dontSendNotification);
-    noteLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    noteLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (noteLabel);
     noteBtn.onClick = [this]() { if (selectedStep >= 0) showNoteMenu (selectedStep); };
     addAndMakeVisible (noteBtn);
@@ -213,7 +213,7 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
     auto setupSlider = [this](juce::Slider& sl, juce::Label& lbl, const juce::String& name)
     {
         lbl.setText (name, juce::dontSendNotification);
-        lbl.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+        lbl.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
         sl.setSliderStyle (juce::Slider::LinearHorizontal);
         sl.setTextBoxStyle (juce::Slider::TextBoxLeft, false, 40, 18);
         addAndMakeVisible (lbl);
@@ -252,7 +252,7 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
     };
 
     ratchetLabel.setText ("Ratchet:", juce::dontSendNotification);
-    ratchetLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    ratchetLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (ratchetLabel);
 
     for (int r = 1; r <= 8; ++r)
@@ -292,10 +292,9 @@ ProSequencerPanel::~ProSequencerPanel()
 
 void ProSequencerPanel::paint (juce::Graphics& g)
 {
-    g.setColour (juce::Colour (0xff13132a));
-    g.fillRoundedRectangle (getLocalBounds().toFloat(), 6.0f);
+    g.fillAll (MultiverseTheme::bgBase);
 
-    g.setColour (juce::Colour (0xff6666aa));
+    g.setColour (MultiverseTheme::textSecondary);
     g.setFont (juce::Font (11.0f, juce::Font::bold));
     g.drawText ("PRO SEQUENCER   4 LANES \xc3\x97 32 STEPS",
                 getLocalBounds().removeFromTop (28).reduced (10, 0),
@@ -305,9 +304,9 @@ void ProSequencerPanel::paint (juce::Graphics& g)
     if (selectedStep >= 0)
     {
         auto box = getLocalBounds().removeFromBottom (116).reduced (6, 4).toFloat();
-        g.setColour (juce::Colour (0xff0e0e1e));
+        g.setColour (MultiverseTheme::bgDeep);
         g.fillRoundedRectangle (box, 4.0f);
-        g.setColour (juce::Colour (0xff333366));
+        g.setColour (MultiverseTheme::shadowLight);
         g.drawRoundedRectangle (box, 4.0f, 1.0f);
     }
 }

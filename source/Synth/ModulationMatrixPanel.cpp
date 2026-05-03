@@ -1,4 +1,5 @@
 #include "ModulationMatrixPanel.h"
+#include "../MultiverseTheme.h"
 
 namespace {
     constexpr int HEADER_H  = 36;
@@ -82,7 +83,7 @@ ModulationMatrixPanel::ModulationMatrixPanel(PluginProcessor& p, ModulationMatri
 {
     titleLabel.setText("Modulation Matrix", juce::dontSendNotification);
     titleLabel.setFont(juce::Font(16.0f, juce::Font::bold));
-    titleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+    titleLabel.setColour(juce::Label::textColourId, MultiverseTheme::textPrimary);
     addAndMakeVisible(titleLabel);
 
     addButton.onClick = [this]() {
@@ -105,11 +106,11 @@ ModulationMatrixPanel::~ModulationMatrixPanel()
 
 void ModulationMatrixPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xFF1A1A1A));
+    g.fillAll(MultiverseTheme::bgBase);
 
     // Column headers — x positions mirror Row::resized() with PADDING offset
     const int rowLeft = PADDING + 2;
-    g.setColour(juce::Colours::grey);
+    g.setColour(MultiverseTheme::textSecondary);
     g.setFont(juce::Font(11.0f));
     g.drawText("SOURCE", rowLeft,                                              HEADER_H, SRC_W,  COL_HDR_H, juce::Justification::centredLeft);
     g.drawText("TARGET", rowLeft + SRC_W + INNER_GAP,                         HEADER_H, TGT_W,  COL_HDR_H, juce::Justification::centredLeft);
@@ -117,7 +118,7 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
 
     if (rows.empty())
     {
-        g.setColour(juce::Colours::darkgrey);
+        g.setColour(MultiverseTheme::textMuted);
         g.setFont(13.0f);
         g.drawText("No connections — press + to add one",
                    getLocalBounds().withTrimmedTop(HEADER_H + COL_HDR_H + 16),

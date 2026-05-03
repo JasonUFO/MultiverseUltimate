@@ -1,4 +1,5 @@
 #include "ArpeggiatorPanel.h"
+#include "../MultiverseTheme.h"
 
 // =============================================================================
 // ArpeggiatorPanel
@@ -7,7 +8,7 @@
 ArpeggiatorPanel::ArpeggiatorPanel (Arpeggiator& arp) : arpeggiator (arp)
 {
     titleLabel.setText ("ARPEGGIATOR", juce::dontSendNotification);
-    titleLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    titleLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (titleLabel);
 
     enableBtn.setClickingTogglesState (true);
@@ -16,7 +17,7 @@ ArpeggiatorPanel::ArpeggiatorPanel (Arpeggiator& arp) : arpeggiator (arp)
     addAndMakeVisible (enableBtn);
 
     modeLabel.setText ("Mode:", juce::dontSendNotification);
-    modeLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    modeLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (modeLabel);
 
     modeBox.addItem ("Up",      1);
@@ -41,7 +42,7 @@ ArpeggiatorPanel::ArpeggiatorPanel (Arpeggiator& arp) : arpeggiator (arp)
     addAndMakeVisible (modeBox);
 
     numStepsLabel.setText ("Steps:", juce::dontSendNotification);
-    numStepsLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    numStepsLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (numStepsLabel);
 
     numStepsBox.addItem ("8",  1);
@@ -63,14 +64,14 @@ ArpeggiatorPanel::ArpeggiatorPanel (Arpeggiator& arp) : arpeggiator (arp)
     addAndMakeVisible (numStepsBox);
 
     stepEditorTitle.setText ("Click a step to edit", juce::dontSendNotification);
-    stepEditorTitle.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    stepEditorTitle.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (stepEditorTitle);
 
     auto setupSlider = [this](juce::Slider& sl, juce::Label& lbl, const juce::String& name,
                            double min, double max, double intervals)
     {
         lbl.setText (name, juce::dontSendNotification);
-        lbl.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+        lbl.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
         sl.setSliderStyle (juce::Slider::LinearHorizontal);
         sl.setTextBoxStyle (juce::Slider::TextBoxLeft, false, 50, 18);
         sl.setRange (min, max, intervals);
@@ -149,15 +150,14 @@ ArpeggiatorPanel::~ArpeggiatorPanel()
 
 void ArpeggiatorPanel::paint (juce::Graphics& g)
 {
-    g.setColour (juce::Colour (0xff13132a));
-    g.fillRoundedRectangle (getLocalBounds().toFloat(), 6.0f);
+    g.fillAll (MultiverseTheme::bgBase);
 
     if (selectedStep >= 0)
     {
         auto box = getLocalBounds().removeFromBottom (100).reduced (6, 4).toFloat();
-        g.setColour (juce::Colour (0xff0e0e1e));
+        g.setColour (MultiverseTheme::bgDeep);
         g.fillRoundedRectangle (box, 4.0f);
-        g.setColour (juce::Colour (0xff333366));
+        g.setColour (MultiverseTheme::shadowLight);
         g.drawRoundedRectangle (box, 4.0f, 1.0f);
     }
 }

@@ -1,4 +1,5 @@
 #include "SequencerPanel.h"
+#include "../MultiverseTheme.h"
 
 // ===== StepButton =====
 
@@ -16,18 +17,18 @@ void StepButton::paint (juce::Graphics& g)
     juce::Colour bg, border;
     if (highlighted)
     {
-        bg = juce::Colour (0xffcc5500);
-        border = juce::Colour (0xffff8844);
+        bg = MultiverseTheme::accentAmber;
+        border = MultiverseTheme::accentAmber.brighter (0.3f);
     }
     else if (active)
     {
-        bg = juce::Colour (0xff2a5faa);
-        border = juce::Colour (0xff4488dd);
+        bg = MultiverseTheme::accentBlue.darker (0.2f);
+        border = MultiverseTheme::accentBlue;
     }
     else
     {
-        bg = juce::Colour (0xff1a1a2e);
-        border = juce::Colour (0xff333355);
+        bg = MultiverseTheme::bgRaised;
+        border = MultiverseTheme::shadowLight;
     }
 
     g.setColour (bg);
@@ -78,7 +79,7 @@ SequencerPanel::SequencerPanel (Sequencer& seq) : sequencer (seq)
 
     bpmLabel.setText ("BPM", juce::dontSendNotification);
     bpmLabel.setJustificationType (juce::Justification::centredRight);
-    bpmLabel.setColour (juce::Label::textColourId, juce::Colour (0xff9999bb));
+    bpmLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
     addAndMakeVisible (bpmLabel);
 
     bpmSlider.setRange (40.0, 240.0, 0.5);
@@ -241,10 +242,9 @@ void SequencerPanel::exportMidi()
 
 void SequencerPanel::paint (juce::Graphics& g)
 {
-    g.setColour (juce::Colour (0xff13132a));
-    g.fillRoundedRectangle (getLocalBounds().toFloat(), 6.0f);
+    g.fillAll (MultiverseTheme::bgBase);
 
-     g.setColour (juce::Colour (0xff6666aa));
+     g.setColour (MultiverseTheme::textSecondary);
      g.setFont (juce::Font (10.5f, juce::Font::bold));
      g.drawText ("SEQUENCER / ARPEGGIATOR", getLocalBounds().removeFromTop (20), juce::Justification::centred);
 }

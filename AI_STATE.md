@@ -159,23 +159,40 @@
 - PluginEditor: preset browser height updated from 160px → 220px
 - Build verified OK
 
-## In Progress
-- None
+## Completed (Phase 5 — UI Redesign Phases 1–5)
+- Phase 5: Remaining UI Panels — Dark Forge redesign **COMPLETE**
+  - EffectsPanel: paint(), EffectChainStrip, labels → MultiverseTheme palette
+  - ModulationMatrixPanel: paint(), title, row colours → MultiverseTheme palette
+  - SamplerPanel: paint(), ZoneListModel, waveform colours → MultiverseTheme palette
+  - SequencerPanel: paint(), StepButton, labels → MultiverseTheme palette
+  - DrumSequencerPanel: paint(), DrumStepButton, TrackRow, labels/buttons → MultiverseTheme palette
+  - ArpeggiatorPanel: paint(), ArpStepButton, labels → MultiverseTheme palette (`.h` + `.cpp`)
+  - ProSequencerPanel: paint(), ProStepButton, labels → MultiverseTheme palette
+  - All hardcoded `juce::Colour (0xff...)` replaced with `MultiverseTheme::bgBase/bgRaised/accentBlue/textSecondary/etc.`
+  - Build verified ✅ (VST3 + AU both build and install successfully)
 
 ## Broken
 - None
 
-## Next Step — START HERE (Phase 5: Remaining UI Panels)
+## Next Step — START HERE (Phase 6: Section Card System)
 
-**Task:** Redesign remaining UI panels to match Dark Forge design system.
+**Task:** Apply section card system (neumorphic cards with `MultiverseTheme::drawNeumorphicRect`) across all panels for consistent visual structure.
 
 **Panels to update:**
-- EffectsPanel (Chorus/Distortion/EQ/Compressor sections)
-- ModulationMatrixPanel (source/target dropdowns, amount sliders)
-- DrumPanel / SamplerPanel / SequencerPanel / ArpPanel / ProSeqPanel
+- EffectsPanel — wrap Chorus/Distortion/EQ/Compressor/Delay/Reverb sections in neumorphic cards
+- ModulationMatrixPanel — wrap each modulation row in a neumorphic card
+- SamplerPanel — wrap drop zone, zone list, and control sections in cards
+- SequencerPanel / ArpPanel / ProSeqPanel — wrap step grids and editors in cards
+- DrumSequencerPanel — wrap track rows and step grid in cards
 
 **Key facts:**
-- Phase 4 is DONE — Preset Browser Redesign complete
-- Theme: `Source/MultiverseTheme.h/.cpp` with Dark Forge palette
-- NeuKnob: `Source/NeuKnob.h/.cpp` for rotary sliders
-- PresetBrowserPanel: reference implementation for neumorphic cards + search/category UI
+- Phase 5 is DONE — all remaining UI panels updated to Dark Forge palette
+- `MultiverseTheme::drawNeumorphicRect()` is the standard helper for neumorphic cards
+- Reference: PresetBrowserPanel `paintListBoxItem()` for card style (accent border when selected)
+
+---
+
+## Session End: 2026-05-03
+- Phase 5 complete: all 7 remaining panels updated to Dark Forge palette
+- Build verified: VST3 + AU both succeed
+- Plugins installed to ~/Library/Audio/Plug-Ins/

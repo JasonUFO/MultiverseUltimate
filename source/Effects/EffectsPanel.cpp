@@ -1,5 +1,6 @@
 #include "EffectsPanel.h"
 #include "../PluginProcessor.h"
+#include "../MultiverseTheme.h"
 
 //==============================================================================
 // EffectChainStrip
@@ -38,9 +39,9 @@ int EffectChainStrip::slotAt(int x) const
 
 void EffectChainStrip::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff1a1a2e));
+    g.fillAll(MultiverseTheme::bgBase);
 
-    g.setColour(juce::Colours::grey.withAlpha(0.7f));
+    g.setColour(MultiverseTheme::textSecondary.withAlpha(0.7f));
     g.setFont(juce::Font(9.5f));
     g.drawText("EFFECT CHAIN  \xe2\x80\x94  drag tiles to reorder",
                getLocalBounds().removeFromTop(15).reduced(6, 0),
@@ -54,9 +55,9 @@ void EffectChainStrip::paint(juce::Graphics& g)
         const bool isSource = dragging && (i == dragSource);
         const bool isTarget = dragging && (i == dragOver) && (i != dragSource);
 
-        g.setColour(isTarget  ? juce::Colour(0xffD4A017).withAlpha(0.85f)
-                   : isSource ? juce::Colour(0xff4a4a6a)
-                              : juce::Colour(0xff303055));
+        g.setColour(isTarget  ? MultiverseTheme::accentAmber.withAlpha(0.85f)
+                   : isSource ? MultiverseTheme::bgRaised.darker(0.3f)
+                              : MultiverseTheme::bgRaised);
         g.fillRoundedRectangle(tile.toFloat(), 5.f);
 
         g.setColour(juce::Colours::white.withAlpha(isSource ? 0.45f : 0.90f));
@@ -64,7 +65,7 @@ void EffectChainStrip::paint(juce::Graphics& g)
         g.drawFittedText(effectName(id), tile, juce::Justification::centred, 1);
 
         // Step number
-        g.setColour(juce::Colours::grey.withAlpha(0.55f));
+        g.setColour(MultiverseTheme::textMuted);
         g.setFont(juce::Font(7.5f));
         g.drawText(juce::String(i + 1), tile.withTrimmedBottom(tile.getHeight() - 10).translated(3, 1),
                    juce::Justification::topLeft);
@@ -314,11 +315,12 @@ void EffectsPanel::setupLabel(juce::Label& l, const juce::String& text)
 {
     l.setText(text, juce::dontSendNotification);
     l.setJustificationType(juce::Justification::centred);
+    l.setColour(juce::Label::textColourId, MultiverseTheme::textSecondary);
 }
 
 void EffectsPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    g.fillAll(MultiverseTheme::bgBase);
 }
 
 void EffectsPanel::resized()
