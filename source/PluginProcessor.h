@@ -23,6 +23,7 @@
 #include "Sequencer/PatternEngine.h"
 #include "Macros/MacroManager.h"
 #include "Granular/GranularEngine.h"
+#include "Layers/LayerManager.h"
 
 enum class EffectID { Chorus = 0, Distortion = 1, EQ = 2, Compressor = 3, Delay = 4, Reverb = 5 };
 
@@ -76,6 +77,7 @@ public:
     PresetManager&  getPresetManager()   { return presetManager; }
     MacroManager&     getMacroManager()    { return macroManager; }
     GranularEngine&   getGranularEngine() { return granularEngine; }
+    LayerManager&     getLayerManager()   { return layerManager; }
 
     // Effect chain ordering (6 effects, packed as nibbles in a uint32)
     int  getChainSlot(int pos) const noexcept
@@ -91,6 +93,7 @@ public:
     WaveformType baseWaveform = WaveformType::Saw;
     MacroManager      macroManager;
     GranularEngine    granularEngine;
+    LayerManager      layerManager;
     SynthEngine       synthEngine;
     SamplerEngine     samplerEngine;
     DelayEffect       delay;

@@ -19,6 +19,19 @@ public:
     float process();
 
     void setTableCount(int count) { tableCount = count; }
+    int getTableCount() const { return tableCount; }
+    int getTableSize() const { return tableSize; }
+
+    // Public accessors for WavetableEditor
+    void setSample(int frame, int index, float value);
+    float getSample(int frame, int index) const;
+    void clearFrame(int frame);
+    void normalizeFrame(int frame);
+    void fadeFrame(int frame, float startGain, float endGain);
+    void reverseFrame(int frame);
+    void loadMultiCycleWavetable(const juce::AudioBuffer<float>& audio, int numFrames = 4);
+    void generateFormula(int frame, std::function<float(float)> generator);
+    void processFFT(int frame, bool forward = true); // simple FFT placeholder
 
 private:
     float sampleRate = 44100.0f;

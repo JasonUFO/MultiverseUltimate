@@ -45,6 +45,8 @@ public:
     void setFrequencyDirect(float hz);
     void setNoteLegato(int note);
 
+    WavetableOscillator& getWavetableOsc(int oscIndex) { return oscStates[juce::jlimit(0, 2, oscIndex)].wavetableOsc; }
+
 private:
     void updateOscillatorFrequencies();
 

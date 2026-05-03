@@ -204,30 +204,55 @@
 
 ---
 
-## Next Session
+### WavetableEditor (2026-05-03)
+- `Source/Synth/WavetableEditor.h/.cpp` — full visual wavetable editor component
+- Draw tools: Pencil (freehand), Line (click-drag), Curve (same as pencil, future: quadratic)
+- Frame selector: ComboBox selects which wavetable frame to edit
+- Process buttons: Normalize, Fade (1→0), Reverse, FFT (placeholder = normalize), Clear
+- Formula generators: Sin, Saw, Square, Tri — fills selected frame with standard waveform
+- Import: single-cycle WAV (loads frame 0), multi-cycle WAV (splits into up to 4 frames)
+- `onWavetableChanged` callback — called after every edit; SynthPanel wires it to `SynthEngine::distributeWavetable(oscIndex)`
+- `SynthEngine::distributeWavetable(oscIndex)` — copies voice 0 wavetable to all 16 voices
+- `SynthEngine::getWavetableOscillator(oscIndex)` — returns voice 0's WavetableOsc for editing
+- `Voice::getWavetableOsc(oscIndex)` — public accessor added to Voice
+- **"EDIT WT"** button added to each osc strip in SynthPanel (visible in Wavetable mode, next to "LOAD WT")
+- Clicking "EDIT WT" shows the editor as a full-panel overlay; clicking again hides it
+- Fixed brace syntax error in `WavetableOscillator.cpp` (`normalizeFrame` / stray `}`)
 
-**Step 1 COMPLETE:** Code reverted to MultiverseTheme (Dark Forge) at commit e9644d3.
+### Layers System (2026-05-03)
+- `Source/Layers/LayerEngine.h/.cpp` — wraps Synth/Granular/Sampler engine per layer with level/pan/mute/solo
+- `Source/Layers/LayerManager.h/.cpp` — manages 8 LayerEngines, processes/mixes, handles MIDI routing + solo logic
+- `Source/Layers/LayersPanel.h/.cpp` — UI: 8 rows, each with engine type selector, level/pan sliders, mute/solo, preset button, L/R meter labels
+- **"Layers" tab** added to PluginEditor (10th tab)
+- `LayerManager` wired into `PluginProcessor`:
+  - `prepare()` in `prepareToPlay`
+  - MIDI: `noteOn`, `noteOff`, `allNotesOff` (both CC123 and stop paths)
+  - Audio: `processBlock` → mixed into main signal pre-effects (alongside Synth/Granular/Sampler)
+  - State: `getState`/`setState` in `getStateInformation`/`setStateInformation`
+- State persistence uses `juce::ValueTree` throughout (GranularEngine + SamplerEngine sub-state per layer)
 
-**Figma-First Cyberpunk UI Process:**
-1. ✅ Revert C++ code back to MultiverseTheme (Dark Forge) — DONE
-2. **Create Figma designs FIRST** — proper mockups with neumorphic cyberpunk style
-3. **Get sign-off** on Figma visuals
-4. ** THEN implement** in C++ to match Figma designs exactly
-
-**Figma scope:** Neon cyberpunk palette (`neonCyan`/`neonPink`/`neonPurple` on `bgVoid`), glow effects, same layout/structure as current Dark Forge.
-
-**Start Figma:** Read `AI_CYBERPUNK_PLAN.md` for full spec — color palette, component specs, panel layouts.
+**Build verified:** VST3 + AU both build and install successfully ✅
 
 ---
 
-## Session Start: 2026-05-03
-- Reverted to Phase 7 (Dark Forge) — CyberpunkTheme implementation removed
-- Ready for Figma-first cyberpunk UI design process
-- All 10 panels have consistent Dark Forge neumorphic design
+## Next Session
 
-**Figma SVGs created in `Figmacomponents/`:**
-- Component SVGs: `neumorphic_card.svg`, `neuknob.svg`, `toggle_pill.svg`
-- Panel SVGs: `synth_panel.svg`, `drums_panel.svg`, `modulation_panel.svg`, `sampler_panel.svg`, `sequencer_panel.svg`, `proseq_panel.svg`, `arp_panel.svg`, `effects_panel.svg`, `granular_panel.svg`, `macros_panel.svg`
-- Build guide: `FIGMA_BUILD_GUIDE.md` with exact values for colors, effects, components
+**Two open tracks — choose one to start:**
 
-**Next:** Get sign-off on SVG mockups → Implement C++ to match Figma designs exactly
+### Track A — Cyberpunk UI (Serum 2 / Avenger 2 visual parity)
+- Figma SVG mockups already done in `Figmacomponents/`
+- Full spec in `AI_CYBERPUNK_PLAN.md`
+- Process: review SVGs → sign off → implement `CyberpunkTheme` replacing `MultiverseTheme`
+- Color palette: `neonCyan` (#00F0FF), `neonPink` (#FF2A6D), `neonPurple` (#B026FF) on `bgVoid` (#0A0A12)
+
+### Track B — Feature gaps vs target synths
+Key missing features vs Serum 2 / Avenger 2 / Diva / Zebra 3:
+- **Layer key ranges** (Nexus 5 / Avenger 2): each layer responds to a MIDI note range
+- **Layer velocity ranges**: each layer responds to a velocity range
+- **Layer MIDI channel filter**: per-layer MIDI channel (for multitimbral use)
+- **Layer effects send**: each layer has its own effects bus / send level
+- **Oscillator sub + noise** (Serum 2 parity): dedicated sub oscillator + noise oscillator per voice
+- **Filter types** (Diva parity): LP/HP/BP/Notch filter topology selector per voice
+- **Unison spread modes** (Zebra 3): stacked, chord, random spread options
+
+**Competitive brief reminder:** Goal is to match/surpass Serum 2, Nexus 5, Avenger 2, Diva, Zebra 3.

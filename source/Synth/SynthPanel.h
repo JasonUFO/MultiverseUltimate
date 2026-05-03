@@ -3,6 +3,7 @@
 #include "SynthEngine.h"
 #include "../NeuKnob.h"
 #include "SynthDisplay.h"
+#include "WavetableEditor.h"
 
 class PluginProcessor;
 
@@ -225,6 +226,7 @@ private:
         NeuKnob    wavePosSlider;
         juce::Label        levelLabel, detuneLabel, wavePosLabel;
         juce::TextButton   loadWTButton { "LOAD WT" };
+        juce::TextButton   editWTButton { "EDIT WT" };
         juce::Label        wtFileLabel;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> typeAttach;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>    levelAttach, detuneAttach, wavePosAttach;
@@ -289,6 +291,9 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> algorithmAttach;
 
     std::unique_ptr<juce::FileChooser> fileChooser;
+
+    // Wavetable editors (one per osc strip, shown as overlays)
+    std::array<std::unique_ptr<WavetableEditor>, 3> wavetableEditors;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SynthPanel)
 };

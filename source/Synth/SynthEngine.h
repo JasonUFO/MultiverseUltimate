@@ -60,6 +60,10 @@ public:
     bool loadWavetableFile(int oscIndex, const juce::File& file);
     juce::String getWavetableFilePath(int oscIndex) const;
 
+    // Wavetable editor access — voice 0 is the master for editing; distributeWavetable copies to all voices
+    WavetableOscillator& getWavetableOscillator(int oscIndex) { return voices[0].voice.getWavetableOsc(oscIndex); }
+    void distributeWavetable(int oscIndex);
+
     // MPE (MIDI Polyphonic Expression) — Lower Zone: master ch 1, member ch 2–15
     static constexpr float MPE_PITCH_BEND_RANGE = 48.0f;  // semitones, standard MPE
     void setMPEEnabled(bool enabled);

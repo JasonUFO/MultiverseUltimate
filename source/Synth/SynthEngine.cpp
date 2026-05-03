@@ -791,3 +791,18 @@ juce::String SynthEngine::getWavetableFilePath(int oscIndex) const
     if (oscIndex < 0 || oscIndex > 2) return {};
     return wavetableFilePaths[oscIndex];
 }
+
+void SynthEngine::distributeWavetable(int oscIndex)
+{
+    if (oscIndex < 0 || oscIndex > 2) return;
+    auto& src = voices[0].voice.getWavetableOsc(oscIndex);
+    const int frameCount = src.getTableCount();
+    const int tableSize  = src.getTableSize();
+    for (int v = 1; v < MAX_VOICES; ++v)
+    {
+        auto& dst = voices[v].voice.getWavetableOsc(oscIndex);
+        for (int f = 0; f < frameCount; ++f)
+            for (int i = 0; i < tableSize; ++i)
+                dst.setSample(f, i, src.getSample(f, i));
+    }
+}

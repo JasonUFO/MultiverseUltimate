@@ -361,6 +361,7 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     synthEngine.prepare (sampleRate, samplesPerBlock);
     granularEngine.prepare (sampleRate, samplesPerBlock);
     samplerEngine.prepare (sampleRate, samplesPerBlock);
+    layerManager.prepare (sampleRate, samplesPerBlock);
     drumSequencer.prepare (sampleRate, samplesPerBlock);
     sequencer.prepare (sampleRate, drumSequencer.getBPM());
     proSequencer.prepare (sampleRate, 120.0f);
@@ -542,6 +543,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             synthEngine.allNotesOff();
             samplerEngine.allNotesOff();
             granularEngine.allNotesOff();
+            layerManager.allNotesOff();
             sequencer.stop();
             proSequencer.stop();
         }
@@ -659,6 +661,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                 synthEngine.noteOn(note, vel);
             samplerEngine.noteOn(note, vel);
             granularEngine.noteOn(note, vel);
+            layerManager.noteOn(note, vel);
         }
         else if (message.isNoteOff())
         {
@@ -675,6 +678,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                     synthEngine.noteOff(note);
                 samplerEngine.noteOff(note);
                 granularEngine.noteOff(note);
+                layerManager.noteOff(note);
             }
         }
         else if (message.isPitchWheel())
@@ -772,6 +776,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                     synthEngine.allNotesOff();
                     samplerEngine.allNotesOff();
                     granularEngine.allNotesOff();
+                    layerManager.allNotesOff();
                     for (int n = 0; n < 128; ++n)
                         sustainedNoteHeld[n] = false;
                     sustainPedalDown = false;
@@ -924,12 +929,15 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     juce::AudioBuffer<float> synthBuffer(2, numSamples);
     juce::AudioBuffer<float> samplerBuffer(2, numSamples);
     juce::AudioBuffer<float> granularBuffer(2, numSamples);
+    juce::AudioBuffer<float> layerBuffer(2, numSamples);
     synthBuffer.clear();
     samplerBuffer.clear();
     granularBuffer.clear();
+    layerBuffer.clear();
     synthEngine.processBuffer(synthBuffer, numSamples);
     samplerEngine.processBuffer(samplerBuffer, numSamples);
     granularEngine.processBuffer(granularBuffer, numSamples);
+    layerManager.processBlock(layerBuffer, numSamples);
 
     {
         const float svol = *apvts.getRawParameterValue("samplerVolume");
@@ -958,7 +966,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             float s = buffer.getReadPointer(ch)[i]
                     + synthBuffer   .getReadPointer(ch)[i]
                     + samplerBuffer .getReadPointer(ch)[i]
-                    + granularBuffer.getReadPointer(ch)[i];
+                    + granularBuffer.getReadPointer(ch)[i]
+                    + layerBuffer   .getReadPointer(ch)[i];
             for (int slot = 0; slot < reverbPos; ++slot)
                 s = applyChainEffect(chain[slot], s, ch);
             buffer.getWritePointer(ch)[i] = s;
@@ -1089,6 +1098,9 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
 
     // Granular engine state
     root.appendChild(granularEngine.getState(), nullptr);
+
+    // Layer manager state
+    root.appendChild(layerManager.getState(), nullptr);
 
     // Add MIDI mappings to state
     updateMidiMappingsInState(root);
@@ -1223,6 +1235,9 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 
     // Load granular engine state
     granularEngine.setState(root.getChildWithName("GranularEngine"));
+
+    // Load layer manager state
+    layerManager.setState(root.getChildWithName("LayerManager"));
 
     undoManager.clearUndoHistory();
 }

@@ -76,8 +76,29 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         setupLabel(c.wtFileLabel, "no file");
         c.wtFileLabel.setFont(juce::Font(9.0f));
         addAndMakeVisible(c.loadWTButton);
+        addAndMakeVisible(c.editWTButton);
         addAndMakeVisible(c.wtFileLabel);
         c.loadWTButton.setTooltip("Load a .wav or .aif wavetable file from disk");
+        c.editWTButton.setTooltip("Open the wavetable editor for this oscillator");
+
+        // Create wavetable editor overlay for this osc
+        wavetableEditors[osc] = std::make_unique<WavetableEditor>(synthEngine.getWavetableOscillator(osc));
+        wavetableEditors[osc]->onWavetableChanged = [this, osc]() { synthEngine.distributeWavetable(osc); };
+        wavetableEditors[osc]->setVisible(false);
+        addChildComponent(wavetableEditors[osc].get());
+
+        c.editWTButton.onClick = [this, osc]()
+        {
+            // Hide all other editors first
+            for (int i = 0; i < 3; ++i)
+                if (i != osc && wavetableEditors[i]) wavetableEditors[i]->setVisible(false);
+
+            auto* ed = wavetableEditors[osc].get();
+            if (ed->isVisible()) { ed->setVisible(false); return; }
+            ed->setBounds(getLocalBounds().reduced(16));
+            ed->setVisible(true);
+            ed->toFront(false);
+        };
 
         const int oscIdx = osc; // capture by value for lambda
         c.loadWTButton.onClick = [this, oscIdx]()
@@ -452,6 +473,7 @@ void SynthPanel::updateVisibility()
         c.wavePosLabel.setVisible(!isFM && isWavetable);
         c.wavePosSlider.setVisible(!isFM && isWavetable);
         c.loadWTButton.setVisible(!isFM && isWavetable);
+        c.editWTButton.setVisible(!isFM && isWavetable);
         c.wtFileLabel.setVisible(!isFM && isWavetable);
     }
 
@@ -640,6 +662,8 @@ void SynthPanel::resized()
                 {
                     auto btnRow = knobArea.removeFromTop(20);
                     c.loadWTButton.setBounds(btnRow.removeFromLeft(60));
+                    btnRow.removeFromLeft(4);
+                    c.editWTButton.setBounds(btnRow.removeFromLeft(56));
                     btnRow.removeFromLeft(4);
                     c.wtFileLabel.setBounds(btnRow);
                 }

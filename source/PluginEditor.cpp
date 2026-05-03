@@ -11,6 +11,7 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       effectsPanel (p),
       macroPanel (p),
       granularPanel (p),
+      layersPanel (p, p.getLayerManager()),
       tabs (juce::TabbedButtonBar::TabsAtTop),
       midiLearnButton ("MIDI Learn"),
       midiLearnLabel ("", ""),
@@ -57,6 +58,7 @@ void PluginEditor::setupTabs()
     tabs.addTab ("Effects",    MultiverseTheme::bgBase, &effectsPanel,          false);
     tabs.addTab ("Macros",     MultiverseTheme::bgBase, &macroPanel,            false);
     tabs.addTab ("Granular",   MultiverseTheme::bgBase, &granularPanel,         false);
+    tabs.addTab ("Layers",     MultiverseTheme::bgBase, &layersPanel,           false);
 }
 
 void PluginEditor::setupMidiLearnButton()

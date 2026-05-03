@@ -20,6 +20,7 @@
 | GranularEngine | 16-voice granular, 32 grains/voice (512 total), file or built-in source |
 | DrumSequencer | Sample-based, 32 voices |
 | SamplerEngine | Zone-based playback, 16 voices |
+| LayerManager | 8 independent layers, each Synth/Granular/Sampler/Off, level/pan/mute/solo |
 | Effects | Chorus → Distortion → EQ → Compressor → Delay → Reverb (reorderable chain) |
 | ModulationMatrix | LFO + envelope routing to all DSP params |
 | Sequencer / ProSequencer / Arpeggiator / PatternEngine | MIDI generation |
@@ -60,9 +61,11 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - Dark Forge UI theme (`MultiverseTheme`) — neumorphic knobs, sliders, buttons, tabs, menus ✅
 - NeuKnob (`Source/NeuKnob.h/.cpp`) — value pill on hover/drag, amber arc when macro-assigned ✅
 - SynthDisplay (`Source/Synth/SynthDisplay.h/.cpp`) — real-time oscilloscope (left) + FFT spectrum (right), 30 Hz, lock-free FIFO ✅
+- WavetableEditor (`Source/Synth/WavetableEditor.h/.cpp`) — draw/edit wavetable frames, formula gen, import ✅
+- LayerManager (`Source/Layers/`) — 8 independent layers (Synth/Granular/Sampler), MIDI + audio + state ✅
 
 ## What Is Broken / Unconnected
-- None
+- None (WavetableEditor FFT button is a placeholder — just calls normalizeFrame; real FFT not yet implemented)
 
 ---
 
@@ -90,32 +93,25 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | UI-4 | PresetBrowserPanel — Dark Forge redesign, 220px, search bar, category pills, neumorphic cards |
 | UI-5 | **COMPLETE** — EffectsPanel, ModulationMatrixPanel, SamplerPanel, SequencerPanel, DrumSequencerPanel, ArpeggiatorPanel, ProSequencerPanel all updated to Dark Forge palette |
 | UI-6 | **COMPLETE** — Section card system: neumorphic cards via `drawNeumorphicRect()` applied to all 7 panels (Effects, ModMatrix, Sampler, Seq, Arp, ProSeq, DrumSeq) |
+| UI-7 | **COMPLETE** — SynthPanel, GranularPanel, MacroPanel neumorphic section cards |
+| WavetableEditor | Visual wavetable editor: draw tools, formula generators, normalize/fade/reverse/import, per-osc "EDIT WT" button in SynthPanel |
+| Layers | 8-layer engine: Synth/Granular/Sampler per layer, level/pan/mute/solo, full MIDI + audio + state wiring, "Layers" tab |
 
 ## Next Steps
-UI Redesign (Phase 7 COMPLETE):
-- Phase 7: Polish & Details — all 10 panels now have neumorphic section cards
 
 ### Cyberpunk UI (Figma-First Approach)
 **Plan saved:** `AI_CYBERPUNK_PLAN.md`  
 **Scope:** Full UI replacement (MultiverseTheme → CyberpunkTheme)  
 **Style:** Neumorphic + Cyberpunk (neon cyan/pink/purple on deep void backgrounds)  
+**Figma assets:** `Figmacomponents/` — 10 panel SVGs + 3 component SVGs + `FIGMA_BUILD_GUIDE.md`  
+**Status:** Awaiting visual sign-off. Review SVGs → approve → implement C++.
 
-**Current state:** Code reverted to Dark Forge (commit e9644d3). CyberpunkTheme implementation removed.
-
-**Figma-first process:**
-1. ✅ Revert C++ code back to MultiverseTheme (Dark Forge) — DONE
-2. Create Figma designs FIRST with proper neumorphic cyberpunk mockups
-3. Get visual sign-off on Figma designs
-4. Implement C++ to match Figma designs exactly
-
-**Figma scope:** Same layout/structure as current Dark Forge, but with neon cyberpunk palette + glow effects.
-
-**Figma assets created (`Figmacomponents/`):**
-- 3 component SVGs (neumorphic card, NeuKnob, toggle pill)
-- 10 panel SVGs (all panels mocked up)
-- `FIGMA_BUILD_GUIDE.md` with exact copy-paste values for Figma
-
-When ready: Review SVGs in `Figmacomponents/` → Get sign-off → Read `AI_CYBERPUNK_PLAN.md` → Implement C++
+### Feature Gaps vs Target Synths
+See `AI_STATE.md` "Track B" for full list. Key items:
+- Layer key/velocity ranges (Nexus 5 / Avenger 2 parity)
+- Sub oscillator + noise oscillator (Serum 2 parity)
+- Filter topology selector LP/HP/BP/Notch (Diva parity)
+- Layer per-effects send (Avenger 2 parity)
 
 ---
 
@@ -167,3 +163,8 @@ When ready: Review SVGs in `Figmacomponents/` → Get sign-off → Read `AI_CYBE
 - `juce::Font::getStringWidthFloat` does not exist in this project's JUCE version — use character-count estimation or `getStringWidth` (int) for pill sizing.
 - `SynthDisplay`: lives at `Source/Synth/SynthDisplay.h/.cpp`. Ring buffer: `RING_SIZE=2048`, `ringWritePos` (masked with `& (RING_SIZE-1)`). FFT: `juce::dsp::FFT fft{FFT_ORDER}` (order 10, 1024-point). Audio data arrives via `PluginProcessor::pullDisplaySamples(float*, int)` (public, message-thread safe). `pushDisplaySamples` is private, called at end of processBlock after pan.
 - `PresetBrowserPanel` (`Source/Presets/PresetBrowserPanel.h/.cpp`): inherits `juce::ListBoxModel` + `Button::Listener` + `ComboBox::Listener`. Uses `juce::ListBox presetList`. Shown as 160px collapsible panel above tabs in `PluginEditor` (toggled by "Presets" button in header). `refresh()` calls `presetList.updateContent()`. Phase 4 redesign: keep all logic, only change `paint()`, `resized()`, `paintListBoxItem()`, and visual styling.
+- `WavetableEditor` (`Source/Synth/WavetableEditor.h/.cpp`): takes `WavetableOscillator&` (voice 0 master). `onWavetableChanged` callback must be set by caller to `synthEngine.distributeWavetable(oscIndex)`. Shown as full-panel overlay inside SynthPanel; toggled by "EDIT WT" button per osc strip. FFT button is a placeholder (calls normalizeFrame).
+- `WavetableOscillator` new public API: `setSample(frame,i,v)`, `getSample(frame,i)`, `clearFrame`, `normalizeFrame`, `fadeFrame`, `reverseFrame`, `generateFormula(frame, fn)`, `loadMultiCycleWavetable`, `processFFT` (placeholder), `getTableCount()`, `getTableSize()`.
+- `SynthEngine::getWavetableOscillator(oscIndex)` returns `voices[0].voice.getWavetableOsc(oscIndex)` — voice 0 is the edit master. `distributeWavetable(oscIndex)` copies frame data from voice 0 to voices 1–15 via `setSample`.
+- `LayerManager` (`Source/Layers/`) manages `std::array<unique_ptr<LayerEngine>, 8>`. Each `LayerEngine` owns its own `SynthEngine`, `GranularEngine`, `SamplerEngine` (all three always allocated; only active engine processes). `LayerManager::processBlock` mixes all non-muted layers (or only soloed layers) into the output buffer. MIDI goes to all active layers. State: `juce::ValueTree` — GranularEngine + SamplerEngine sub-states only (SynthEngine has no standalone state API).
+- `LayersPanel` (`Source/Layers/LayersPanel.h/.cpp`): `rows` is `std::array<unique_ptr<LayerRow>, 8>`. `LayerRow` is a struct (not a Component) holding JUCE controls as direct members. Lambdas capture `[this, index, row]` — `row` is a raw pointer to the unique_ptr content, valid for the panel's lifetime.
