@@ -1,5 +1,6 @@
 #include "LayersPanel.h"
 #include "LayerEngine.h"
+#include "LayerEffectChain.h"
 #include "../PluginProcessor.h"
 #include "../MultiverseTheme.h"
 
@@ -68,13 +69,60 @@ void LayersPanel::createRow(int index)
     row->presetBtn.setButtonText("Preset");
     row->presetBtn.onClick = [this, index]
     {
-        // TODO: open layer preset browser
         juce::ignoreUnused(index);
     };
     addAndMakeVisible(row->presetBtn);
 
     addAndMakeVisible(row->meterL);
     addAndMakeVisible(row->meterR);
+
+    // Note range sliders
+    auto setupRangeSlider = [](juce::Slider& s, double lo, double hi, double val)
+    {
+        s.setSliderStyle(juce::Slider::LinearHorizontal);
+        s.setTextBoxStyle(juce::Slider::TextBoxRight, false, 32, 16);
+        s.setRange(lo, hi, 1.0);
+        s.setValue(val, juce::dontSendNotification);
+    };
+    setupRangeSlider(row->loNoteSlider, 0, 127, 0);
+    setupRangeSlider(row->hiNoteSlider, 0, 127, 127);
+    setupRangeSlider(row->loVelSlider,  0, 127, 0);
+    setupRangeSlider(row->hiVelSlider,  0, 127, 127);
+
+    row->loNoteSlider.onValueChange = [this, index, row]
+    {
+        layerManager.getLayer(index).setNoteRange(
+            (int)row->loNoteSlider.getValue(), (int)row->hiNoteSlider.getValue());
+    };
+    row->hiNoteSlider.onValueChange = row->loNoteSlider.onValueChange;
+
+    row->loVelSlider.onValueChange = [this, index, row]
+    {
+        layerManager.getLayer(index).setVelocityRange(
+            (int)row->loVelSlider.getValue(), (int)row->hiVelSlider.getValue());
+    };
+    row->hiVelSlider.onValueChange = row->loVelSlider.onValueChange;
+
+    addAndMakeVisible(row->loNoteSlider);
+    addAndMakeVisible(row->hiNoteSlider);
+    addAndMakeVisible(row->loVelSlider);
+    addAndMakeVisible(row->hiVelSlider);
+
+    // MIDI channel filter (0=All, 1-16)
+    row->midiChSelector.addItem("All Ch", 1);
+    for (int ch = 1; ch <= 16; ++ch)
+        row->midiChSelector.addItem("Ch " + juce::String(ch), ch + 1);
+    row->midiChSelector.setSelectedId(1, juce::dontSendNotification);
+    row->midiChSelector.onChange = [this, index, row]
+    {
+        int selectedId = row->midiChSelector.getSelectedId();
+        layerManager.getLayer(index).setMidiChannelFilter(selectedId <= 1 ? 0 : selectedId - 1);
+    };
+    addAndMakeVisible(row->midiChSelector);
+
+    // FX button — opens CallOutBox with layer effect chain controls
+    row->fxButton.onClick = [this, index]() { showFXPopup(index); };
+    addAndMakeVisible(row->fxButton);
 }
 
 void LayersPanel::paint(juce::Graphics& g)
@@ -102,33 +150,54 @@ void LayersPanel::resized()
     auto area = getLocalBounds().reduced(8);
     area.removeFromTop(20); // title space
 
-    int rowH = 40;
+    const int rowH = 40;
     for (int i = 0; i < 8; ++i)
     {
         auto rowArea = area.removeFromTop(rowH).reduced(4);
         auto* r = rows[i].get();
 
-        r->nameLabel.setBounds(rowArea.removeFromLeft(80));
-        r->engineSelector.setBounds(rowArea.removeFromLeft(120));
-        rowArea.removeFromLeft(8);
-        r->levelSlider.setBounds(rowArea.removeFromLeft(100));
-        rowArea.removeFromLeft(8);
-        r->panSlider.setBounds(rowArea.removeFromLeft(100));
-        rowArea.removeFromLeft(8);
-        r->muteButton.setBounds(rowArea.removeFromLeft(40));
-        r->soloButton.setBounds(rowArea.removeFromLeft(40));
-        rowArea.removeFromLeft(8);
-        r->presetBtn.setBounds(rowArea.removeFromLeft(60));
-        rowArea.removeFromLeft(8);
-        r->meterL.setBounds(rowArea.removeFromLeft(20));
-        r->meterR.setBounds(rowArea.removeFromLeft(20));
+        r->nameLabel.setBounds    (rowArea.removeFromLeft(60));
+        r->engineSelector.setBounds(rowArea.removeFromLeft(100));
+        rowArea.removeFromLeft(6);
+        r->levelSlider.setBounds  (rowArea.removeFromLeft(90));
+        rowArea.removeFromLeft(6);
+        r->panSlider.setBounds    (rowArea.removeFromLeft(80));
+        rowArea.removeFromLeft(6);
+        r->muteButton.setBounds   (rowArea.removeFromLeft(28).reduced(0, 6));
+        r->soloButton.setBounds   (rowArea.removeFromLeft(28).reduced(0, 6));
+        rowArea.removeFromLeft(6);
+
+        // Note range
+        r->loNoteSlider.setBounds(rowArea.removeFromLeft(80));
+        rowArea.removeFromLeft(4);
+        r->hiNoteSlider.setBounds(rowArea.removeFromLeft(80));
+        rowArea.removeFromLeft(6);
+
+        // Velocity range
+        r->loVelSlider.setBounds(rowArea.removeFromLeft(72));
+        rowArea.removeFromLeft(4);
+        r->hiVelSlider.setBounds(rowArea.removeFromLeft(72));
+        rowArea.removeFromLeft(6);
+
+        // MIDI channel
+        r->midiChSelector.setBounds(rowArea.removeFromLeft(76));
+        rowArea.removeFromLeft(6);
+
+        // FX button
+        r->fxButton.setBounds(rowArea.removeFromLeft(36).reduced(0, 6));
+        rowArea.removeFromLeft(6);
+
+        r->presetBtn.setBounds(rowArea.removeFromLeft(54).reduced(0, 6));
+        rowArea.removeFromLeft(6);
+        r->meterL.setBounds(rowArea.removeFromLeft(16));
+        r->meterR.setBounds(rowArea.removeFromLeft(16));
 
         area.removeFromTop(4);
     }
 }
 
-void LayersPanel::buttonClicked(juce::Button* button) {}
-void LayersPanel::comboBoxChanged(juce::ComboBox* comboBox) {}
+void LayersPanel::buttonClicked(juce::Button* button) { juce::ignoreUnused(button); }
+void LayersPanel::comboBoxChanged(juce::ComboBox* comboBox) { juce::ignoreUnused(comboBox); }
 
 void LayersPanel::updateUI()
 {
@@ -140,5 +209,68 @@ void LayersPanel::updateUI()
         r->engineSelector.setSelectedId(static_cast<int>(layer.getEngineType()) + 2);
         r->levelSlider.setValue(layer.getLevel(), juce::dontSendNotification);
         r->panSlider.setValue(layer.getPan(), juce::dontSendNotification);
+        r->loNoteSlider.setValue(layer.getLoNote(), juce::dontSendNotification);
+        r->hiNoteSlider.setValue(layer.getHiNote(), juce::dontSendNotification);
+        r->loVelSlider.setValue(layer.getLoVel(), juce::dontSendNotification);
+        r->hiVelSlider.setValue(layer.getHiVel(), juce::dontSendNotification);
+        const int chFilter = layer.getMidiChannelFilter();
+        r->midiChSelector.setSelectedId(chFilter == 0 ? 1 : chFilter + 1, juce::dontSendNotification);
+    }
+}
+
+//==============================================================================
+void LayersPanel::showFXPopup(int layerIndex)
+{
+    auto& chain = layerManager.getLayer(layerIndex).getEffectChain();
+
+    static const char* names[LayerEffectChain::NumEffects] = {
+        "Chorus", "Distortion", "EQ", "Compressor", "Delay", "Reverb"
+    };
+
+    // Build popup content component
+    auto* content = new juce::Component();
+    content->setSize(320, 200);
+
+    for (int fx = 0; fx < LayerEffectChain::NumEffects; ++fx)
+    {
+        const int x = 8 + (fx % 3) * 104;
+        const int y = 8 + (fx / 3) * 90;
+
+        auto* label = new juce::Label();
+        label->setText(names[fx], juce::dontSendNotification);
+        label->setBounds(x, y, 90, 18);
+        content->addAndMakeVisible(label);
+
+        auto* toggle = new juce::ToggleButton("On");
+        toggle->setToggleState(chain.isEnabled(fx), juce::dontSendNotification);
+        toggle->setBounds(x, y + 20, 70, 20);
+        const int fxIdx = fx;
+        toggle->onStateChange = [toggle, &chain, fxIdx]()
+        {
+            chain.setEnabled(fxIdx, toggle->getToggleState());
+        };
+        content->addAndMakeVisible(toggle);
+
+        auto* mixSlider = new juce::Slider(juce::Slider::LinearHorizontal, juce::Slider::TextBoxRight);
+        mixSlider->setRange(0.0, 1.0);
+        mixSlider->setValue(chain.getMix(fx), juce::dontSendNotification);
+        mixSlider->setTextBoxStyle(juce::Slider::TextBoxRight, false, 36, 18);
+        mixSlider->setBounds(x, y + 46, 96, 22);
+        mixSlider->onValueChange = [mixSlider, &chain, fxIdx]()
+        {
+            chain.setMix(fxIdx, (float)mixSlider->getValue());
+        };
+        content->addAndMakeVisible(mixSlider);
+    }
+
+    auto* fxBtn = rows[layerIndex]->fxButton.isVisible() ? &rows[layerIndex]->fxButton : nullptr;
+    if (fxBtn)
+    {
+        juce::CallOutBox::launchAsynchronously(
+            std::unique_ptr<juce::Component>(content), fxBtn->getScreenBounds(), nullptr);
+    }
+    else
+    {
+        delete content;
     }
 }

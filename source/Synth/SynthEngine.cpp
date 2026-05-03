@@ -105,6 +105,8 @@ void SynthEngine::noteOn(int note, float velocity)
         { vi.voice.noteOff(); vi.inUse = false; }
 
     const int n = juce::jlimit(1, MAX_VOICES, unisonVoiceCount);
+    // Chord interval table (semitones): root, M3, P5, oct, M10, P12, 2-oct, M17
+    static const float chordIntervals[8] = { 0.0f, 4.0f, 7.0f, 12.0f, 16.0f, 19.0f, 24.0f, 28.0f };
     for (int u = 0; u < n; ++u)
     {
         auto* vi = findFreeVoice();
@@ -115,7 +117,20 @@ void SynthEngine::noteOn(int note, float velocity)
         if (n > 1)
         {
             const float t = static_cast<float>(u) / static_cast<float>(n - 1);
-            detuneOffset = (t - 0.5f) * 2.0f * unisonDetuneSemitones;
+
+            switch (unisonSpreadMode)
+            {
+                case UnisonSpreadMode::Chord:
+                    detuneOffset = chordIntervals[juce::jlimit(0, 7, u)];
+                    break;
+                case UnisonSpreadMode::Random:
+                    detuneOffset = (juce::Random::getSystemRandom().nextFloat() * 2.0f - 1.0f)
+                                   * unisonDetuneSemitones;
+                    break;
+                default: // Stacked
+                    detuneOffset = (t - 0.5f) * 2.0f * unisonDetuneSemitones;
+                    break;
+            }
             const float pan = (t - 0.5f) * 2.0f * unisonWidthAmount;
             panL = pan <= 0.0f ? 1.0f : (1.0f - pan);
             panR = pan >= 0.0f ? 1.0f : (1.0f + pan);
@@ -284,6 +299,44 @@ void SynthEngine::setOversamplingMode(Filter::OversamplingMode mode)
 {
     for (auto& vi : voices)
         vi.voice.setOversamplingMode(mode);
+}
+
+void SynthEngine::setFilterType(Filter::FilterType t)
+{
+    filterTypeParam = t;
+    for (auto& vi : voices)
+        vi.voice.setFilterType(t);
+}
+
+void SynthEngine::setSubOscEnabled(bool e)
+{
+    subOscEnabled = e;
+    for (auto& vi : voices) vi.voice.setSubOscEnabled(e);
+}
+void SynthEngine::setSubOscLevel(float l)
+{
+    subOscLevel = l;
+    for (auto& vi : voices) vi.voice.setSubOscLevel(l);
+}
+void SynthEngine::setSubOscWaveform(WaveformType wf)
+{
+    subOscWaveform = wf;
+    for (auto& vi : voices) vi.voice.setSubOscWaveform(wf);
+}
+void SynthEngine::setNoiseOscEnabled(bool e)
+{
+    noiseOscEnabled = e;
+    for (auto& vi : voices) vi.voice.setNoiseOscEnabled(e);
+}
+void SynthEngine::setNoiseOscLevel(float l)
+{
+    noiseOscLevel = l;
+    for (auto& vi : voices) vi.voice.setNoiseOscLevel(l);
+}
+void SynthEngine::setNoiseOscColor(float hz)
+{
+    noiseOscColor = hz;
+    for (auto& vi : voices) vi.voice.setNoiseOscColor(hz);
 }
 
 void SynthEngine::setOscillatorType(int index, OscillatorType type)

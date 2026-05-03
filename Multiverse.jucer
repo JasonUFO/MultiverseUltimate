@@ -123,8 +123,10 @@
         <FILE id="Ly0002" name="LayerEngine.cpp" compile="1" resource="0" file="source/Layers/LayerEngine.cpp"/>
         <FILE id="Ly0003" name="LayerManager.h"  compile="0" resource="0" file="source/Layers/LayerManager.h"/>
         <FILE id="Ly0004" name="LayerManager.cpp" compile="1" resource="0" file="source/Layers/LayerManager.cpp"/>
-        <FILE id="Ly0005" name="LayersPanel.h"   compile="0" resource="0" file="source/Layers/LayersPanel.h"/>
-        <FILE id="Ly0006" name="LayersPanel.cpp" compile="1" resource="0" file="source/Layers/LayersPanel.cpp"/>
+        <FILE id="Ly0005" name="LayersPanel.h"        compile="0" resource="0" file="source/Layers/LayersPanel.h"/>
+        <FILE id="Ly0006" name="LayersPanel.cpp"       compile="1" resource="0" file="source/Layers/LayersPanel.cpp"/>
+        <FILE id="Ly0007" name="LayerEffectChain.h"    compile="0" resource="0" file="source/Layers/LayerEffectChain.h"/>
+        <FILE id="Ly0008" name="LayerEffectChain.cpp"  compile="1" resource="0" file="source/Layers/LayerEffectChain.cpp"/>
       </GROUP>
     </GROUP>
   </MAINGROUP>

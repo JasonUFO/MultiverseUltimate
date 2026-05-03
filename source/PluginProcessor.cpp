@@ -223,6 +223,34 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{"unisonWidth", 1}, "Unison Width",
         juce::NormalisableRange<float>(0.0f, 1.0f), 1.0f));
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"unisonSpreadMode", 1}, "Unison Spread",
+        juce::StringArray{"Stacked", "Chord", "Random"}, 0));
+
+    // Filter topology
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"filterType", 1}, "Filter Type",
+        juce::StringArray{"LP", "HP", "BP", "Notch"}, 0));
+
+    // Sub oscillator
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"subOscEnable", 1}, "Sub Osc", false));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"subOscLevel", 1}, "Sub Level",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"subOscWave", 1}, "Sub Wave",
+        juce::StringArray{"Sine", "Square"}, 0));
+
+    // Noise oscillator
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"noiseOscEnable", 1}, "Noise Osc", false));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"noiseOscLevel", 1}, "Noise Level",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.3f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"noiseOscColor", 1}, "Noise Color",
+        juce::NormalisableRange<float>(200.0f, 20000.0f, 0.0f, 0.3f), 5000.0f));
 
     // Voice mode / portamento
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -470,6 +498,25 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     synthEngine.setUnisonVoices(static_cast<int>(*apvts.getRawParameterValue("unisonVoices")) + 1);
     synthEngine.setUnisonDetune(*apvts.getRawParameterValue("unisonDetune") / 100.0f);
     synthEngine.setUnisonWidth(*apvts.getRawParameterValue("unisonWidth"));
+    synthEngine.setUnisonSpreadMode(static_cast<SynthEngine::UnisonSpreadMode>(
+        static_cast<int>(*apvts.getRawParameterValue("unisonSpreadMode"))));
+
+    // Filter type
+    synthEngine.setFilterType(static_cast<Filter::FilterType>(
+        static_cast<int>(*apvts.getRawParameterValue("filterType"))));
+
+    // Sub oscillator
+    synthEngine.setSubOscEnabled(*apvts.getRawParameterValue("subOscEnable") > 0.5f);
+    synthEngine.setSubOscLevel(*apvts.getRawParameterValue("subOscLevel"));
+    {
+        const int subWaveChoice = static_cast<int>(*apvts.getRawParameterValue("subOscWave"));
+        synthEngine.setSubOscWaveform(subWaveChoice == 1 ? WaveformType::Square : WaveformType::Sine);
+    }
+
+    // Noise oscillator
+    synthEngine.setNoiseOscEnabled(*apvts.getRawParameterValue("noiseOscEnable") > 0.5f);
+    synthEngine.setNoiseOscLevel(*apvts.getRawParameterValue("noiseOscLevel"));
+    synthEngine.setNoiseOscColor(*apvts.getRawParameterValue("noiseOscColor"));
 
     // Voice mode / portamento
     synthEngine.setVoiceMode(static_cast<VoiceMode>(static_cast<int>(*apvts.getRawParameterValue("voiceMode"))));
@@ -661,7 +708,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                 synthEngine.noteOn(note, vel);
             samplerEngine.noteOn(note, vel);
             granularEngine.noteOn(note, vel);
-            layerManager.noteOn(note, vel);
+            layerManager.noteOn(note, vel, ch);
         }
         else if (message.isNoteOff())
         {

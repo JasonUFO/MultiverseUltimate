@@ -235,9 +235,26 @@
 
 ---
 
+### Track B — Feature Gaps (2026-05-03)
+
+**All 7 features shipped:**
+
+- **Filter types LP/HP/BP/Notch** — `Filter::FilterType` enum + `setFilterType`; SVF for LP/HP/BP, IIR biquad for Notch; `filterType` APVTS param; TYPE ComboBox in FILTER card (SynthPanel)
+- **Sub oscillator** — dedicated `SubOscState` per voice, 1 oct below base freq, Sine/Square waveform, level control; `subOscEnable/Level/Wave` APVTS params; SUB/NOISE card in SynthPanel
+- **Noise oscillator** — `NoiseOscState` per voice, one-pole LP color filter (200–20kHz), level control; `noiseOscEnable/Level/Color` APVTS params; in SUB/NOISE card
+- **Unison spread modes** — `UnisonSpreadMode {Stacked, Chord, Random}` in SynthEngine; Chord uses fixed major chord intervals [0,4,7,12,16,19,24,28] semitones; Random uses PRNG per noteOn; `unisonSpreadMode` APVTS param; SPREAD ComboBox in UNISON card
+- **Layer key ranges** — `loNote/hiNote` (0-127) per LayerEngine; filter in `noteOn`; sliders in LayersPanel row
+- **Layer velocity ranges** — `loVel/hiVel` (0-127) per LayerEngine; filter in `noteOn`; sliders in LayersPanel row
+- **Layer MIDI channel filter** — `midiChannelFilter` (0=all, 1-16) per LayerEngine; filter in `noteOn`; `LayerManager::noteOn` now takes midiChannel; ComboBox in LayersPanel row
+- **Per-layer independent effect chain** — `LayerEffectChain.h/.cpp` (new): owns Chorus/Distortion/EQ/Compressor/Delay[2]/Reverb per layer, per-effect enable+mix, XML state; `LayerEngine` runs effectChain after pan in processBlock; "FX" button in LayersPanel row opens CallOutBox with 6 effect toggles + mix sliders; state persists in preset
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+---
+
 ## Next Session
 
-**Two open tracks — choose one to start:**
+**One open track remaining:**
 
 ### Track A — Cyberpunk UI (Serum 2 / Avenger 2 visual parity)
 - Figma SVG mockups already done in `Figmacomponents/`

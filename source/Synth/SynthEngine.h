@@ -38,6 +38,17 @@ public:
     void setEnvelopeParams(float a, float d, float s, float r);
     void setFilterParams(float cutoff, float resonance);
     void setOversamplingMode(Filter::OversamplingMode mode);
+    void setFilterType(Filter::FilterType t);
+
+    // Sub oscillator
+    void setSubOscEnabled(bool e);
+    void setSubOscLevel(float l);
+    void setSubOscWaveform(WaveformType wf);
+
+    // Noise oscillator
+    void setNoiseOscEnabled(bool e);
+    void setNoiseOscLevel(float l);
+    void setNoiseOscColor(float hz);
 
     // Per-oscillator controls (index 0-2)
     void setOscillatorType(int index, OscillatorType type);
@@ -50,6 +61,10 @@ public:
     void setUnisonVoices(int n);
     void setUnisonDetune(float semitones);
     void setUnisonWidth(float w);
+
+    // Unison spread modes
+    enum class UnisonSpreadMode { Stacked, Chord, Random };
+    void setUnisonSpreadMode(UnisonSpreadMode m) { unisonSpreadMode = m; }
 
     // Voice mode / portamento
     void setVoiceMode(VoiceMode m);
@@ -196,6 +211,16 @@ private:
     int   unisonVoiceCount       = 1;
     float unisonDetuneSemitones  = 0.2f;
     float unisonWidthAmount      = 1.0f;
+    UnisonSpreadMode unisonSpreadMode = UnisonSpreadMode::Stacked;
+
+    // Sub / Noise osc settings (applied to all voices)
+    bool  subOscEnabled  = false;
+    float subOscLevel    = 0.5f;
+    WaveformType subOscWaveform = WaveformType::Sine;
+    bool  noiseOscEnabled = false;
+    float noiseOscLevel   = 0.3f;
+    float noiseOscColor   = 20000.0f;
+    Filter::FilterType filterTypeParam = Filter::FilterType::LP;
 
     // Wavetable file loading
     juce::AudioFormatManager formatManager;

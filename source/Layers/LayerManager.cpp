@@ -27,13 +27,13 @@ void LayerManager::processBlock(juce::AudioBuffer<float>& buffer, int numSamples
     }
 }
 
-void LayerManager::noteOn(int midiNote, float velocity)
+void LayerManager::noteOn(int midiNote, float velocity, int midiChannel)
 {
     for (auto& layer : layers)
     {
         if (layer->isMuted()) continue;
         if (isAnyLayerSoloed() && !layer->isSoloed()) continue;
-        layer->noteOn(midiNote, velocity);
+        layer->noteOn(midiNote, velocity, midiChannel);
     }
 }
 

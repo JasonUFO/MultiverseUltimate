@@ -3,6 +3,7 @@
 #include "../Synth/SynthEngine.h"
 #include "../Granular/GranularEngine.h"
 #include "../Sampler/SamplerEngine.h"
+#include "LayerEffectChain.h"
 
 enum class LayerEngineType
 {
@@ -27,8 +28,8 @@ public:
     // Audio processing
     int processBlock(juce::AudioBuffer<float>& buffer, int numSamples);
 
-    // MIDI
-    void noteOn(int midiNote, float velocity);
+    // MIDI (midiChannel: 1-16; 0 = omni)
+    void noteOn(int midiNote, float velocity, int midiChannel = 0);
     void noteOff(int midiNote);
     void allNotesOff();
 
@@ -47,6 +48,23 @@ public:
 
     void setSolo(bool solo) { this->solo = solo; }
     bool isSoloed() const { return solo; }
+
+    // Note range filter (0-127)
+    void setNoteRange(int lo, int hi) { loNote = juce::jlimit(0,127,lo); hiNote = juce::jlimit(0,127,hi); }
+    int  getLoNote() const { return loNote; }
+    int  getHiNote() const { return hiNote; }
+
+    // Velocity range filter (0-127)
+    void setVelocityRange(int lo, int hi) { loVel = juce::jlimit(0,127,lo); hiVel = juce::jlimit(0,127,hi); }
+    int  getLoVel() const { return loVel; }
+    int  getHiVel() const { return hiVel; }
+
+    // MIDI channel filter (0 = all channels)
+    void setMidiChannelFilter(int ch) { midiChannelFilter = juce::jlimit(0,16,ch); }
+    int  getMidiChannelFilter() const { return midiChannelFilter; }
+
+    // Per-layer effect chain
+    LayerEffectChain& getEffectChain() { return effectChain; }
 
     // Access to underlying engines (for UI)
     SynthEngine* getSynthEngine() { return synthEngine.get(); }
@@ -69,6 +87,13 @@ private:
     float pan = 0.0f;
     bool mute = false;
     bool solo = false;
+
+    // Note / velocity / MIDI channel range
+    int loNote = 0, hiNote = 127;
+    int loVel  = 0, hiVel  = 127;
+    int midiChannelFilter = 0; // 0 = all
+
+    LayerEffectChain effectChain;
 
     // Voice allocation (equal share)
     int voiceShare = 2; // 16 / 8 layers = 2 voices per layer for synth

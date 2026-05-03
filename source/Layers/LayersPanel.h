@@ -28,14 +28,23 @@ private:
     {
         juce::Label        nameLabel;
         juce::ComboBox     engineSelector;
-        juce::Slider      levelSlider;
-        juce::Slider      panSlider;
+        juce::Slider       levelSlider;
+        juce::Slider       panSlider;
         juce::ToggleButton muteButton, soloButton;
         juce::TextButton   presetBtn;
         juce::Label        meterL, meterR;
+
+        // Range controls
+        juce::Slider       loNoteSlider, hiNoteSlider;
+        juce::Slider       loVelSlider,  hiVelSlider;
+        juce::ComboBox     midiChSelector;
+
+        // FX button
+        juce::TextButton   fxButton { "FX" };
     };
     std::array<std::unique_ptr<LayerRow>, 8> rows;
 
     void createRow(int index);
     void drawSection(juce::Graphics& g, juce::Rectangle<int> r, const juce::String& title) const;
+    void showFXPopup(int layerIndex);
 };

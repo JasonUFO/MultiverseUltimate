@@ -13,6 +13,7 @@ void LayerEngine::prepare(double sampleRate, int samplesPerBlock)
     synthEngine->prepare(sampleRate, samplesPerBlock);
     granularEngine->prepare(sampleRate, samplesPerBlock);
     samplerEngine->prepare(sampleRate, samplesPerBlock);
+    effectChain.prepare(sampleRate, samplesPerBlock);
 }
 
 void LayerEngine::setEngineType(LayerEngineType type)
@@ -54,6 +55,7 @@ int LayerEngine::processBlock(juce::AudioBuffer<float>& buffer, int numSamples)
     if (samplesProduced > 0)
     {
         applyPan(layerBuf, samplesProduced);
+        effectChain.processBlock(layerBuf, samplesProduced);
         for (int ch = 0; ch < juce::jmin(2, buffer.getNumChannels()); ++ch)
             buffer.addFrom(ch, 0, layerBuf, ch, 0, samplesProduced, level);
     }
@@ -61,8 +63,14 @@ int LayerEngine::processBlock(juce::AudioBuffer<float>& buffer, int numSamples)
     return samplesProduced;
 }
 
-void LayerEngine::noteOn(int midiNote, float velocity)
+void LayerEngine::noteOn(int midiNote, float velocity, int midiChannel)
 {
+    // Range and channel filtering
+    if (midiNote < loNote || midiNote > hiNote) return;
+    const int velInt = juce::roundToInt(velocity * 127.0f);
+    if (velInt < loVel || velInt > hiVel) return;
+    if (midiChannelFilter != 0 && midiChannel != 0 && midiChannel != midiChannelFilter) return;
+
     if (engineType == LayerEngineType::Synth)
         synthEngine->noteOn(midiNote, velocity);
     else if (engineType == LayerEngineType::Granular)
@@ -117,14 +125,20 @@ void LayerEngine::applyPan(juce::AudioBuffer<float>& buffer, int numSamples)
 juce::ValueTree LayerEngine::getState() const
 {
     juce::ValueTree tree("LayerEngine");
-    tree.setProperty("type",  static_cast<int>(engineType), nullptr);
-    tree.setProperty("level", level,  nullptr);
-    tree.setProperty("pan",   pan,    nullptr);
-    tree.setProperty("mute",  mute,   nullptr);
-    tree.setProperty("solo",  solo,   nullptr);
+    tree.setProperty("type",              static_cast<int>(engineType), nullptr);
+    tree.setProperty("level",             level,              nullptr);
+    tree.setProperty("pan",               pan,                nullptr);
+    tree.setProperty("mute",              mute,               nullptr);
+    tree.setProperty("solo",              solo,               nullptr);
+    tree.setProperty("loNote",            loNote,             nullptr);
+    tree.setProperty("hiNote",            hiNote,             nullptr);
+    tree.setProperty("loVel",             loVel,              nullptr);
+    tree.setProperty("hiVel",             hiVel,              nullptr);
+    tree.setProperty("midiChannelFilter", midiChannelFilter,  nullptr);
 
     if (granularEngine) tree.appendChild(granularEngine->getState(), nullptr);
     if (samplerEngine)  tree.appendChild(samplerEngine->getState(),  nullptr);
+    tree.appendChild(effectChain.getState(), nullptr);
 
     return tree;
 }
@@ -132,12 +146,18 @@ juce::ValueTree LayerEngine::getState() const
 void LayerEngine::setState(const juce::ValueTree& tree)
 {
     if (!tree.isValid()) return;
-    engineType = static_cast<LayerEngineType>(static_cast<int>(tree.getProperty("type",  0)));
-    level = static_cast<float>(tree.getProperty("level", 1.0f));
-    pan   = static_cast<float>(tree.getProperty("pan",   0.0f));
-    mute  = static_cast<bool> (tree.getProperty("mute",  false));
-    solo  = static_cast<bool> (tree.getProperty("solo",  false));
+    engineType        = static_cast<LayerEngineType>(static_cast<int>(tree.getProperty("type",  0)));
+    level             = static_cast<float>(tree.getProperty("level", 1.0f));
+    pan               = static_cast<float>(tree.getProperty("pan",   0.0f));
+    mute              = static_cast<bool> (tree.getProperty("mute",  false));
+    solo              = static_cast<bool> (tree.getProperty("solo",  false));
+    loNote            = static_cast<int>  (tree.getProperty("loNote",            0));
+    hiNote            = static_cast<int>  (tree.getProperty("hiNote",            127));
+    loVel             = static_cast<int>  (tree.getProperty("loVel",             0));
+    hiVel             = static_cast<int>  (tree.getProperty("hiVel",             127));
+    midiChannelFilter = static_cast<int>  (tree.getProperty("midiChannelFilter", 0));
 
     if (granularEngine) granularEngine->setState(tree.getChildWithName("GranularEngine"));
     if (samplerEngine)  samplerEngine->setState(tree.getChildWithName("SamplerEngine"));
+    effectChain.setState(tree.getChildWithName("LayerFX"));
 }

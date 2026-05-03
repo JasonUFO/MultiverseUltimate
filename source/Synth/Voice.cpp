@@ -4,6 +4,9 @@
 Voice::Voice()
 {
     envelope.setParameters(attackTime, decayTime, sustainLevel, releaseTime);
+    noiseOsc.noiseOsc.setWaveform(WaveformType::Noise);
+    noiseOsc.noiseOsc.setSampleRate(storedSampleRate);
+    subOsc.osc.setSampleRate(storedSampleRate);
 }
 
 void Voice::noteOn(int note, float vel)
@@ -13,6 +16,7 @@ void Voice::noteOn(int note, float vel)
     active = true;
 
     baseFrequency = 440.0f * std::pow(2.0f, (note - 69) / 12.0f);
+    subOsc.osc.setFrequency(baseFrequency * 0.5f);
     updateOscillatorFrequencies();
     envelope.triggerAttack();
 }
@@ -32,6 +36,7 @@ void Voice::updateOscillatorFrequencies()
         osc.classicOsc.setFrequency(freq);
         osc.wavetableOsc.setFrequency(freq);
     }
+    subOsc.osc.setFrequency(bentFreq * 0.5f);
 }
 
 void Voice::noteOff()
@@ -62,11 +67,17 @@ void Voice::setOversamplingMode(Filter::OversamplingMode mode)
 
 void Voice::setSampleRate(float sr)
 {
+    storedSampleRate = sr;
     for (auto& osc : oscStates)
     {
         osc.classicOsc.setSampleRate(sr);
         osc.wavetableOsc.prepare(sr);
     }
+    subOsc.osc.setSampleRate(sr);
+    noiseOsc.noiseOsc.setSampleRate(sr);
+    // Recompute noise color coefficient: one-pole LP coeff = 1 - exp(-2pi*fc/sr)
+    const float fc = juce::jlimit(20.0f, 20000.0f, noiseOsc.colorCutoffHz);
+    noiseOsc.colorCoeff = 1.0f - std::exp(-juce::MathConstants<float>::twoPi * fc / sr);
     filter.setSampleRate(sr);
     envelope.setSampleRate(sr);
 }
@@ -102,6 +113,22 @@ void Voice::setOscillatorWavePosition(int index, float pos)
     oscStates[index].wavetableOsc.setWavePosition(pos);
 }
 
+void Voice::setSubOscEnabled(bool e)  { subOsc.enabled = e; }
+void Voice::setSubOscLevel(float l)   { subOsc.level = juce::jlimit(0.0f, 1.0f, l); }
+void Voice::setSubOscWaveform(WaveformType wf) { subOsc.osc.setWaveform(wf); }
+
+void Voice::setNoiseOscEnabled(bool e) { noiseOsc.enabled = e; }
+void Voice::setNoiseOscLevel(float l)  { noiseOsc.level = juce::jlimit(0.0f, 1.0f, l); }
+void Voice::setNoiseOscColor(float hz)
+{
+    noiseOsc.colorCutoffHz = juce::jlimit(20.0f, 20000.0f, hz);
+    if (storedSampleRate > 0.0f)
+        noiseOsc.colorCoeff = 1.0f - std::exp(-juce::MathConstants<float>::twoPi
+                                               * noiseOsc.colorCutoffHz / storedSampleRate);
+}
+
+void Voice::setFilterType(Filter::FilterType t) { filter.setFilterType(t); }
+
 void Voice::loadWavetableData(int oscIndex, const juce::AudioBuffer<float>& audio)
 {
     if (oscIndex < 0 || oscIndex > 2) return;
@@ -133,6 +160,17 @@ float Voice::process()
         else
             s = osc.wavetableOsc.process();
         oscMix += s * osc.level;
+    }
+
+    if (subOsc.enabled)
+        oscMix += subOsc.osc.process() * subOsc.level;
+
+    if (noiseOsc.enabled)
+    {
+        float rawNoise = noiseOsc.noiseOsc.process();
+        noiseOsc.colorFilterState = noiseOsc.colorCoeff * rawNoise
+                                  + (1.0f - noiseOsc.colorCoeff) * noiseOsc.colorFilterState;
+        oscMix += noiseOsc.colorFilterState * noiseOsc.level;
     }
 
     oscMix = envelope.process(oscMix);

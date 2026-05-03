@@ -17,8 +17,8 @@ public:
     // Process all layers, mix to output
     void processBlock(juce::AudioBuffer<float>& buffer, int numSamples);
 
-    // MIDI routing (distribute to all active layers)
-    void noteOn(int midiNote, float velocity);
+    // MIDI routing (midiChannel: 1-16; 0 = omni)
+    void noteOn(int midiNote, float velocity, int midiChannel = 0);
     void noteOff(int midiNote);
     void allNotesOff();
 

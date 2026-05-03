@@ -233,8 +233,20 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     };
     addAndMakeVisible(oversamplingSelector);
 
+    // Filter type selector
+    setupLabel(filterTypeLabel, "TYPE");
+    addAndMakeVisible(filterTypeLabel);
+    filterTypeSelector.addItem("LP",    1);
+    filterTypeSelector.addItem("HP",    2);
+    filterTypeSelector.addItem("BP",    3);
+    filterTypeSelector.addItem("Notch", 4);
+    filterTypeSelector.setSelectedId(1, juce::dontSendNotification);
+    filterTypeSelector.setTooltip("Filter topology: Low-pass, High-pass, Band-pass, or Notch");
+    addAndMakeVisible(filterTypeSelector);
     // APVTS attachments
     auto& apvts = processorRef.apvts;
+    filterTypeAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        apvts, "filterType", filterTypeSelector);
     attackAttach    = std::make_unique<SliderAttachment>(apvts, "attack",          attackSlider);
     decayAttach     = std::make_unique<SliderAttachment>(apvts, "decay",           decaySlider);
     sustainAttach   = std::make_unique<SliderAttachment>(apvts, "sustain",         sustainSlider);
@@ -270,6 +282,58 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     unisonVoicesBox.setTooltip("Number of stacked voices per note (1 = off)");
     unisonDetuneSlider.setTooltip("Detune spread across unison voices in cents");
     unisonWidthSlider.setTooltip("Stereo spread of unison voices (0 = mono, 1 = full wide)");
+
+    // Unison spread mode
+    setupLabel(unisonSpreadLabel, "SPREAD");
+    addAndMakeVisible(unisonSpreadLabel);
+    unisonSpreadSelector.addItem("Stacked", 1);
+    unisonSpreadSelector.addItem("Chord",   2);
+    unisonSpreadSelector.addItem("Random",  3);
+    unisonSpreadSelector.setSelectedId(1, juce::dontSendNotification);
+    unisonSpreadSelector.setTooltip("Unison spread: Stacked=linear detune, Chord=major chord intervals, Random=random detune per voice");
+    addAndMakeVisible(unisonSpreadSelector);
+    unisonSpreadAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        apvts, "unisonSpreadMode", unisonSpreadSelector);
+
+    // Sub oscillator controls
+    setupLabel(subOscLabel,       "SUB");
+    setupLabel(noiseOscLabel,     "NOISE");
+    setupLabel(subOscLevelLabel,  "Level");
+    setupLabel(noiseOscLevelLabel,"Level");
+    setupLabel(noiseOscColorLabel,"Color");
+    addAndMakeVisible(subOscLabel);
+    addAndMakeVisible(noiseOscLabel);
+
+    subOscEnableButton.setButtonText("ON");
+    subOscEnableButton.setTooltip("Enable sub oscillator (1 octave below, Sine or Square)");
+    addAndMakeVisible(subOscEnableButton);
+
+    noiseOscEnableButton.setButtonText("ON");
+    noiseOscEnableButton.setTooltip("Enable noise oscillator with LP color filter");
+    addAndMakeVisible(noiseOscEnableButton);
+
+    setupSlider(subOscLevelSlider,   0.0, 1.0, 0.5);
+    setupSlider(noiseOscLevelSlider, 0.0, 1.0, 0.3);
+    setupSlider(noiseOscColorSlider, 200.0, 20000.0, 5000.0, 0.3);
+    addAndMakeVisible(subOscLevelSlider);   addAndMakeVisible(subOscLevelLabel);
+    addAndMakeVisible(noiseOscLevelSlider); addAndMakeVisible(noiseOscLevelLabel);
+    addAndMakeVisible(noiseOscColorSlider); addAndMakeVisible(noiseOscColorLabel);
+
+    subOscWaveSelector.addItem("Sine",   1);
+    subOscWaveSelector.addItem("Square", 2);
+    subOscWaveSelector.setSelectedId(1, juce::dontSendNotification);
+    subOscWaveSelector.setTooltip("Sub oscillator waveform");
+    addAndMakeVisible(subOscWaveSelector);
+
+    subOscEnableAttach   = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "subOscEnable",   subOscEnableButton);
+    noiseOscEnableAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "noiseOscEnable", noiseOscEnableButton);
+    subOscLevelAttach    = std::make_unique<SliderAttachment>(apvts, "subOscLevel",    subOscLevelSlider);
+    noiseOscLevelAttach  = std::make_unique<SliderAttachment>(apvts, "noiseOscLevel",  noiseOscLevelSlider);
+    noiseOscColorAttach  = std::make_unique<SliderAttachment>(apvts, "noiseOscColor",  noiseOscColorSlider);
+    subOscWaveAttach     = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(apvts, "subOscWave", subOscWaveSelector);
+    subOscLevelSlider.init(processorRef,   "subOscLevel");
+    noiseOscLevelSlider.init(processorRef, "noiseOscLevel");
+    noiseOscColorSlider.init(processorRef, "noiseOscColor");
 
     // Initialize MidiLearnSliders
     attackSlider.init(processorRef, "attack");
@@ -480,15 +544,24 @@ void SynthPanel::updateVisibility()
     unisonVoicesLabel.setVisible(!isFM); unisonVoicesBox.setVisible(!isFM);
     unisonDetuneLabel.setVisible(!isFM); unisonDetuneSlider.setVisible(!isFM);
     unisonWidthLabel.setVisible(!isFM);  unisonWidthSlider.setVisible(!isFM);
+    unisonSpreadLabel.setVisible(!isFM); unisonSpreadSelector.setVisible(!isFM);
 
     attackLabel.setVisible(!isFM);  attackSlider.setVisible(!isFM);
     decayLabel.setVisible(!isFM);   decaySlider.setVisible(!isFM);
     sustainLabel.setVisible(!isFM); sustainSlider.setVisible(!isFM);
     releaseLabel.setVisible(!isFM); releaseSlider.setVisible(!isFM);
 
-    cutoffLabel.setVisible(!isFM);       cutoffSlider.setVisible(!isFM);
-    resonanceLabel.setVisible(!isFM);    resonanceSlider.setVisible(!isFM);
-    oversamplingLabel.setVisible(!isFM); oversamplingSelector.setVisible(!isFM);
+    cutoffLabel.setVisible(!isFM);        cutoffSlider.setVisible(!isFM);
+    resonanceLabel.setVisible(!isFM);     resonanceSlider.setVisible(!isFM);
+    oversamplingLabel.setVisible(!isFM);  oversamplingSelector.setVisible(!isFM);
+    filterTypeLabel.setVisible(!isFM);    filterTypeSelector.setVisible(!isFM);
+
+    subOscLabel.setVisible(!isFM);       subOscEnableButton.setVisible(!isFM);
+    subOscLevelSlider.setVisible(!isFM); subOscLevelLabel.setVisible(!isFM);
+    subOscWaveSelector.setVisible(!isFM);
+    noiseOscLabel.setVisible(!isFM);          noiseOscEnableButton.setVisible(!isFM);
+    noiseOscLevelSlider.setVisible(!isFM);    noiseOscLevelLabel.setVisible(!isFM);
+    noiseOscColorSlider.setVisible(!isFM);    noiseOscColorLabel.setVisible(!isFM);
 
     algorithmLabel.setVisible(isFM);
     algorithmSelector.setVisible(isFM);
@@ -515,10 +588,11 @@ void SynthPanel::paint(juce::Graphics& g)
 
     if (!isFM)
     {
-        drawSection(g, oscSectionRect,    "OSC");
-        drawSection(g, unisonSectionRect, "UNISON");
-        drawSection(g, filterSectionRect, "FILTER");
-        drawSection(g, envSectionRect,    "ENV");
+        drawSection(g, oscSectionRect,      "OSC");
+        drawSection(g, subNoiseSectionRect, "SUB / NOISE");
+        drawSection(g, unisonSectionRect,   "UNISON");
+        drawSection(g, filterSectionRect,   "FILTER");
+        drawSection(g, envSectionRect,      "ENV");
     }
     else
     {
@@ -671,8 +745,45 @@ void SynthPanel::resized()
         }
         area.removeFromTop(8);
 
+        // SUB / NOISE section
+        subNoiseSectionRect = area.removeFromTop(126);
+        {
+            auto inner = subNoiseSectionRect.reduced(8).withTrimmedTop(18);
+            const int halfW = inner.getWidth() / 2;
+
+            // Left half: SUB
+            auto subArea = inner.removeFromLeft(halfW).reduced(4, 0);
+            subOscLabel.setBounds(subArea.removeFromTop(labelH));
+            auto subCtrlRow = subArea.removeFromTop(26);
+            subOscEnableButton.setBounds(subCtrlRow.removeFromLeft(40));
+            subCtrlRow.removeFromLeft(6);
+            subOscWaveSelector.setBounds(subCtrlRow.removeFromLeft(90));
+            subArea.removeFromTop(4);
+            auto subKnobArea = subArea.removeFromTop(knobSz + labelH);
+            subOscLevelSlider.setBounds(subKnobArea.removeFromTop(knobSz));
+            subOscLevelLabel.setBounds(subKnobArea.removeFromTop(labelH));
+
+            // Right half: NOISE
+            auto noiseArea = inner.reduced(4, 0);
+            noiseOscLabel.setBounds(noiseArea.removeFromTop(labelH));
+            auto noiseCtrlRow = noiseArea.removeFromTop(26);
+            noiseOscEnableButton.setBounds(noiseCtrlRow.removeFromLeft(40));
+            noiseArea.removeFromTop(4);
+            auto noiseKnobRow = noiseArea.removeFromTop(knobSz + labelH);
+            auto placeNK = [&](NeuKnob& s, juce::Label& l)
+            {
+                auto col = noiseKnobRow.removeFromLeft(knobSz);
+                s.setBounds(col.removeFromTop(knobSz));
+                l.setBounds(col.removeFromTop(labelH));
+                noiseKnobRow.removeFromLeft(8);
+            };
+            placeNK(noiseOscLevelSlider, noiseOscLevelLabel);
+            placeNK(noiseOscColorSlider, noiseOscColorLabel);
+        }
+        area.removeFromTop(8);
+
         // UNISON section
-        unisonSectionRect = area.removeFromTop(90);
+        unisonSectionRect = area.removeFromTop(120);
         {
             auto inner = unisonSectionRect.reduced(8).withTrimmedTop(18);
             // Voices ComboBox (labeled)
@@ -689,11 +800,16 @@ void SynthPanel::resized()
             auto widthCol = inner.removeFromLeft(knobSz);
             unisonWidthSlider.setBounds(widthCol.removeFromTop(knobSz));
             unisonWidthLabel.setBounds(widthCol.removeFromTop(labelH));
+            inner.removeFromLeft(12);
+            // Spread mode
+            auto spreadCol = inner.removeFromLeft(130);
+            unisonSpreadLabel.setBounds(spreadCol.removeFromBottom(labelH));
+            unisonSpreadSelector.setBounds(spreadCol.reduced(0, 4));
         }
         area.removeFromTop(8);
 
         // FILTER section
-        filterSectionRect = area.removeFromTop(155);
+        filterSectionRect = area.removeFromTop(185);
         {
             auto inner   = filterSectionRect.reduced(8).withTrimmedTop(18);
             auto knobRow = inner.removeFromTop(knobSz + labelH);
@@ -706,6 +822,12 @@ void SynthPanel::resized()
             };
             placeKnob(cutoffSlider,    cutoffLabel);
             placeKnob(resonanceSlider, resonanceLabel);
+
+            inner.removeFromTop(4);
+            auto typeRow = inner.removeFromTop(28);
+            filterTypeLabel.setBounds(typeRow.removeFromLeft(36));
+            typeRow.removeFromLeft(6);
+            filterTypeSelector.setBounds(typeRow.removeFromLeft(90));
 
             inner.removeFromTop(4);
             auto osRow = inner.removeFromTop(28);

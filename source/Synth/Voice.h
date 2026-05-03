@@ -15,6 +15,24 @@ struct OscState
     float detuneSemitones = 0.0f;
 };
 
+struct SubOscState
+{
+    bool enabled = false;
+    float level = 0.5f;
+    WaveformType waveform = WaveformType::Sine;
+    Oscillator osc;
+};
+
+struct NoiseOscState
+{
+    bool enabled = false;
+    float level = 0.3f;
+    float colorCutoffHz = 20000.0f;
+    Oscillator noiseOsc;       // WaveformType::Noise
+    float colorFilterState = 0.0f;
+    float colorCoeff = 1.0f;   // 1 - exp(-2pi*fc/sr), 1.0 = full white noise
+};
+
 class Voice
 {
 public:
@@ -45,6 +63,19 @@ public:
     void setFrequencyDirect(float hz);
     void setNoteLegato(int note);
 
+    // Sub oscillator
+    void setSubOscEnabled(bool e);
+    void setSubOscLevel(float l);
+    void setSubOscWaveform(WaveformType wf);
+
+    // Noise oscillator
+    void setNoiseOscEnabled(bool e);
+    void setNoiseOscLevel(float l);
+    void setNoiseOscColor(float cutoffHz);
+
+    // Filter topology
+    void setFilterType(Filter::FilterType t);
+
     WavetableOscillator& getWavetableOsc(int oscIndex) { return oscStates[juce::jlimit(0, 2, oscIndex)].wavetableOsc; }
 
 private:
@@ -62,8 +93,11 @@ private:
     float releaseTime = 0.3f;
     float filterCutoff = 20000.0f;
     float filterResonance = 0.0f;
+    float storedSampleRate = 44100.0f;
 
     std::array<OscState, 3> oscStates;
+    SubOscState  subOsc;
+    NoiseOscState noiseOsc;
     Filter filter;
     Envelope envelope;
 };

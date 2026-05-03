@@ -96,6 +96,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | UI-7 | **COMPLETE** — SynthPanel, GranularPanel, MacroPanel neumorphic section cards |
 | WavetableEditor | Visual wavetable editor: draw tools, formula generators, normalize/fade/reverse/import, per-osc "EDIT WT" button in SynthPanel |
 | Layers | 8-layer engine: Synth/Granular/Sampler per layer, level/pan/mute/solo, full MIDI + audio + state wiring, "Layers" tab |
+| Track B | Filter LP/HP/BP/Notch; Sub+Noise osc; Unison Chord/Random spread; Layer key/vel/MIDI-ch ranges; Per-layer independent effect chain (LayerEffectChain) |
 
 ## Next Steps
 
@@ -106,12 +107,8 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 **Figma assets:** `Figmacomponents/` — 10 panel SVGs + 3 component SVGs + `FIGMA_BUILD_GUIDE.md`  
 **Status:** Awaiting visual sign-off. Review SVGs → approve → implement C++.
 
-### Feature Gaps vs Target Synths
-See `AI_STATE.md` "Track B" for full list. Key items:
-- Layer key/velocity ranges (Nexus 5 / Avenger 2 parity)
-- Sub oscillator + noise oscillator (Serum 2 parity)
-- Filter topology selector LP/HP/BP/Notch (Diva parity)
-- Layer per-effects send (Avenger 2 parity)
+### Cyberpunk UI
+See `AI_CYBERPUNK_PLAN.md` — only remaining track.
 
 ---
 
@@ -168,3 +165,9 @@ See `AI_STATE.md` "Track B" for full list. Key items:
 - `SynthEngine::getWavetableOscillator(oscIndex)` returns `voices[0].voice.getWavetableOsc(oscIndex)` — voice 0 is the edit master. `distributeWavetable(oscIndex)` copies frame data from voice 0 to voices 1–15 via `setSample`.
 - `LayerManager` (`Source/Layers/`) manages `std::array<unique_ptr<LayerEngine>, 8>`. Each `LayerEngine` owns its own `SynthEngine`, `GranularEngine`, `SamplerEngine` (all three always allocated; only active engine processes). `LayerManager::processBlock` mixes all non-muted layers (or only soloed layers) into the output buffer. MIDI goes to all active layers. State: `juce::ValueTree` — GranularEngine + SamplerEngine sub-states only (SynthEngine has no standalone state API).
 - `LayersPanel` (`Source/Layers/LayersPanel.h/.cpp`): `rows` is `std::array<unique_ptr<LayerRow>, 8>`. `LayerRow` is a struct (not a Component) holding JUCE controls as direct members. Lambdas capture `[this, index, row]` — `row` is a raw pointer to the unique_ptr content, valid for the panel's lifetime.
+- `Filter::FilterType {LP, HP, BP, Notch}` — LP/HP/BP use `StateVariableTPTFilter::Type`; Notch uses `juce::dsp::IIR::Filter<float>` biquad (JUCE 8 SVF has no `notch` type). `setFilterType` / `setCutoff` / `setResonance` all update notch coeffs when type == Notch. Three IIR instances for 1x/2x/4x oversampling.
+- `SubOscState` in Voice: `enabled`, `level`, `waveform`, `Oscillator osc` — always at `baseFreq * 0.5f`, updated in `updateOscillatorFrequencies()`. `NoiseOscState`: `enabled`, `level`, `colorCutoffHz`, one-pole LP (`colorCoeff = 1 - exp(-2π*fc/sr)`). Both mixed into `Voice::process()` before envelope.
+- `SynthEngine::UnisonSpreadMode {Stacked, Chord, Random}` — Chord uses fixed semitone array `[0,4,7,12,16,19,24,28]` (major chord); Random uses `juce::Random::getSystemRandom()` per voice per noteOn.
+- `LayerEffectChain` (`Source/Layers/LayerEffectChain.h/.cpp`): owns `ChorusEffect chorus[2]`, `DistortionEffect distortion[2]`, `EQEffect eq[2]`, `CompressorEffect compressor[2]`, `DelayEffect delay[2]`, `ReverbEffect reverb`. Per-effect `Slot {bool enabled; float mix}`. `processBlock` wet/dry blends each enabled effect; Reverb uses stereo `processBlock(L,R,n)`. State saved as `LayerFX` XML child of LayerEngine. "FX" button in LayersPanel row opens `juce::CallOutBox` with 6 enable toggles + mix sliders (heap-allocated Component, owned by CallOutBox).
+- `LayerEngine::noteOn(int note, float vel, int midiChannel)` — filters on `loNote/hiNote`, `loVel/hiVel` (vel×127), `midiChannelFilter` (0=all). `LayerManager::noteOn` passes `midiChannel` (from `message.getChannel()` in processBlock).
+- New APVTS params: `filterType` (Choice), `unisonSpreadMode` (Choice), `subOscEnable/Level/Wave` (Bool/Float/Choice), `noiseOscEnable/Level/Color` (Bool/Float/Float 200-20000Hz skew 0.3).

@@ -245,6 +245,9 @@ private:
     juce::Label    cutoffLabel, resonanceLabel;
     juce::Label    oversamplingLabel;
     juce::ComboBox oversamplingSelector;
+    juce::Label    filterTypeLabel;
+    juce::ComboBox filterTypeSelector;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> filterTypeAttach;
 
     void setupSlider(juce::Slider& s, double min, double max, double value, double skew = 1.0);
     void setupLabel(juce::Label& l, const juce::String& text);
@@ -284,6 +287,22 @@ private:
     NeuKnob    unisonDetuneSlider, unisonWidthSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> unisonVoicesAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>   unisonDetuneAttach, unisonWidthAttach;
+
+    // Sub oscillator section
+    juce::Rectangle<int> subNoiseSectionRect;
+    juce::ToggleButton subOscEnableButton, noiseOscEnableButton;
+    NeuKnob subOscLevelSlider, noiseOscLevelSlider, noiseOscColorSlider;
+    juce::ComboBox subOscWaveSelector;
+    juce::Label subOscLabel, noiseOscLabel;
+    juce::Label subOscLevelLabel, noiseOscLevelLabel, noiseOscColorLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>  subOscEnableAttach, noiseOscEnableAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>  subOscLevelAttach, noiseOscLevelAttach, noiseOscColorAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> subOscWaveAttach;
+
+    // Unison spread mode
+    juce::Label    unisonSpreadLabel;
+    juce::ComboBox unisonSpreadSelector;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> unisonSpreadAttach;
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     std::unique_ptr<SliderAttachment> attackAttach, decayAttach, sustainAttach, releaseAttach;

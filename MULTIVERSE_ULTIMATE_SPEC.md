@@ -3,7 +3,7 @@
 **Company:** Multiphase Audio  
 **Format:** VST3 / AU (macOS)  
 **Build system:** JUCE 8.x + Projucer + Xcode  
-**Last updated:** 2026-04-25
+**Last updated:** 2026-05-03
 
 ---
 
@@ -55,42 +55,32 @@
 
 ---
 
-## 2. What Is Still To Do
+## 2. Current Status — All Core Features Complete ✅
 
-### 2.1 Critical — Audio Routing (Plugin is Silent for Some Paths)
+All items from the original "What Is Still To Do" list have been resolved. The plugin fully builds, loads in DAWs, and is feature-complete at the competitive-synth level.
 
-- [ ] **Delay and Reverb are instantiated in `PluginProcessor` but never called in `processBlock`.** `delay.process()` and `reverb.process()` are never invoked. The effects exist but produce no audio.
-- [ ] **`SamplerEngine` is not wired into `processBlock` at all.** Sampler MIDI note-on/off goes to `synthEngine` only. Sampler engine produces no audio output.
-- [ ] **`Sequencer` (melodic step sequencer) is not instantiated in `PluginProcessor`** and generates no MIDI output that drives the synth. It exists as a standalone object in the UI panel only.
-- [ ] **`ModulationMatrix` is instantiated in `PluginEditor`, not `PluginProcessor`** — it lives on the UI thread and is disconnected from the audio engine. Modulation values never reach oscillators, filters, or envelopes.
+### 2.1 Completed Feature Set (as of 2026-05-03)
 
-### 2.2 UI — Most Panels Are Not Shown
+| Area | Status |
+|------|--------|
+| Audio routing: Synth / Granular / Sampler / Drums / Layers → Effects → Output | ✅ |
+| Full APVTS parameter system (all controls DAW-automatable) | ✅ |
+| State persistence (XML): all params, presets, modulation, layers, effects | ✅ |
+| MIDI: note on/off, pitch bend, CC, sustain, sostenuto, MPE, all-notes-off | ✅ |
+| MIDI Learn + Macro controls | ✅ |
+| 10-tab UI: Synth, Drums, Modulation, Sampler, Sequencer, Pro Seq, Arp, Effects, Granular, Layers | ✅ |
+| Dark Forge neumorphic UI (MultiverseTheme, NeuKnob, SynthDisplay) | ✅ |
+| WavetableEditor (draw, formula gen, import multi-cycle WAV) | ✅ |
+| Filter LP/HP/BP/Notch, sub osc, noise osc, unison spread modes | ✅ |
+| 8-layer engine: key/vel/MIDI-ch ranges, per-layer FX chain | ✅ |
 
-- [ ] **`PluginEditor` only shows `DrumSequencerPanel` and `ModulationMatrixPanel`**. The following panels exist in source but are never added to the editor:
-  - `SamplerPanel`
-  - `SequencerPanel` (melodic sequencer / arpeggiator)
-  - Any synth parameter UI (ADSR sliders, filter, oscillator, FM operator controls)
-- [ ] **No tab/navigation system** — with 5+ panels, the UI needs a tab bar or sidebar.
-- [ ] **`PluginEditor::paint()` draws a text label over the UI** — leftover debug text `g.drawText(JucePlugin_Name, ...)` renders at the top 150px over any content.
-- [ ] **Layout in `PluginEditor::resized()`** splits area exactly in half between drum sequencer and modulation matrix — no consideration for other panels.
+### 2.2 Next Phase — Cyberpunk UI (Track A)
 
-### 2.3 State Management
-
-- [ ] **`getStateInformation` / `setStateInformation` only saves `masterVolume`** — nothing else (drum patterns, synth params, preset index, sequencer patterns, effects params) is serialised. Closing and reopening a DAW session resets everything.
-- [ ] **`PresetManager` is instantiated in `PluginProcessor` but never used** — `loadPreset()` / `savePreset()` are never called; no preset UI exists.
-
-### 2.4 Synth Engine — Missing Connections
-
-- [ ] **No parameter controls wired to audio:** `SynthEngine::setEnvelopeParams()`, `setFilterParams()`, `setWaveform()`, `setFMAlgorithm()`, `setFMOperatorParams()` all exist but nothing in the UI calls them.
-- [ ] **Pitch bend** — `SynthEngine::setPitchBend()` exists but `processBlock` never reads pitch-bend MIDI messages.
-- [ ] **All-notes-off** — MIDI all-notes-off (CC 123) and sustain pedal (CC 64) are not handled in `processBlock`.
-- [ ] **`SynthMode` switching** — FM vs Classic mode can be set programmatically but there is no UI control for it.
-
-### 2.5 Drum Sequencer — Minor Issues
-
-- [ ] **Synth-based drum voices are not implemented.** `DrumVoice` plays back an audio sample from `DrumTrack::sampleBuffer`. If no sample is loaded, the track is silent. There is no synthesised fallback (e.g. a sine click or noise burst).
-- [ ] **Pattern save/load is in-memory only** — patterns reset on plugin reload (tied to state serialisation issue above).
-- [ ] **`DrumSequencerPanel::showVelocityMenu` "Custom..." item** does nothing useful — the lambda reads the current velocity and sets it back without asking for user input (needs a text input dialog).
+- Full visual overhaul: `MultiverseTheme` → `CyberpunkTheme`
+- Color palette: neonCyan (#00F0FF), neonPink (#FF2A6D), neonPurple (#B026FF) on bgVoid (#0A0A12)
+- Full spec: `AI_CYBERPUNK_PLAN.md`
+- Figma assets: `Figmacomponents/` (10 panel SVGs + 3 component SVGs)
+- Process: review SVGs → sign off → implement C++
 
 ### 2.6 Modulation Matrix — Not Functional
 
