@@ -21,6 +21,7 @@ public:
     void reset();
     void setSampleRate(float sr);
     WaveformType getWaveform() const { return waveform; }
+    float getPhase() const { return phase; }
 
 private:
     static float generateSample(WaveformType t, float phase, float pulseWidth);

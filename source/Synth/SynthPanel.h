@@ -215,7 +215,7 @@ private:
     juce::Rectangle<int> fmSectionRect, voiceSectionRect;
     juce::Rectangle<int> modeBadgeRect;
 
-    // 3 Oscillator strips
+    // 8 Oscillator strips (first 3 active by default; +/- buttons adjust count)
     struct OscControls
     {
         juce::Label        sectionLabel;
@@ -228,11 +228,21 @@ private:
         juce::TextButton   loadWTButton { "LOAD WT" };
         juce::TextButton   editWTButton { "EDIT WT" };
         juce::Label        wtFileLabel;
+        // Wave shaping
+        juce::ComboBox     shapeTypeSelector;
+        NeuKnob    shapeAmtSlider;
+        NeuKnob    selfOscSlider;
+        NeuKnob    phaseDistSlider;
+        juce::Label        shapeAmtLabel, selfOscLabel, phaseDistLabel;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> typeAttach;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>    levelAttach, detuneAttach, wavePosAttach;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> waveformAttach;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> shapeTypeAttach;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>    shapeAmtAttach, selfOscAttach, phaseDistAttach;
     };
-    std::array<OscControls, 3> oscControls;
+    std::array<OscControls, 8> oscControls;
+    juce::TextButton addOscButton { "+ OSC" };
+    juce::TextButton removeOscButton { "- OSC" };
 
     // Envelope
     juce::Label  envSectionLabel;
@@ -312,7 +322,7 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
 
     // Wavetable editors (one per osc strip, shown as overlays)
-    std::array<std::unique_ptr<WavetableEditor>, 3> wavetableEditors;
+    std::array<std::unique_ptr<WavetableEditor>, 8> wavetableEditors;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SynthPanel)
 };

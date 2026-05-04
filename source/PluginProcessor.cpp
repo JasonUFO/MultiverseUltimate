@@ -187,18 +187,19 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
             juce::NormalisableRange<float>(0.001f, 10.0f, 0.0f, 0.4f), 0.3f));
      }
 
-    // 3 Oscillator parameters (per oscillator: type, level, detune, waveform, wavePos)
-    for (int osc = 1; osc <= 3; ++osc)
+    // 8 Oscillator parameters (per oscillator: type, level, detune, waveform, wavePos, shapeType, shapeAmt, selfOsc, phaseDist)
+    for (int osc = 1; osc <= 8; ++osc)
     {
         juce::String prefix = "osc" + juce::String(osc);
+        const float defaultLevel = (osc <= 3) ? 1.0f : 0.0f;
 
         layout.add(std::make_unique<juce::AudioParameterChoice>(
             juce::ParameterID{prefix + "Type", 1}, prefix + " Type",
-            juce::StringArray{"Classic", "Wavetable"}, 0));
+            juce::StringArray{"Classic", "Wavetable", "Additive", "Phase Dist", "Analog", "Digital"}, 0));
 
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{prefix + "Level", 1}, prefix + " Level",
-            juce::NormalisableRange<float>(0.0f, 1.0f), 1.0f));
+            juce::NormalisableRange<float>(0.0f, 1.0f), defaultLevel));
 
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{prefix + "Detune", 1}, prefix + " Detune",
@@ -211,7 +212,28 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{prefix + "WavePos", 1}, prefix + " Wave Pos",
             juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+
+        layout.add(std::make_unique<juce::AudioParameterChoice>(
+            juce::ParameterID{prefix + "ShapeType", 1}, prefix + " Shape Type",
+            juce::StringArray{"Off", "Drive", "Fold", "Clip"}, 0));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{prefix + "ShapeAmt", 1}, prefix + " Shape Amount",
+            juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{prefix + "SelfOsc", 1}, prefix + " Self Osc",
+            juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{prefix + "PhaseDist", 1}, prefix + " Phase Dist",
+            juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
     }
+
+    // Active oscillator count (1–8, default 3)
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"oscCount", 1}, "Oscillator Count",
+        juce::StringArray{"1", "2", "3", "4", "5", "6", "7", "8"}, 2));
 
     // Unison parameters
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -478,20 +500,29 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         *apvts.getRawParameterValue("release")
     );
 
-    // 3 Oscillator parameters
-    for (int osc = 0; osc < 3; ++osc)
+    // Active oscillator count
+    const int oscCount = static_cast<int>(*apvts.getRawParameterValue("oscCount")) + 1;
+    synthEngine.setOscCount(oscCount);
+
+    // 8 Oscillator parameters
+    for (int osc = 0; osc < 8; ++osc)
     {
         juce::String prefix = "osc" + juce::String(osc + 1);
-        int typeChoice = static_cast<int>(*apvts.getRawParameterValue(prefix + "Type"));
-        OscillatorType otype = (typeChoice == 1) ? OscillatorType::Wavetable : OscillatorType::Classic;
+        const int typeChoice = static_cast<int>(*apvts.getRawParameterValue(prefix + "Type"));
+        const OscillatorType otype = static_cast<OscillatorType>(typeChoice);
         synthEngine.setOscillatorType(osc, otype);
         synthEngine.setOscillatorLevel(osc, *apvts.getRawParameterValue(prefix + "Level"));
         synthEngine.setOscillatorDetune(osc, *apvts.getRawParameterValue(prefix + "Detune"));
 
-        int wfChoice = static_cast<int>(*apvts.getRawParameterValue(prefix + "Waveform"));
-        WaveformType wf = static_cast<WaveformType>(wfChoice);
-        synthEngine.setOscillatorWaveform(osc, wf);
+        const int wfChoice = static_cast<int>(*apvts.getRawParameterValue(prefix + "Waveform"));
+        synthEngine.setOscillatorWaveform(osc, static_cast<WaveformType>(wfChoice));
         synthEngine.setOscillatorWavePosition(osc, *apvts.getRawParameterValue(prefix + "WavePos"));
+
+        const int shapeChoice = static_cast<int>(*apvts.getRawParameterValue(prefix + "ShapeType"));
+        synthEngine.setOscillatorShapeType(osc, static_cast<OscShapeType>(shapeChoice));
+        synthEngine.setOscillatorShapeAmount(osc, *apvts.getRawParameterValue(prefix + "ShapeAmt"));
+        synthEngine.setOscillatorSelfOsc(osc, *apvts.getRawParameterValue(prefix + "SelfOsc"));
+        synthEngine.setOscillatorPhaseDistAmount(osc, *apvts.getRawParameterValue(prefix + "PhaseDist"));
     }
 
     // Unison
@@ -964,6 +995,17 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     granularEngine.setPitchScatter(juce::jlimit(0.0f, 24.0f,
         *apvts.getRawParameterValue("granularPitchScatter")
         + modSums[static_cast<int>(ModTargetType::GranularPitchScatter)] * 12.0f));
+
+    // New mod targets: osc 0 shape amount + phase dist amount
+    {
+        const float baseShapeAmt = *apvts.getRawParameterValue("osc1ShapeAmt");
+        synthEngine.setOscillatorShapeAmount(0, juce::jlimit(0.0f, 1.0f,
+            baseShapeAmt + modSums[static_cast<int>(ModTargetType::OscShapeAmount)]));
+        const float basePDamt = *apvts.getRawParameterValue("osc1PhaseDist");
+        synthEngine.setOscillatorPhaseDistAmount(0, juce::jlimit(0.0f, 1.0f,
+            basePDamt + modSums[static_cast<int>(ModTargetType::OscPhaseDistAmount)]));
+    }
+
     granularEngine.setEnvShape     (static_cast<int>(*apvts.getRawParameterValue("granularEnvShape")));
     granularEngine.setReverse      (*apvts.getRawParameterValue("granularReverse") > 0.5f);
     granularEngine.setStereoSpread (*apvts.getRawParameterValue("granularStereoSpread"));
@@ -1094,8 +1136,9 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     juce::ValueTree synthParams("SynthParams");
     synthParams.setProperty("synthMode",   static_cast<int>(synthEngine.getSynthMode()), nullptr);
     synthParams.setProperty("fmAlgorithm", synthEngine.getFMAlgorithm(),                 nullptr);
-    // Save 3 oscillator settings
-    for (int osc = 0; osc < 3; ++osc)
+    // Save 8 oscillator settings
+    synthParams.setProperty("oscCount", synthEngine.getOscCount(), nullptr);
+    for (int osc = 0; osc < 8; ++osc)
     {
         juce::ValueTree oscNode("Osc");
         oscNode.setProperty("index",         osc, nullptr);
@@ -1105,6 +1148,10 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
         oscNode.setProperty("waveform",      static_cast<int>(synthEngine.getOscillatorWaveform(osc)), nullptr);
         oscNode.setProperty("wavePos",       synthEngine.getOscillatorWavePosition(osc), nullptr);
         oscNode.setProperty("wavetableFile", synthEngine.getWavetableFilePath(osc), nullptr);
+        oscNode.setProperty("shapeType",     static_cast<int>(synthEngine.getOscillatorShapeType(osc)), nullptr);
+        oscNode.setProperty("shapeAmt",      synthEngine.getOscillatorShapeAmount(osc), nullptr);
+        oscNode.setProperty("selfOsc",       synthEngine.getOscillatorSelfOsc(osc), nullptr);
+        oscNode.setProperty("phaseDist",     synthEngine.getOscillatorPhaseDistAmount(osc), nullptr);
         synthParams.appendChild(oscNode, nullptr);
     }
     for (int op = 0; op < 4; ++op)
@@ -1199,13 +1246,17 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
         if (synthParams.hasProperty("fmAlgorithm"))
             synthEngine.setFMAlgorithm((int)synthParams.getProperty("fmAlgorithm"));
 
-        // Restore 3 oscillator settings
+        // Restore oscillator count
+        if (synthParams.hasProperty("oscCount"))
+            synthEngine.setOscCount((int)synthParams.getProperty("oscCount"));
+
+        // Restore 8 oscillator settings
         for (auto oscNode : synthParams)
         {
             if (oscNode.hasType("Osc"))
             {
                 int idx = (int)oscNode.getProperty("index");
-                if (idx >= 0 && idx < 3)
+                if (idx >= 0 && idx < 8)
                 {
                     synthEngine.setOscillatorType(idx, static_cast<OscillatorType>((int)oscNode.getProperty("type")));
                     synthEngine.setOscillatorLevel(idx, (float)oscNode.getProperty("level"));
@@ -1218,6 +1269,14 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
                         if (path.isNotEmpty())
                             synthEngine.loadWavetableFile(idx, juce::File(path));
                     }
+                    if (oscNode.hasProperty("shapeType"))
+                        synthEngine.setOscillatorShapeType(idx, static_cast<OscShapeType>((int)oscNode.getProperty("shapeType")));
+                    if (oscNode.hasProperty("shapeAmt"))
+                        synthEngine.setOscillatorShapeAmount(idx, (float)oscNode.getProperty("shapeAmt"));
+                    if (oscNode.hasProperty("selfOsc"))
+                        synthEngine.setOscillatorSelfOsc(idx, (float)oscNode.getProperty("selfOsc"));
+                    if (oscNode.hasProperty("phaseDist"))
+                        synthEngine.setOscillatorPhaseDistAmount(idx, (float)oscNode.getProperty("phaseDist"));
                 }
             }
         }

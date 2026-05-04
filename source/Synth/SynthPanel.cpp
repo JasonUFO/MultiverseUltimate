@@ -24,26 +24,30 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     };
     addAndMakeVisible(modeSelector);
 
-    // 3 Oscillator strips
-    for (int osc = 0; osc < 3; ++osc)
+    // 8 Oscillator strips
+    for (int osc = 0; osc < 8; ++osc)
     {
         auto& c = oscControls[osc];
         const juce::String pfx = "Osc " + juce::String(osc + 1);
         setupLabel(c.sectionLabel, pfx);
-        addAndMakeVisible(c.sectionLabel);
+        addChildComponent(c.sectionLabel);
 
-        c.typeSelector.addItem("Classic", 1);
-        c.typeSelector.addItem("Wavetable", 2);
+        c.typeSelector.addItem("Classic",    1);
+        c.typeSelector.addItem("Wavetable",  2);
+        c.typeSelector.addItem("Additive",   3);
+        c.typeSelector.addItem("Phase Dist", 4);
+        c.typeSelector.addItem("Analog",     5);
+        c.typeSelector.addItem("Digital",    6);
         c.typeSelector.setSelectedId(1, juce::dontSendNotification);
-        addAndMakeVisible(c.typeSelector);
+        addChildComponent(c.typeSelector);
 
-        setupSlider(c.levelSlider, 0.0, 1.0, 1.0);
+        setupSlider(c.levelSlider, 0.0, 1.0, osc < 3 ? 1.0 : 0.0);
         setupLabel(c.levelLabel, "Level");
-        addAndMakeVisible(c.levelSlider); addAndMakeVisible(c.levelLabel);
+        addChildComponent(c.levelSlider); addChildComponent(c.levelLabel);
 
         setupSlider(c.detuneSlider, -12.0, 12.0, 0.0);
         setupLabel(c.detuneLabel, "Detune");
-        addAndMakeVisible(c.detuneSlider); addAndMakeVisible(c.detuneLabel);
+        addChildComponent(c.detuneSlider); addChildComponent(c.detuneLabel);
 
         c.waveformSelector.addItem("Sine",     1);
         c.waveformSelector.addItem("Saw",      2);
@@ -51,11 +55,31 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         c.waveformSelector.addItem("Triangle", 4);
         c.waveformSelector.addItem("Noise",    5);
         c.waveformSelector.setSelectedId(2, juce::dontSendNotification);
-        addAndMakeVisible(c.waveformSelector);
+        addChildComponent(c.waveformSelector);
 
         setupSlider(c.wavePosSlider, 0.0, 1.0, 0.0);
         setupLabel(c.wavePosLabel, "WavePos");
-        addAndMakeVisible(c.wavePosSlider); addAndMakeVisible(c.wavePosLabel);
+        addChildComponent(c.wavePosSlider); addChildComponent(c.wavePosLabel);
+
+        // Shape controls
+        c.shapeTypeSelector.addItem("Off",   1);
+        c.shapeTypeSelector.addItem("Drive", 2);
+        c.shapeTypeSelector.addItem("Fold",  3);
+        c.shapeTypeSelector.addItem("Clip",  4);
+        c.shapeTypeSelector.setSelectedId(1, juce::dontSendNotification);
+        addChildComponent(c.shapeTypeSelector);
+
+        setupSlider(c.shapeAmtSlider, 0.0, 1.0, 0.0);
+        setupLabel(c.shapeAmtLabel, "Shape");
+        addChildComponent(c.shapeAmtSlider); addChildComponent(c.shapeAmtLabel);
+
+        setupSlider(c.selfOscSlider, 0.0, 1.0, 0.0);
+        setupLabel(c.selfOscLabel, "Self");
+        addChildComponent(c.selfOscSlider); addChildComponent(c.selfOscLabel);
+
+        setupSlider(c.phaseDistSlider, 0.0, 1.0, 0.5);
+        setupLabel(c.phaseDistLabel, "PD Amt");
+        addChildComponent(c.phaseDistSlider); addChildComponent(c.phaseDistLabel);
 
         const juce::String paramPrefix = "osc" + juce::String(osc + 1);
         auto& apvts = processorRef.apvts;
@@ -69,16 +93,27 @@ SynthPanel::SynthPanel(PluginProcessor& p)
             apvts, paramPrefix + "Waveform", c.waveformSelector);
         c.wavePosAttach  = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
             apvts, paramPrefix + "WavePos", c.wavePosSlider);
+        c.shapeTypeAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+            apvts, paramPrefix + "ShapeType", c.shapeTypeSelector);
+        c.shapeAmtAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+            apvts, paramPrefix + "ShapeAmt", c.shapeAmtSlider);
+        c.selfOscAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+            apvts, paramPrefix + "SelfOsc", c.selfOscSlider);
+        c.phaseDistAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+            apvts, paramPrefix + "PhaseDist", c.phaseDistSlider);
 
         c.levelSlider.init(processorRef, paramPrefix + "Level");
         c.detuneSlider.init(processorRef, paramPrefix + "Detune");
         c.wavePosSlider.init(processorRef, paramPrefix + "WavePos");
+        c.shapeAmtSlider.init(processorRef, paramPrefix + "ShapeAmt");
+        c.selfOscSlider.init(processorRef, paramPrefix + "SelfOsc");
+        c.phaseDistSlider.init(processorRef, paramPrefix + "PhaseDist");
 
         setupLabel(c.wtFileLabel, "no file");
         c.wtFileLabel.setFont(juce::Font(9.0f));
-        addAndMakeVisible(c.loadWTButton);
-        addAndMakeVisible(c.editWTButton);
-        addAndMakeVisible(c.wtFileLabel);
+        addChildComponent(c.loadWTButton);
+        addChildComponent(c.editWTButton);
+        addChildComponent(c.wtFileLabel);
         c.loadWTButton.setTooltip("Load a .wav or .aif wavetable file from disk");
         c.editWTButton.setTooltip("Open the wavetable editor for this oscillator");
 
@@ -90,8 +125,7 @@ SynthPanel::SynthPanel(PluginProcessor& p)
 
         c.editWTButton.onClick = [this, osc]()
         {
-            // Hide all other editors first
-            for (int i = 0; i < 3; ++i)
+            for (int i = 0; i < 8; ++i)
                 if (i != osc && wavetableEditors[i]) wavetableEditors[i]->setVisible(false);
 
             auto* ed = wavetableEditors[osc].get();
@@ -101,7 +135,7 @@ SynthPanel::SynthPanel(PluginProcessor& p)
             ed->toFront(false);
         };
 
-        const int oscIdx = osc; // capture by value for lambda
+        const int oscIdx = osc;
         c.loadWTButton.onClick = [this, oscIdx]()
         {
             fileChooser = std::make_unique<juce::FileChooser>(
@@ -120,6 +154,34 @@ SynthPanel::SynthPanel(PluginProcessor& p)
                 });
         };
     }
+
+    // Add/Remove OSC buttons
+    addOscButton.onClick = [this]()
+    {
+        auto* param = processorRef.apvts.getParameter("oscCount");
+        if (param)
+        {
+            const int current = juce::roundToInt(param->getValue() * 7.0f); // 0-7 → count-1
+            if (current < 7)
+                param->setValueNotifyingHost((current + 1) / 7.0f);
+        }
+        updateVisibility();
+        resized();
+    };
+    removeOscButton.onClick = [this]()
+    {
+        auto* param = processorRef.apvts.getParameter("oscCount");
+        if (param)
+        {
+            const int current = juce::roundToInt(param->getValue() * 7.0f);
+            if (current > 0)
+                param->setValueNotifyingHost((current - 1) / 7.0f);
+        }
+        updateVisibility();
+        resized();
+    };
+    addAndMakeVisible(addOscButton);
+    addAndMakeVisible(removeOscButton);
 
     // Waveform selector (legacy, hidden in 3-osc mode)
     setupLabel(waveformLabel, "WAVEFORM");
@@ -451,16 +513,22 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     savePresetButton.setTooltip  ("Save current state to a preset file");
     loadPresetButton.setTooltip  ("Load a previously saved preset file");
 
-    for (int osc = 0; osc < 3; ++osc)
+    for (int osc = 0; osc < 8; ++osc)
     {
         auto& c = oscControls[osc];
         const juce::String pfx = "Osc " + juce::String(osc + 1) + " — ";
-        c.typeSelector.setTooltip (pfx + "Oscillator type: Classic (math) or Wavetable");
-        c.levelSlider.setTooltip  (pfx + "Output level (0–100%)");
-        c.detuneSlider.setTooltip (pfx + "Detune in semitones (±12)");
-        c.waveformSelector.setTooltip(pfx + "Classic waveform: Sine / Saw / Square / Triangle / Noise");
-        c.wavePosSlider.setTooltip(pfx + "Wavetable scan position (0–100%)");
+        c.typeSelector.setTooltip   (pfx + "Type: Classic/Wavetable/Additive/Phase Dist/Analog/Digital");
+        c.levelSlider.setTooltip    (pfx + "Output level (0–100%)");
+        c.detuneSlider.setTooltip   (pfx + "Detune in semitones (±12)");
+        c.waveformSelector.setTooltip(pfx + "Classic waveform: Sine/Saw/Square/Triangle/Noise");
+        c.wavePosSlider.setTooltip  (pfx + "Wavetable scan position (0–100%)");
+        c.shapeTypeSelector.setTooltip(pfx + "Wave shaping mode: Off/Drive/Fold/Clip");
+        c.shapeAmtSlider.setTooltip (pfx + "Wave shaping amount (0–100%)");
+        c.selfOscSlider.setTooltip  (pfx + "Self-oscillation feedback (0–100%)");
+        c.phaseDistSlider.setTooltip(pfx + "Phase distortion amount (0–100%)");
     }
+    addOscButton.setTooltip   ("Add an oscillator (max 8)");
+    removeOscButton.setTooltip("Remove the last oscillator (min 1)");
     attackSlider.setTooltip      ("Envelope Attack: time to reach full volume (1ms–5s)");
     decaySlider.setTooltip       ("Envelope Decay: time to fall to sustain level (1ms–5s)");
     sustainSlider.setTooltip     ("Envelope Sustain: held volume level (0–100%)");
@@ -526,21 +594,35 @@ void SynthPanel::updateVisibility()
     lfoDisplay.setVisible(false);
     synthDisplay.setVisible(!isFM);
 
-    // 3 Osc controls visibility
-    for (auto& c : oscControls)
+    // 8 Osc controls visibility (only show up to oscCount active strips)
+    const int activeOscCount = static_cast<int>(*processorRef.apvts.getRawParameterValue("oscCount")) + 1;
+    for (int i = 0; i < 8; ++i)
     {
-        const bool isWavetable = c.typeSelector.getSelectedId() == 2;
-        c.sectionLabel.setVisible(!isFM);
-        c.typeSelector.setVisible(!isFM);
-        c.levelLabel.setVisible(!isFM);    c.levelSlider.setVisible(!isFM);
-        c.detuneLabel.setVisible(!isFM);   c.detuneSlider.setVisible(!isFM);
-        c.waveformSelector.setVisible(!isFM && !isWavetable);
-        c.wavePosLabel.setVisible(!isFM && isWavetable);
-        c.wavePosSlider.setVisible(!isFM && isWavetable);
-        c.loadWTButton.setVisible(!isFM && isWavetable);
-        c.editWTButton.setVisible(!isFM && isWavetable);
-        c.wtFileLabel.setVisible(!isFM && isWavetable);
+        auto& c = oscControls[i];
+        const bool active = (!isFM) && (i < activeOscCount);
+        const bool isWavetable  = c.typeSelector.getSelectedId() == 2;
+        const bool isPhaseDist  = c.typeSelector.getSelectedId() == 4;
+        const bool hasShaping   = active && (c.shapeTypeSelector.getSelectedId() > 1);
+        c.sectionLabel.setVisible(active);
+        c.typeSelector.setVisible(active);
+        c.levelLabel.setVisible(active);    c.levelSlider.setVisible(active);
+        c.detuneLabel.setVisible(active);   c.detuneSlider.setVisible(active);
+        c.waveformSelector.setVisible(active && !isWavetable);
+        c.wavePosLabel.setVisible(active && isWavetable);
+        c.wavePosSlider.setVisible(active && isWavetable);
+        c.loadWTButton.setVisible(active && isWavetable);
+        c.editWTButton.setVisible(active && isWavetable);
+        c.wtFileLabel.setVisible(active && isWavetable);
+        c.shapeTypeSelector.setVisible(active);
+        c.shapeAmtLabel.setVisible(active && hasShaping);
+        c.shapeAmtSlider.setVisible(active && hasShaping);
+        c.selfOscLabel.setVisible(active);
+        c.selfOscSlider.setVisible(active);
+        c.phaseDistLabel.setVisible(active && isPhaseDist);
+        c.phaseDistSlider.setVisible(active && isPhaseDist);
     }
+    addOscButton.setVisible(!isFM);
+    removeOscButton.setVisible(!isFM);
 
     unisonVoicesLabel.setVisible(!isFM); unisonVoicesBox.setVisible(!isFM);
     unisonDetuneLabel.setVisible(!isFM); unisonDetuneSlider.setVisible(!isFM);
@@ -704,35 +786,69 @@ void SynthPanel::resized()
         const int knobSz = 70;
         const int labelH = 18;
 
-        // 3 OSC strips
-        oscSectionRect = area.removeFromTop(190);
+        // OSC strips (1–8, up to 2 rows of 4)
+        const int activeOscCount = static_cast<int>(*processorRef.apvts.getRawParameterValue("oscCount")) + 1;
+        const int numRows = (activeOscCount > 4) ? 2 : 1;
+        const int perRowHeight = 220;
+        oscSectionRect = area.removeFromTop(numRows * perRowHeight + 20);
+
+        // Add/Remove buttons row at top of OSC section
         {
-            auto inner = oscSectionRect.reduced(8).withTrimmedTop(16);
-            const int stripW = inner.getWidth() / 3;
-            for (int i = 0; i < 3; ++i)
+            auto btnRow = oscSectionRect.removeFromTop(20).reduced(8, 0);
+            addOscButton.setBounds(btnRow.removeFromLeft(60));
+            btnRow.removeFromLeft(4);
+            removeOscButton.setBounds(btnRow.removeFromLeft(60));
+        }
+
+        // Layout strips in rows of 4
+        auto oscArea = oscSectionRect;
+        for (int row = 0; row < numRows; ++row)
+        {
+            const int rowStart = row * 4;
+            const int rowEnd   = juce::jmin(rowStart + 4, activeOscCount);
+            const int count    = rowEnd - rowStart;
+            if (count <= 0) break;
+
+            auto rowRect = oscArea.removeFromTop(perRowHeight);
+            auto inner   = rowRect.reduced(8).withTrimmedTop(8);
+            const int stripW = inner.getWidth() / count;
+
+            for (int i = rowStart; i < rowEnd; ++i)
             {
                 auto strip = inner.removeFromLeft(stripW).reduced(4, 0);
                 auto& c = oscControls[i];
                 c.sectionLabel.setBounds(strip.removeFromTop(16));
-                auto typeRow = strip.removeFromTop(26);
-                c.typeSelector.setBounds(typeRow);
+                c.typeSelector.setBounds(strip.removeFromTop(26));
                 strip.removeFromTop(4);
 
                 auto knobArea = strip;
                 const bool isWavetable = c.typeSelector.getSelectedId() == 2;
+                const bool isPhaseDist = c.typeSelector.getSelectedId() == 4;
+                const bool hasShape    = c.shapeTypeSelector.getSelectedId() > 1;
 
-                auto placeKnob = [&](juce::Component& c, juce::Label& l, bool visible = true)
+                auto placeKnob = [&](juce::Component& comp, juce::Label& lbl)
                 {
-                    if (!visible) return;
                     auto col = knobArea.removeFromTop(knobSz + labelH);
-                    c.setBounds(col.removeFromTop(knobSz));
-                    l.setBounds(col.removeFromTop(labelH));
-                    knobArea.removeFromTop(4);
+                    comp.setBounds(col.removeFromTop(knobSz));
+                    lbl.setBounds(col.removeFromTop(labelH));
+                    knobArea.removeFromTop(2);
                 };
-                placeKnob(c.levelSlider,  c.levelLabel, true);
-                placeKnob(c.detuneSlider, c.detuneLabel, true);
-                placeKnob(c.waveformSelector, c.levelLabel, !isWavetable); // reuse label slot
-                placeKnob(c.wavePosSlider, c.wavePosLabel, isWavetable);
+                placeKnob(c.levelSlider, c.levelLabel);
+                placeKnob(c.detuneSlider, c.detuneLabel);
+                if (isWavetable)
+                    placeKnob(c.wavePosSlider, c.wavePosLabel);
+                else
+                    c.waveformSelector.setBounds(knobArea.removeFromTop(26));
+                if (isPhaseDist)
+                    placeKnob(c.phaseDistSlider, c.phaseDistLabel);
+
+                // Shape row
+                auto shapeRow = knobArea.removeFromTop(26);
+                c.shapeTypeSelector.setBounds(shapeRow.removeFromLeft(shapeRow.getWidth() * 3 / 5));
+                if (hasShape)
+                    placeKnob(c.shapeAmtSlider, c.shapeAmtLabel);
+                placeKnob(c.selfOscSlider, c.selfOscLabel);
+
                 if (isWavetable)
                 {
                     auto btnRow = knobArea.removeFromTop(20);

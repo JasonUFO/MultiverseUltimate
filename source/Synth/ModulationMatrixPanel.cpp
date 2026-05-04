@@ -22,7 +22,7 @@ ModulationMatrixPanel::Row::Row()
         sourceBox.addItem(ModulationMatrix::getSourceName(static_cast<ModSourceType>(i)), i + 1);
     sourceBox.setSelectedId(1, juce::dontSendNotification);
 
-    for (int i = 0; i <= static_cast<int>(ModTargetType::GranularPitchScatter); ++i)
+    for (int i = 0; i <= static_cast<int>(ModTargetType::OscPhaseDistAmount); ++i)
         targetBox.addItem(ModulationMatrix::getTargetName(static_cast<ModTargetType>(i)), i + 1);
     targetBox.setSelectedId(1, juce::dontSendNotification);
 

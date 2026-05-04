@@ -320,17 +320,31 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 ---
 
+## Completed (Phase 1 — Core Synthesis & Oscillator Upgrades) (2026-05-04)
+
+**All 4 sub-tasks shipped:**
+
+- **1.1 Dynamic oscillator count** — pre-allocated 8 slots per-voice; `oscCount` APVTS Choice param (1–8, default 3); `+ OSC` / `- OSC` buttons in SynthPanel; `SynthEngine::setOscCount()` propagates to all voices; 2-row layout (≤4 strips = 1 row, 5–8 = 2 rows); inactive slots have level 0 and are skipped in `Voice::process()`
+- **1.2 New oscillator types** — `OscillatorType` enum extended to 6 values: Classic / Wavetable / Additive / PhaseDist / Analog / Digital; DSP in `Voice.cpp`: Additive = 8-harmonic Fourier series (1/n falloff), PhaseDist = sinusoidal phase bending, Analog = Classic + LCG micro-drift, Digital = Classic + 16-level bit reduction; all render real-time safe (no alloc)
+- **1.3 Per-oscillator wave shaping + self-oscillation** — `OscShapeType` enum {Off, Drive, Fold, Clip}; Drive = normalized tanh(x·drive), Fold = wavefold with threshold, Clip = hard limit normalised; self-osc = additive feedback of prior sample; `shapeType/shapeAmt/selfOscFeedback/phaseDistAmount` fields in `OscState`; UI: SHAPE ComboBox + Shape/Self/PD knobs per strip (shape amt hidden when Off; PD Amt only visible for PhaseDist type)
+- **1.4 ModulationMatrix targets** — added `OscShapeAmount` + `OscPhaseDistAmount` to `ModTargetType`; `MAX_MOD_TARGETS` raised 24→26; wired in `PluginProcessor::processBlock` (osc 0); target dropdown in ModulationMatrixPanel extended
+
+**Architecture:**
+- `APVTS`: 8 × 9 osc params (type/level/detune/waveform/wavePos/shapeType/shapeAmt/selfOsc/phaseDist) + `oscCount` = 73 new params (fully backward-compatible: old presets default oscs 4–8 to level 0)
+- State persistence: `oscCount` + 8 osc nodes with all new properties saved/restored in XML
+- Build verified: VST3 + AU both build and install successfully ✅
+
+---
+
 ## Next Session
 
-**Phase 0 COMPLETE** — ModulationMatrix, Sampler/DrumSeq wiring, and per-step velocity all verified functional.
+**Phase 1 COMPLETE** — 8-oscillator dynamic system with 6 types + wave shaping shipped.
 
-**Ready for Phase 1** per `AI_GAP_FILL_PLAN.md` (Core Synthesis & Oscillator Upgrades).
+**Ready for Phase 2** (Sampler Enhancements) or **Phase 5** (Modulation Upgrades — unlimited LFOs) per `AI_GAP_FILL_PLAN.md`.
 
 **Competitive brief reminder:** Goal is to match/surpass Serum 2, Nexus 5, Avenger 2, Diva, Zebra 3.
 
-**Pending clarification (before Phase 1):**
-1. Should unlimited oscillators be per-voice or per-layer?
-2. Should new synth engines be per-oscillator types or standalone engines?
+**Remaining questions (for later phases):**
 3. Multi-output: individual osc, voices, or entire layers?
 4. 1000+ presets: programmatic generation or curated?
 5. Standalone mode: separate executable or audio effect mode?

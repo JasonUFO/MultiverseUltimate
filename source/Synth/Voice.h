@@ -4,7 +4,9 @@
 #include "Envelope.h"
 #include "Filter.h"
 
-enum class OscillatorType { Classic, Wavetable };
+enum class OscillatorType { Classic, Wavetable, Additive, PhaseDist, Analog, Digital };
+
+enum class OscShapeType { Off, Drive, Fold, Clip };
 
 struct OscState
 {
@@ -13,6 +15,20 @@ struct OscState
     WavetableOscillator wavetableOsc;
     float level = 1.0f;
     float detuneSemitones = 0.0f;
+
+    // Phase distortion amount (PhaseDist type, 0..1)
+    float phaseDistAmount = 0.5f;
+
+    // Wave shaping (applied after osc output)
+    OscShapeType shapeType = OscShapeType::Off;
+    float shapeAmount = 0.0f;
+
+    // Self-oscillation feedback
+    float selfOscFeedback = 0.0f;
+    float selfOscPrev = 0.0f;
+
+    // Analog drift LCG state (no heap alloc)
+    uint32_t analogLCG = 12345u;
 };
 
 struct SubOscState
@@ -58,6 +74,11 @@ public:
     void setOscillatorDetune(int index, float detuneSemitones);
     void setOscillatorWaveform(int index, WaveformType wf);
     void setOscillatorWavePosition(int index, float pos);
+    void setOscillatorShapeType(int index, OscShapeType st);
+    void setOscillatorShapeAmount(int index, float amt);
+    void setOscillatorSelfOsc(int index, float feedback);
+    void setOscillatorPhaseDistAmount(int index, float amt);
+    void setActiveOscs(int n);
     void loadWavetableData(int oscIndex, const juce::AudioBuffer<float>& audio);
 
     void setFrequencyDirect(float hz);
@@ -76,7 +97,7 @@ public:
     // Filter topology
     void setFilterType(Filter::FilterType t);
 
-    WavetableOscillator& getWavetableOsc(int oscIndex) { return oscStates[juce::jlimit(0, 2, oscIndex)].wavetableOsc; }
+    WavetableOscillator& getWavetableOsc(int oscIndex) { return oscStates[juce::jlimit(0, 7, oscIndex)].wavetableOsc; }
 
 private:
     void updateOscillatorFrequencies();
@@ -95,7 +116,8 @@ private:
     float filterResonance = 0.0f;
     float storedSampleRate = 44100.0f;
 
-    std::array<OscState, 3> oscStates;
+    int activeOscs = 3;
+    std::array<OscState, 8> oscStates;
     SubOscState  subOsc;
     NoiseOscState noiseOsc;
     Filter filter;

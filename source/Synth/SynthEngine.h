@@ -50,12 +50,17 @@ public:
     void setNoiseOscLevel(float l);
     void setNoiseOscColor(float hz);
 
-    // Per-oscillator controls (index 0-2)
+    // Per-oscillator controls (index 0-7)
     void setOscillatorType(int index, OscillatorType type);
     void setOscillatorLevel(int index, float level);
     void setOscillatorDetune(int index, float detuneSemitones);
     void setOscillatorWaveform(int index, WaveformType wf);
     void setOscillatorWavePosition(int index, float pos);
+    void setOscillatorShapeType(int index, OscShapeType st);
+    void setOscillatorShapeAmount(int index, float amt);
+    void setOscillatorSelfOsc(int index, float feedback);
+    void setOscillatorPhaseDistAmount(int index, float amt);
+    void setOscCount(int n);
 
     // Unison controls
     void setUnisonVoices(int n);
@@ -76,7 +81,7 @@ public:
     juce::String getWavetableFilePath(int oscIndex) const;
 
     // Wavetable editor access — voice 0 is the master for editing; distributeWavetable copies to all voices
-    WavetableOscillator& getWavetableOscillator(int oscIndex) { return voices[0].voice.getWavetableOsc(oscIndex); }
+    WavetableOscillator& getWavetableOscillator(int oscIndex) { return voices[0].voice.getWavetableOsc(juce::jlimit(0, 7, oscIndex)); }
     void distributeWavetable(int oscIndex);
 
     // MPE (MIDI Polyphonic Expression) — Lower Zone: master ch 1, member ch 2–15
@@ -120,6 +125,11 @@ public:
     float getOscillatorDetune(int index) const;
     WaveformType getOscillatorWaveform(int index) const;
     float getOscillatorWavePosition(int index) const;
+    OscShapeType getOscillatorShapeType(int index) const;
+    float getOscillatorShapeAmount(int index) const;
+    float getOscillatorSelfOsc(int index) const;
+    float getOscillatorPhaseDistAmount(int index) const;
+    int getOscCount() const { return oscCount; }
     void getFMOperatorParams(int opIndex,
                              float& ratio,
                              float& level,
@@ -165,16 +175,21 @@ private:
     float envSustain = 0.7f;
     float envRelease = 0.3f;
 
-    // Per-oscillator state (3 oscillators)
+    // Per-oscillator state (up to 8 oscillators)
     struct OscSettings
     {
         OscillatorType type = OscillatorType::Classic;
         WaveformType classicWaveform = WaveformType::Saw;
         float level = 1.0f;
         float detuneSemitones = 0.0f;
-        float wavePosition = 0.0f; // 0..1 for wavetable scan
+        float wavePosition = 0.0f;
+        OscShapeType shapeType = OscShapeType::Off;
+        float shapeAmount = 0.0f;
+        float selfOscFeedback = 0.0f;
+        float phaseDistAmount = 0.5f;
     };
-    std::array<OscSettings, 3> oscSettings;
+    int oscCount = 3;
+    std::array<OscSettings, 8> oscSettings;
 
     // FM operator parameters (4 operators)
     struct FMOperatorSettings
@@ -224,7 +239,7 @@ private:
 
     // Wavetable file loading
     juce::AudioFormatManager formatManager;
-    juce::String wavetableFilePaths[3];
+    juce::String wavetableFilePaths[8];
 
     // MPE per-channel state (index 0 = ch 1, …, 15 = ch 16)
     struct MpeChannelState

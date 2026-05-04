@@ -81,13 +81,18 @@ void SynthEngine::noteOn(int note, float velocity)
             {
                 vi->voice.noteOn(note, velocity);
                 vi->voice.setPitchBend(static_cast<float>(pitchBend));
-                for (int i = 0; i < 3; ++i)
+                vi->voice.setActiveOscs(oscCount);
+                for (int i = 0; i < oscCount; ++i)
                 {
                     vi->voice.setOscillatorType(i, oscSettings[i].type);
                     vi->voice.setOscillatorLevel(i, oscSettings[i].level);
                     vi->voice.setOscillatorDetune(i, oscSettings[i].detuneSemitones);
                     vi->voice.setOscillatorWaveform(i, oscSettings[i].classicWaveform);
                     vi->voice.setOscillatorWavePosition(i, oscSettings[i].wavePosition);
+                    vi->voice.setOscillatorShapeType(i, oscSettings[i].shapeType);
+                    vi->voice.setOscillatorShapeAmount(i, oscSettings[i].shapeAmount);
+                    vi->voice.setOscillatorSelfOsc(i, oscSettings[i].selfOscFeedback);
+                    vi->voice.setOscillatorPhaseDistAmount(i, oscSettings[i].phaseDistAmount);
                 }
                 vi->panLeft  = 1.0f;
                 vi->panRight = 1.0f;
@@ -138,13 +143,18 @@ void SynthEngine::noteOn(int note, float velocity)
 
         vi->voice.noteOn(note, velocity);
         vi->voice.setPitchBend(static_cast<float>(pitchBend));
-        for (int i = 0; i < 3; ++i)
+        vi->voice.setActiveOscs(oscCount);
+        for (int i = 0; i < oscCount; ++i)
         {
             vi->voice.setOscillatorType(i, oscSettings[i].type);
             vi->voice.setOscillatorLevel(i, oscSettings[i].level);
             vi->voice.setOscillatorDetune(i, oscSettings[i].detuneSemitones + detuneOffset);
             vi->voice.setOscillatorWaveform(i, oscSettings[i].classicWaveform);
             vi->voice.setOscillatorWavePosition(i, oscSettings[i].wavePosition);
+            vi->voice.setOscillatorShapeType(i, oscSettings[i].shapeType);
+            vi->voice.setOscillatorShapeAmount(i, oscSettings[i].shapeAmount);
+            vi->voice.setOscillatorSelfOsc(i, oscSettings[i].selfOscFeedback);
+            vi->voice.setOscillatorPhaseDistAmount(i, oscSettings[i].phaseDistAmount);
         }
         vi->unisonDetuneOffset = detuneOffset;
         vi->panLeft  = panL;
@@ -199,13 +209,18 @@ void SynthEngine::noteOff(int note)
                 {
                     vi->voice.noteOn(prevNote, monoVelocity);
                     vi->voice.setPitchBend(static_cast<float>(pitchBend));
-                    for (int i = 0; i < 3; ++i)
+                    vi->voice.setActiveOscs(oscCount);
+                    for (int i = 0; i < oscCount; ++i)
                     {
                         vi->voice.setOscillatorType(i, oscSettings[i].type);
                         vi->voice.setOscillatorLevel(i, oscSettings[i].level);
                         vi->voice.setOscillatorDetune(i, oscSettings[i].detuneSemitones);
                         vi->voice.setOscillatorWaveform(i, oscSettings[i].classicWaveform);
                         vi->voice.setOscillatorWavePosition(i, oscSettings[i].wavePosition);
+                        vi->voice.setOscillatorShapeType(i, oscSettings[i].shapeType);
+                        vi->voice.setOscillatorShapeAmount(i, oscSettings[i].shapeAmount);
+                        vi->voice.setOscillatorSelfOsc(i, oscSettings[i].selfOscFeedback);
+                        vi->voice.setOscillatorPhaseDistAmount(i, oscSettings[i].phaseDistAmount);
                     }
                     vi->panLeft = 1.0f; vi->panRight = 1.0f;
                     vi->unisonDetuneOffset = 0.0f;
@@ -339,9 +354,16 @@ void SynthEngine::setNoiseOscColor(float hz)
     for (auto& vi : voices) vi.voice.setNoiseOscColor(hz);
 }
 
+void SynthEngine::setOscCount(int n)
+{
+    oscCount = juce::jlimit(1, 8, n);
+    for (auto& vi : voices)
+        vi.voice.setActiveOscs(oscCount);
+}
+
 void SynthEngine::setOscillatorType(int index, OscillatorType type)
 {
-    if (index < 0 || index > 2) return;
+    if (index < 0 || index > 7) return;
     oscSettings[index].type = type;
     for (auto& vi : voices)
         vi.voice.setOscillatorType(index, type);
@@ -349,7 +371,7 @@ void SynthEngine::setOscillatorType(int index, OscillatorType type)
 
 void SynthEngine::setOscillatorLevel(int index, float level)
 {
-    if (index < 0 || index > 2) return;
+    if (index < 0 || index > 7) return;
     oscSettings[index].level = juce::jlimit(0.0f, 1.0f, level);
     for (auto& vi : voices)
         vi.voice.setOscillatorLevel(index, oscSettings[index].level);
@@ -357,7 +379,7 @@ void SynthEngine::setOscillatorLevel(int index, float level)
 
 void SynthEngine::setOscillatorDetune(int index, float detuneSemitones)
 {
-    if (index < 0 || index > 2) return;
+    if (index < 0 || index > 7) return;
     oscSettings[index].detuneSemitones = detuneSemitones;
     for (auto& vi : voices)
         vi.voice.setOscillatorDetune(index, detuneSemitones + vi.unisonDetuneOffset);
@@ -365,7 +387,7 @@ void SynthEngine::setOscillatorDetune(int index, float detuneSemitones)
 
 void SynthEngine::setOscillatorWaveform(int index, WaveformType wf)
 {
-    if (index < 0 || index > 2) return;
+    if (index < 0 || index > 7) return;
     oscSettings[index].classicWaveform = wf;
     for (auto& vi : voices)
         vi.voice.setOscillatorWaveform(index, wf);
@@ -373,10 +395,42 @@ void SynthEngine::setOscillatorWaveform(int index, WaveformType wf)
 
 void SynthEngine::setOscillatorWavePosition(int index, float pos)
 {
-    if (index < 0 || index > 2) return;
+    if (index < 0 || index > 7) return;
     oscSettings[index].wavePosition = juce::jlimit(0.0f, 1.0f, pos);
     for (auto& vi : voices)
         vi.voice.setOscillatorWavePosition(index, pos);
+}
+
+void SynthEngine::setOscillatorShapeType(int index, OscShapeType st)
+{
+    if (index < 0 || index > 7) return;
+    oscSettings[index].shapeType = st;
+    for (auto& vi : voices)
+        vi.voice.setOscillatorShapeType(index, st);
+}
+
+void SynthEngine::setOscillatorShapeAmount(int index, float amt)
+{
+    if (index < 0 || index > 7) return;
+    oscSettings[index].shapeAmount = juce::jlimit(0.0f, 1.0f, amt);
+    for (auto& vi : voices)
+        vi.voice.setOscillatorShapeAmount(index, amt);
+}
+
+void SynthEngine::setOscillatorSelfOsc(int index, float feedback)
+{
+    if (index < 0 || index > 7) return;
+    oscSettings[index].selfOscFeedback = juce::jlimit(0.0f, 1.0f, feedback);
+    for (auto& vi : voices)
+        vi.voice.setOscillatorSelfOsc(index, feedback);
+}
+
+void SynthEngine::setOscillatorPhaseDistAmount(int index, float amt)
+{
+    if (index < 0 || index > 7) return;
+    oscSettings[index].phaseDistAmount = juce::jlimit(0.0f, 1.0f, amt);
+    for (auto& vi : voices)
+        vi.voice.setOscillatorPhaseDistAmount(index, amt);
 }
 
 float SynthEngine::process()
@@ -661,27 +715,47 @@ WaveformType SynthEngine::getWaveform() const
 
 OscillatorType SynthEngine::getOscillatorType(int index) const
 {
-    return (index >= 0 && index < 3) ? oscSettings[index].type : OscillatorType::Classic;
+    return (index >= 0 && index < 8) ? oscSettings[index].type : OscillatorType::Classic;
 }
 
 float SynthEngine::getOscillatorLevel(int index) const
 {
-    return (index >= 0 && index < 3) ? oscSettings[index].level : 1.0f;
+    return (index >= 0 && index < 8) ? oscSettings[index].level : 1.0f;
 }
 
 float SynthEngine::getOscillatorDetune(int index) const
 {
-    return (index >= 0 && index < 3) ? oscSettings[index].detuneSemitones : 0.0f;
+    return (index >= 0 && index < 8) ? oscSettings[index].detuneSemitones : 0.0f;
 }
 
 WaveformType SynthEngine::getOscillatorWaveform(int index) const
 {
-    return (index >= 0 && index < 3) ? oscSettings[index].classicWaveform : WaveformType::Saw;
+    return (index >= 0 && index < 8) ? oscSettings[index].classicWaveform : WaveformType::Saw;
 }
 
 float SynthEngine::getOscillatorWavePosition(int index) const
 {
-    return (index >= 0 && index < 3) ? oscSettings[index].wavePosition : 0.0f;
+    return (index >= 0 && index < 8) ? oscSettings[index].wavePosition : 0.0f;
+}
+
+OscShapeType SynthEngine::getOscillatorShapeType(int index) const
+{
+    return (index >= 0 && index < 8) ? oscSettings[index].shapeType : OscShapeType::Off;
+}
+
+float SynthEngine::getOscillatorShapeAmount(int index) const
+{
+    return (index >= 0 && index < 8) ? oscSettings[index].shapeAmount : 0.0f;
+}
+
+float SynthEngine::getOscillatorSelfOsc(int index) const
+{
+    return (index >= 0 && index < 8) ? oscSettings[index].selfOscFeedback : 0.0f;
+}
+
+float SynthEngine::getOscillatorPhaseDistAmount(int index) const
+{
+    return (index >= 0 && index < 8) ? oscSettings[index].phaseDistAmount : 0.5f;
 }
 
 void SynthEngine::getFMOperatorParams(int opIndex,
@@ -771,14 +845,19 @@ void SynthEngine::noteOnMPE(int channel, int note, float velocity)
     if (vi == nullptr) return;
 
     vi->voice.noteOn(note, velocity);
-    vi->voice.setPitchBend(static_cast<float>(pitchBend));  // global bend only (member bend is 0 at note start)
-    for (int i = 0; i < 3; ++i)
+    vi->voice.setPitchBend(static_cast<float>(pitchBend));
+    vi->voice.setActiveOscs(oscCount);
+    for (int i = 0; i < oscCount; ++i)
     {
         vi->voice.setOscillatorType(i, oscSettings[i].type);
         vi->voice.setOscillatorLevel(i, oscSettings[i].level);
         vi->voice.setOscillatorDetune(i, oscSettings[i].detuneSemitones);
         vi->voice.setOscillatorWaveform(i, oscSettings[i].classicWaveform);
         vi->voice.setOscillatorWavePosition(i, oscSettings[i].wavePosition);
+        vi->voice.setOscillatorShapeType(i, oscSettings[i].shapeType);
+        vi->voice.setOscillatorShapeAmount(i, oscSettings[i].shapeAmount);
+        vi->voice.setOscillatorSelfOsc(i, oscSettings[i].selfOscFeedback);
+        vi->voice.setOscillatorPhaseDistAmount(i, oscSettings[i].phaseDistAmount);
     }
     vi->panLeft  = 1.0f;
     vi->panRight = 1.0f;
@@ -841,13 +920,13 @@ bool SynthEngine::loadWavetableFile(int oscIndex, const juce::File& file)
 
 juce::String SynthEngine::getWavetableFilePath(int oscIndex) const
 {
-    if (oscIndex < 0 || oscIndex > 2) return {};
+    if (oscIndex < 0 || oscIndex > 7) return {};
     return wavetableFilePaths[oscIndex];
 }
 
 void SynthEngine::distributeWavetable(int oscIndex)
 {
-    if (oscIndex < 0 || oscIndex > 2) return;
+    if (oscIndex < 0 || oscIndex > 7) return;
     auto& src = voices[0].voice.getWavetableOsc(oscIndex);
     const int frameCount = src.getTableCount();
     const int tableSize  = src.getTableSize();

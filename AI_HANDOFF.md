@@ -16,7 +16,7 @@
 
 | Engine | Description |
 |--------|-------------|
-| SynthEngine | 16-voice classic (3 osc/voice: Classic or Wavetable) / 8-voice FM |
+| SynthEngine | 16-voice classic (1–8 osc/voice: Classic/Wavetable/Additive/PhaseDist/Analog/Digital) / 8-voice FM |
 | GranularEngine | 16-voice granular, 32 grains/voice (512 total), file or built-in source |
 | DrumSequencer | Sample-based, 32 voices |
 | SamplerEngine | Zone-based playback, 16 voices |
@@ -45,15 +45,15 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 
 ## What Works
 
-- SynthEngine (16-voice classic with 3 osc/voice + FM 8-voice), DrumSequencer, SamplerEngine — all produce audio ✅
+- SynthEngine (16-voice classic with 1–8 osc/voice + FM 8-voice), DrumSequencer, SamplerEngine — all produce audio ✅
 - GranularEngine (16-voice × 32 grains, 4 env shapes, pitch scatter, spray, density, stereo spread, file loading) ✅
-- 3 oscillators per voice: Classic (math-based) or Wavetable (2048-sample table, 4 waves, position scan) ✅
+- Up to 8 oscillators per voice: Classic / Wavetable / Additive / PhaseDist / Analog / Digital; per-osc wave shaping (Drive/Fold/Clip) and self-oscillation feedback ✅
 - Voice modes: Poly / Mono / Legato with portamento (per-sample semitone-space glide) ✅
 - All 6 effects with full parameter control and MIDI Learn ✅
 - Effect chain reordering — drag-to-reorder strip, order persists in presets ✅
 - ModulationMatrix — LFO → pitch/cutoff/volume/effects ✅
 - Melodic Sequencer, DAW transport sync ✅
-- Full state persistence (XML) including 3 oscillators + effect chain order + granular source path ✅
+- Full state persistence (XML) including 8 oscillators (type/level/detune/waveform/wavePos/shapeType/shapeAmt/selfOsc/phaseDist) + oscCount + effect chain order + granular source path ✅
 - MIDI Learn on all effect panel knobs ✅
 - Undo/Redo (Cmd+Z / Cmd+Shift+Z) ✅
 - Filter oversampling (Off/2x/4x/Auto) ✅
@@ -97,22 +97,21 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | WavetableEditor | Visual wavetable editor: draw tools, formula generators, normalize/fade/reverse/import, per-osc "EDIT WT" button in SynthPanel |
 | Layers | 8-layer engine: Synth/Granular/Sampler per layer, level/pan/mute/solo, full MIDI + audio + state wiring, "Layers" tab |
 | Track B | Filter LP/HP/BP/Notch; Sub+Noise osc; Unison Chord/Random spread; Layer key/vel/MIDI-ch ranges; Per-layer independent effect chain (LayerEffectChain) |
+| Phase 1 | Dynamic 1–8 osc count; 4 new types (Additive/PhaseDist/Analog/Digital); per-osc wave shaping + self-osc; 2 new mod targets (OscShapeAmount, OscPhaseDistAmount) |
 
 ## Next Steps
 
 ### Gap-Fill Implementation (Current Focus)
-**Plan:** `AI_GAP_FILL_PLAN.md` (created 2026-05-04)
-**Brief comparison:** `MULTIVERSE SYNTH BREIF.txt` vs existing features analyzed — 30+ gaps identified
-**Priority order:**
-1. Phase 0: Verify ModulationMatrix/SamplerEngine wiring
-2. Phase 1: Core synthesis & oscillator upgrades (unlimited osc, missing engines)
+**Plan:** `AI_GAP_FILL_PLAN.md`
+**Phases 0 and 1 complete.** Next: Phase 2 (Sampler Enhancements) or Phase 5 (Modulation Upgrades — unlimited LFOs).
+**Priority order (remaining):**
+1. ~~Phase 0: Verify ModulationMatrix/SamplerEngine wiring~~ ✅
+2. ~~Phase 1: Core synthesis & oscillator upgrades~~ ✅
 3. Phase 2: Sampler enhancements (time-stretch, multi-sampling, drag/drop)
 4. Phase 3: Sequencer upgrades (polyrhythm, probability, smart chord)
 5. Phase 4-7: Audio outputs, modulation, UI, effects, additional features
 
-**Pending clarification (before Phase 1):**
-1. Unlimited oscillators: per-voice or per-layer?
-2. New synth engines: per-oscillator types or standalone?
+**Remaining clarifications (for later phases):**
 3. Multi-output: osc-level, voice-level, or layer-level?
 4. 1000+ presets: programmatic or curated?
 5. Standalone mode: separate executable or audio effect?
@@ -181,3 +180,9 @@ Complete — `CyberpunkTheme` renamed to `CyberpunkTheme`, all panels updated, n
 - `LayerEffectChain` (`Source/Layers/LayerEffectChain.h/.cpp`): owns `ChorusEffect chorus[2]`, `DistortionEffect distortion[2]`, `EQEffect eq[2]`, `CompressorEffect compressor[2]`, `DelayEffect delay[2]`, `ReverbEffect reverb`. Per-effect `Slot {bool enabled; float mix}`. `processBlock` wet/dry blends each enabled effect; Reverb uses stereo `processBlock(L,R,n)`. State saved as `LayerFX` XML child of LayerEngine. "FX" button in LayersPanel row opens `juce::CallOutBox` with 6 enable toggles + mix sliders (heap-allocated Component, owned by CallOutBox).
 - `LayerEngine::noteOn(int note, float vel, int midiChannel)` — filters on `loNote/hiNote`, `loVel/hiVel` (vel×127), `midiChannelFilter` (0=all). `LayerManager::noteOn` passes `midiChannel` (from `message.getChannel()` in processBlock).
 - New APVTS params: `filterType` (Choice), `unisonSpreadMode` (Choice), `subOscEnable/Level/Wave` (Bool/Float/Choice), `noiseOscEnable/Level/Color` (Bool/Float/Float 200-20000Hz skew 0.3).
+- **Phase 1 — Oscillator system:** `OscillatorType` enum has 6 values: Classic(0), Wavetable(1), Additive(2), PhaseDist(3), Analog(4), Digital(5). `OscShapeType` enum: Off(0), Drive(1), Fold(2), Clip(3). `OscState` struct now has `phaseDistAmount`, `shapeType`, `shapeAmount`, `selfOscFeedback`, `selfOscPrev`, `analogLCG` fields. `std::array<OscState,8>` in Voice; `std::array<OscSettings,8>` in SynthEngine; `int activeOscs` in Voice; `int oscCount` in SynthEngine.
+- `Voice::process()` iterates `0..activeOscs-1`; skips slots with `level <= 0`. Additive: 8-harmonic sum via `classicOsc.getPhase()` after `classicOsc.process()`. PhaseDist: `sin(phase + amount * sin(2π*phase))`. Analog: Classic + LCG jitter `±0.015`. Digital: Classic + 16-level quantise. Wave shaping applied inline via `applyOscShaping()` (file-static helper, no heap alloc).
+- APVTS: `osc1`–`osc8` each have 9 params (`Type/Level/Detune/Waveform/WavePos/ShapeType/ShapeAmt/SelfOsc/PhaseDist`). `oscCount` Choice param (0-indexed, +1 = actual count, default index 2 = 3 oscs). Old presets: oscs 4–8 default to level 0, fully backward-compatible. `osc1Type`–`osc3Type` old choices (2 options) safely extended to 6 options (JUCE stores raw index).
+- `SynthEngine::setOscCount(n)` clamps to 1–8 and calls `voice.setActiveOscs(n)` on all 16 voices. All noteOn paths (Poly/Mono/Legato/MPE) propagate `setActiveOscs(oscCount)` + all 9 per-osc setter calls.
+- Mod targets `OscShapeAmount` (index 20) and `OscPhaseDistAmount` (index 21) added. `MAX_MOD_TARGETS` raised from 24 to 26. Wired in `processBlock` on osc 0 only (base param `osc1ShapeAmt`/`osc1PhaseDist` + mod sum).
+- SynthPanel: `oscControls[8]`, `wavetableEditors[8]`. Layout: ≤4 strips = 1 row (220px); 5–8 strips = 2 rows (460px). `+ OSC`/`- OSC` buttons at top of OSC section. Shape controls (shapeTypeSelector, shapeAmtSlider, selfOscSlider, phaseDistSlider) added to each strip; shapeAmt hidden when Off; phaseDistSlider hidden unless PhaseDist type selected. `updateVisibility()` reads `oscCount` APVTS value to determine which strips are shown.

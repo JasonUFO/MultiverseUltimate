@@ -1,35 +1,26 @@
 # MultiverseUltimate Gap-Fill Implementation Plan
-## Preamble: Clarifying Questions (resolve before implementation)
-1. Should unlimited oscillators be **per-voice** (dynamic count per SynthEngine voice) or **per-layer** (global oscillator count for all voices in a layer)?
-2. Should new synthesis engines (Additive/Phase Distortion/Analog/Digital) be implemented as **per-oscillator types** (extending current `Oscillator` class) or **standalone engines** (like GranularEngine)?
-3. For multi-output support: Do you need separate output buses for individual oscillators, voices, or entire layers?
-4. For 1000+ presets: Should these be generated programmatically (via randomization) or manually curated? Do you have existing preset content to bundle?
-5. For standalone mode: Do you want a separate executable (JUCE standalone target) or a VST3/AU that can load as an audio effect?
+## Preamble: Clarifying Questions — RESOLVED
+1. ✅ **Per-voice**, cap 8 oscillators. Global `oscCount` controls count for all voices simultaneously.
+2. ✅ **Extend the enum** — Additive/PhaseDist/Analog/Digital are `OscillatorType` values, not separate engines.
+3. ❓ Multi-output: osc-level, voice-level, or layer-level? (Phase 4 — defer)
+4. ❓ 1000+ presets: programmatic or curated? (Phase 6 — defer)
+5. ❓ Standalone mode: separate executable or audio effect? (Phase 7 — defer)
 
 ---
 
-## Phase 0: Existing Functionality Verification (Priority: Critical)
-- Verify ModulationMatrix LFO advancement and target routing (resolve discrepancy between `AI_STATE.md` and `MULTIVERSE_ULTIMATE_SPEC.md`)
-- Verify SamplerEngine/DrumSequencer audio output wiring
-- Confirm per-step velocity works in Sequencer/DrumSequencer
+## Phase 0: Existing Functionality Verification ✅ COMPLETE (2026-05-04)
+- ✅ ModulationMatrix LFO advancement and target routing confirmed functional
+- ✅ SamplerEngine/DrumSequencer audio output wiring confirmed
+- ✅ Per-step velocity confirmed in Sequencer/DrumSequencer
 
 ---
 
-## Phase1: Core Synthesis & Oscillator Upgrades (Priority: High)
-**Dependencies**: None (core engine work)
-1.1 Refactor SynthEngine for dynamic oscillator count
-   - Replace fixed `OscSettings[3]` array with `std::vector<OscState>`
-   - Add "Add Oscillator" button to SynthPanel per brief
-   - Update state persistence for variable oscillator counts
-1.2 Add missing oscillator types (extend `OscillatorType` enum):
-   - Additive: Sum of configurable sine partials with level control
-   - Phase Distortion: Linear ramp bent via user-defined breakpoints
-   - Analog Modeling: Emulated analog drift, jitter, wave shape variations
-   - Digital: Fixed digital waveforms with FM/PD hybrid mode
-1.3 Per-oscillator features
-   - Add wave shaping (drive/fold/clip) per oscillator
-   - Add self-oscillation feedback parameter per oscillator
-1.4 Update ModulationMatrix to support new oscillator targets
+## Phase1: Core Synthesis & Oscillator Upgrades ✅ COMPLETE (2026-05-04)
+**Architecture chosen:** per-voice, 8 pre-allocated slots, global `oscCount` param, extend `OscillatorType` enum, wave shaping as Drive/Fold/Clip modes.
+1.1 ✅ Dynamic 1–8 oscillators per voice — `oscCount` APVTS Choice; `+ OSC`/`- OSC` buttons; 2-row layout in SynthPanel; `SynthEngine::setOscCount()` propagates to all voices
+1.2 ✅ New types: Additive (8-harmonic Fourier), PhaseDist (sinusoidal phase bending), Analog (LCG micro-drift), Digital (16-level bit reduction)
+1.3 ✅ Wave shaping (Drive/Fold/Clip) + self-oscillation feedback per osc; inline `applyOscShaping()` helper in Voice.cpp; `OscShapeType` enum
+1.4 ✅ Mod targets `OscShapeAmount` + `OscPhaseDistAmount` added; `MAX_MOD_TARGETS` 24→26; wired in processBlock (osc 0)
 
 ---
 

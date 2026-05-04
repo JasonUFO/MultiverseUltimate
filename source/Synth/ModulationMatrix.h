@@ -7,7 +7,7 @@
 #include "JuceHeader.h"
 
 constexpr int MAX_MOD_SOURCES = 16;
-constexpr int MAX_MOD_TARGETS = 24;
+constexpr int MAX_MOD_TARGETS = 26;
 constexpr int MAX_MOD_CONNECTIONS = 32;
 
 enum class ModSourceType : uint8_t
@@ -49,7 +49,9 @@ enum class ModTargetType : uint8_t
     GranularDensity,
     GranularGrainSize,
     GranularSpray,
-    GranularPitchScatter
+    GranularPitchScatter,
+    OscShapeAmount,
+    OscPhaseDistAmount
 };
 
 struct ModConnection
@@ -151,6 +153,8 @@ public:
             case ModTargetType::GranularGrainSize: return "Gran Grain Size";
             case ModTargetType::GranularSpray: return "Gran Spray";
             case ModTargetType::GranularPitchScatter: return "Gran Pitch Scatter";
+            case ModTargetType::OscShapeAmount: return "OSC Shape Amt";
+            case ModTargetType::OscPhaseDistAmount: return "OSC PhaseDist Amt";
         }
         return "";
     }
