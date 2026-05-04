@@ -28,5 +28,10 @@ private:
     float fftMag[FFT_SIZE / 2]  {};
     float fftPeak[FFT_SIZE / 2] {};
 
+    // Tuner state (updated in timerCallback from FFT peak)
+    float tunerHz    = 0.0f;
+    int   tunerNote  = -1;   // MIDI note, -1 = no signal
+    float tunerCents = 0.0f; // -50..+50
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SynthDisplay)
 };

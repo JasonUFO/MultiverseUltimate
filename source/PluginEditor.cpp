@@ -15,7 +15,8 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       tabs (juce::TabbedButtonBar::TabsAtTop),
       midiLearnButton ("MIDI Learn"),
       midiLearnLabel ("", ""),
-      presetBrowserPanel (p)
+      presetBrowserPanel (p),
+      keyboard (p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
 {
     setLookAndFeel (&mvTheme);
 
@@ -35,10 +36,39 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     };
     addAndMakeVisible (helpButton);
 
+    // Randomize button
+    randomizeButton.setTooltip ("Randomize synth parameters for sound design");
+    randomizeButton.onClick = [this] { showRandomizeMenu(); };
+    addAndMakeVisible (randomizeButton);
+
+    // Scale combo
+    scaleCombo.addItem ("75%",  1);
+    scaleCombo.addItem ("100%", 2);
+    scaleCombo.addItem ("125%", 3);
+    scaleCombo.addItem ("150%", 4);
+    scaleCombo.setSelectedId (2, juce::dontSendNotification);
+    scaleCombo.setTooltip ("UI scale factor");
+    scaleCombo.onChange = [this] {
+        const float factors[] = { 0.75f, 1.0f, 1.25f, 1.5f };
+        int idx = juce::jlimit (0, 3, scaleCombo.getSelectedId() - 1);
+        setSize (juce::roundToInt (1200 * factors[idx]),
+                 juce::roundToInt (800  * factors[idx]));
+    };
+    addAndMakeVisible (scaleCombo);
+
+    // Built-in keyboard
+    keyboard.setOctaveForMiddleC (5);
+    keyboard.setAvailableRange (24, 108);
+    keyboard.setLowestVisibleKey (36);
+    addAndMakeVisible (keyboard);
+
     addAndMakeVisible (tabs);
     addAndMakeVisible (midiLearnButton);
     addAndMakeVisible (midiLearnLabel);
     addAndMakeVisible (paramSelector);
+
+    setResizable (true, true);
+    setResizeLimits (800, 533, 1920, 1280);
     setSize (1200, 800);
 }
 
@@ -101,6 +131,8 @@ void PluginEditor::resized()
     paramSelector.setBounds   (header.removeFromLeft (200).reduced (2, 4));
     presetsButton.setBounds   (header.removeFromRight (72).reduced (4, 4));
     helpButton.setBounds      (header.removeFromRight (28).reduced (2, 4));
+    randomizeButton.setBounds (header.removeFromRight (52).reduced (4, 4));
+    scaleCombo.setBounds      (header.removeFromRight (70).reduced (4, 4));
     midiLearnLabel.setBounds  (header.reduced (4, 4));
 
     // Preset browser (collapsible, 220px)
@@ -113,6 +145,9 @@ void PluginEditor::resized()
     {
         presetBrowserPanel.setVisible (false);
     }
+
+    // Built-in keyboard at bottom
+    keyboard.setBounds (area.removeFromBottom (KEYBOARD_H));
 
     tabs.setBounds (area);
 }
@@ -145,22 +180,19 @@ void PluginEditor::buttonClicked (juce::Button* button)
 
 void PluginEditor::comboBoxChanged (juce::ComboBox* combo)
 {
-    if (combo != &paramSelector)
-        return;
-
-    const int selectedId = paramSelector.getSelectedId();
-    if (selectedId <= 1)
+    if (combo == &paramSelector)
     {
-        processorRef.learnParameterIndex = -1;
-        return;
+        const int selectedId = paramSelector.getSelectedId();
+        if (selectedId <= 1)
+        {
+            processorRef.learnParameterIndex = -1;
+            return;
+        }
+        const int paramIndex = selectedId - 2;
+        processorRef.startMidiLearnForParameter (paramIndex);
+        midiLearnLabel.setText ("Waiting for CC...", juce::dontSendNotification);
+        midiLearnLabel.setVisible (true);
     }
-
-    // id = paramIndex + 2  →  paramIndex = selectedId - 2
-    const int paramIndex = selectedId - 2;
-    processorRef.startMidiLearnForParameter (paramIndex);
-
-    midiLearnLabel.setText ("Waiting for CC...", juce::dontSendNotification);
-    midiLearnLabel.setVisible (true);
 }
 
 void PluginEditor::updateMidiLearnUI()
@@ -188,4 +220,77 @@ bool PluginEditor::keyPressed (const juce::KeyPress& key)
         return true;
     }
     return false;
+}
+
+void PluginEditor::showRandomizeMenu()
+{
+    juce::PopupMenu menu;
+    menu.addItem (1, "Randomize OSC + Filter + Env");
+    menu.addItem (2, "Randomize Filter + Env");
+    menu.addItem (3, "Randomize LFOs");
+    menu.addSeparator();
+    menu.addItem (4, "Randomize Everything");
+
+    menu.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (randomizeButton),
+        [this] (int result)
+        {
+            switch (result)
+            {
+                case 1:
+                    randomizeParams ({"osc", "filterCutoff", "filterResonance", "filterType",
+                                      "attack", "decay", "sustain", "release"});
+                    break;
+                case 2:
+                    randomizeParams ({"filterCutoff", "filterResonance",
+                                      "attack", "decay", "sustain", "release"});
+                    break;
+                case 3:
+                    randomizeParams ({"lfo1Rate", "lfo2Rate", "lfo3Rate", "lfo4Rate",
+                                      "lfo5Rate", "lfo6Rate", "lfo7Rate", "lfo8Rate",
+                                      "lfo1Shape", "lfo2Shape", "lfo3Shape", "lfo4Shape",
+                                      "lfo5Shape", "lfo6Shape", "lfo7Shape", "lfo8Shape"});
+                    break;
+                case 4:
+                    randomizeParams ({});  // empty = all params
+                    break;
+                default:
+                    break;
+            }
+        });
+}
+
+void PluginEditor::randomizeParams(const juce::StringArray& prefixes, bool filterBoring)
+{
+    // Params that should never be randomized
+    static const juce::StringArray skipList {
+        "masterVolume", "mpeEnabled", "portaAlways", "oscCount",
+        "samplerVolume", "samplerPan", "fmAlgorithm"
+    };
+
+    auto& params = processorRef.getParameters();
+    juce::Random rng;
+
+    for (auto* p : params)
+    {
+        auto* rp = dynamic_cast<juce::RangedAudioParameter*>(p);
+        if (!rp) continue;
+
+        const juce::String id = rp->getParameterID();
+
+        // Always skip boring/structural params
+        if (skipList.contains (id)) continue;
+        if (id.startsWith ("lfo") && id.endsWith ("Sync")) continue;
+        if (id.startsWith ("lfo") && id.endsWith ("SyncDiv")) continue;
+
+        // If a prefix filter is given, only randomize matching params
+        if (!prefixes.isEmpty())
+        {
+            bool matches = false;
+            for (const auto& prefix : prefixes)
+                if (id.startsWith (prefix)) { matches = true; break; }
+            if (!matches) continue;
+        }
+
+        rp->setValueNotifyingHost (rng.nextFloat());
+    }
 }

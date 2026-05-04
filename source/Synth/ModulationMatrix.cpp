@@ -14,6 +14,14 @@ ModulationMatrix::ModulationMatrix()
         sourceValues[i].phase = 0.0f;
     }
 
+    for (int i = 0; i < 8; ++i)
+    {
+        lfoPhase[i].store(0.0f, std::memory_order_relaxed);
+        lfoRate[i]    = 1.0f;
+        lfoShape[i]   = LFOShape::Sine;
+        lfoSHValue[i] = 0.0f;
+    }
+
     for (int b = 0; b < 2; ++b)
         for (int t = 0; t < MAX_MOD_TARGETS; ++t)
             modSumsBuffer[b][t] = 0.0f;
@@ -80,21 +88,17 @@ void ModulationMatrix::setConnectionEnabled(int connectionId, bool enabled)
 
 float ModulationMatrix::getModulationValue(ModSourceType source, int index)
 {
-    int sourceIndex = static_cast<int>(source);
-    if (sourceIndex >= 0 && sourceIndex < MAX_MOD_SOURCES)
-    {
-        return sourceValues[sourceIndex].value.load(std::memory_order_relaxed);
-    }
+    int srcIdx = static_cast<int>(source);
+    if (srcIdx >= 0 && srcIdx < MAX_MOD_SOURCES)
+        return sourceValues[srcIdx].value.load(std::memory_order_relaxed);
     return 0.0f;
 }
 
 void ModulationMatrix::setModulationValue(ModSourceType source, int index, float value)
 {
-    int sourceIndex = static_cast<int>(source);
-    if (sourceIndex >= 0 && sourceIndex < MAX_MOD_SOURCES)
-    {
-        sourceValues[sourceIndex].value.store(value, std::memory_order_relaxed);
-    }
+    int srcIdx = static_cast<int>(source);
+    if (srcIdx >= 0 && srcIdx < MAX_MOD_SOURCES)
+        sourceValues[srcIdx].value.store(value, std::memory_order_relaxed);
 }
 
 void ModulationMatrix::prepare(double sampleRate_, int samplesPerBlock_)
@@ -141,80 +145,84 @@ std::vector<ModConnection> ModulationMatrix::getConnections() const
 ModSourceType ModulationMatrix::getSourceType(int index) const
 {
     if (index >= 0 && index < MAX_MOD_SOURCES)
-    {
         return sourceValues[index].type;
-    }
     return ModSourceType::LFO1;
 }
 
 ModTargetType ModulationMatrix::getTargetType(int index) const
 {
     if (index >= 0 && index < MAX_MOD_TARGETS)
-    {
         return static_cast<ModTargetType>(index);
-    }
     return ModTargetType::FilterCutoff;
 }
 
 void ModulationMatrix::setLFORate(int lfoIndex, float rateHz)
 {
-    if (lfoIndex < 0 || lfoIndex > 3) return;
-    rateHz = std::clamp(rateHz, 0.01f, 100.0f);
-    switch (lfoIndex)
-    {
-        case 0: lfo1Rate = rateHz; break;
-        case 1: lfo2Rate = rateHz; break;
-        case 2: lfo3Rate = rateHz; break;
-        case 3: lfo4Rate = rateHz; break;
-    }
+    if (lfoIndex < 0 || lfoIndex >= 8) return;
+    lfoRate[lfoIndex] = std::clamp(rateHz, 0.01f, 100.0f);
 }
 
 float ModulationMatrix::getLFORate(int lfoIndex) const
 {
-    if (lfoIndex < 0 || lfoIndex > 3) return 1.0f;
-    switch (lfoIndex)
-    {
-        case 0: return lfo1Rate;
-        case 1: return lfo2Rate;
-        case 2: return lfo3Rate;
-        case 3: return lfo4Rate;
-    }
-    return 1.0f;
+    if (lfoIndex < 0 || lfoIndex >= 8) return 1.0f;
+    return lfoRate[lfoIndex];
+}
+
+void ModulationMatrix::setLFOShape(int lfoIndex, LFOShape shape)
+{
+    if (lfoIndex < 0 || lfoIndex >= 8) return;
+    lfoShape[lfoIndex] = shape;
+}
+
+LFOShape ModulationMatrix::getLFOShape(int lfoIndex) const
+{
+    if (lfoIndex < 0 || lfoIndex >= 8) return LFOShape::Sine;
+    return lfoShape[lfoIndex];
 }
 
 void ModulationMatrix::advanceLFOs(int numSamples)
 {
-    constexpr double twoPi = 6.283185307179586;
-    double sr = sampleRate > 0 ? sampleRate : 44100.0;
-    float deltaPhase = static_cast<float>(twoPi * numSamples / sr);
+    constexpr float pi    = 3.14159265358979f;
+    constexpr float twoPi = 6.28318530717959f;
+    const float sr = static_cast<float>(sampleRate > 0 ? sampleRate : 44100.0);
+    const float delta = twoPi * static_cast<float>(numSamples) / sr;
 
-    // LFO1
-    float p1 = lfo1Phase.load(std::memory_order_relaxed);
-    p1 += deltaPhase * lfo1Rate;
-    if (p1 >= twoPi) p1 -= twoPi;
-    lfo1Phase.store(p1, std::memory_order_relaxed);
-    sourceValues[static_cast<int>(ModSourceType::LFO1)].value.store(static_cast<float>(std::sin(p1)), std::memory_order_relaxed);
+    // LFO1-LFO4 write to sourceValues[0-3]
+    // LFO5-LFO8 write to sourceValues[15-18]
+    for (int i = 0; i < 8; ++i)
+    {
+        float p = lfoPhase[i].load(std::memory_order_relaxed);
+        float inc = delta * lfoRate[i];
+        float newP = p + inc;
+        bool wrapped = (newP >= twoPi);
+        if (wrapped) newP -= twoPi;
+        lfoPhase[i].store(newP, std::memory_order_relaxed);
 
-    // LFO2
-    float p2 = lfo2Phase.load(std::memory_order_relaxed);
-    p2 += deltaPhase * lfo2Rate;
-    if (p2 >= twoPi) p2 -= twoPi;
-    lfo2Phase.store(p2, std::memory_order_relaxed);
-    sourceValues[static_cast<int>(ModSourceType::LFO2)].value.store(static_cast<float>(std::sin(p2)), std::memory_order_relaxed);
+        float value = 0.0f;
+        switch (lfoShape[i])
+        {
+            case LFOShape::Triangle:
+                value = 1.0f - 2.0f * std::abs(newP / pi - 1.0f);
+                break;
+            case LFOShape::Saw:
+                value = newP / pi - 1.0f;
+                break;
+            case LFOShape::Square:
+                value = newP < pi ? 1.0f : -1.0f;
+                break;
+            case LFOShape::SampleAndHold:
+                if (wrapped)
+                    lfoSHValue[i] = juce::Random::getSystemRandom().nextFloat() * 2.0f - 1.0f;
+                value = lfoSHValue[i];
+                break;
+            default:
+                value = std::sin(newP);
+                break;
+        }
 
-    // LFO3
-    float p3 = lfo3Phase.load(std::memory_order_relaxed);
-    p3 += deltaPhase * lfo3Rate;
-    if (p3 >= twoPi) p3 -= twoPi;
-    lfo3Phase.store(p3, std::memory_order_relaxed);
-    sourceValues[static_cast<int>(ModSourceType::LFO3)].value.store(static_cast<float>(std::sin(p3)), std::memory_order_relaxed);
-
-    // LFO4
-    float p4 = lfo4Phase.load(std::memory_order_relaxed);
-    p4 += deltaPhase * lfo4Rate;
-    if (p4 >= twoPi) p4 -= twoPi;
-    lfo4Phase.store(p4, std::memory_order_relaxed);
-    sourceValues[static_cast<int>(ModSourceType::LFO4)].value.store(static_cast<float>(std::sin(p4)), std::memory_order_relaxed);
+        const int srcIdx = (i < 4) ? i : (11 + i);  // 0-3 → 0-3, 4-7 → 15-18
+        sourceValues[srcIdx].value.store(value, std::memory_order_relaxed);
+    }
 }
 
 void ModulationMatrix::computeModulationSums(float* outSums) const
@@ -245,10 +253,12 @@ void ModulationMatrix::computeModulationSums(float* outSums) const
 juce::ValueTree ModulationMatrix::getState() const
 {
     juce::ValueTree v("ModulationMatrix");
-    v.setProperty("lfo1Rate", lfo1Rate, nullptr);
-    v.setProperty("lfo2Rate", lfo2Rate, nullptr);
-    v.setProperty("lfo3Rate", lfo3Rate, nullptr);
-    v.setProperty("lfo4Rate", lfo4Rate, nullptr);
+
+    for (int i = 0; i < 8; ++i)
+    {
+        v.setProperty("lfo" + juce::String(i + 1) + "Rate",  lfoRate[i],           nullptr);
+        v.setProperty("lfo" + juce::String(i + 1) + "Shape", (int)lfoShape[i],     nullptr);
+    }
 
     auto conns = juce::ValueTree("Connections");
     {
@@ -256,12 +266,12 @@ juce::ValueTree ModulationMatrix::getState() const
         for (const auto& c : connections)
         {
             juce::ValueTree conn("Conn");
-            conn.setProperty("source", static_cast<int>(c.source), nullptr);
-            conn.setProperty("target", static_cast<int>(c.target), nullptr);
-            conn.setProperty("amount", c.amount, nullptr);
-            conn.setProperty("enabled", c.enabled, nullptr);
-            conn.setProperty("sourceIndex", c.sourceIndex, nullptr);
-            conn.setProperty("targetIndex", c.targetIndex, nullptr);
+            conn.setProperty("source",      static_cast<int>(c.source), nullptr);
+            conn.setProperty("target",      static_cast<int>(c.target), nullptr);
+            conn.setProperty("amount",      c.amount,                   nullptr);
+            conn.setProperty("enabled",     c.enabled,                  nullptr);
+            conn.setProperty("sourceIndex", c.sourceIndex,              nullptr);
+            conn.setProperty("targetIndex", c.targetIndex,              nullptr);
             conns.appendChild(conn, nullptr);
         }
     }
@@ -274,10 +284,19 @@ void ModulationMatrix::setState(const juce::ValueTree& state)
     if (!state.hasType("ModulationMatrix"))
         return;
 
-    if (state.hasProperty("lfo1Rate")) lfo1Rate = (float)state.getProperty("lfo1Rate");
-    if (state.hasProperty("lfo2Rate")) lfo2Rate = (float)state.getProperty("lfo2Rate");
-    if (state.hasProperty("lfo3Rate")) lfo3Rate = (float)state.getProperty("lfo3Rate");
-    if (state.hasProperty("lfo4Rate")) lfo4Rate = (float)state.getProperty("lfo4Rate");
+    // Backward compat: individual properties from old format
+    if (state.hasProperty("lfo1Rate")) lfoRate[0] = (float)state.getProperty("lfo1Rate");
+    if (state.hasProperty("lfo2Rate")) lfoRate[1] = (float)state.getProperty("lfo2Rate");
+    if (state.hasProperty("lfo3Rate")) lfoRate[2] = (float)state.getProperty("lfo3Rate");
+    if (state.hasProperty("lfo4Rate")) lfoRate[3] = (float)state.getProperty("lfo4Rate");
+
+    for (int i = 0; i < 8; ++i)
+    {
+        const juce::String rk = "lfo" + juce::String(i + 1) + "Rate";
+        const juce::String sk = "lfo" + juce::String(i + 1) + "Shape";
+        if (state.hasProperty(rk))  lfoRate[i]  = (float)state.getProperty(rk);
+        if (state.hasProperty(sk))  lfoShape[i] = static_cast<LFOShape>((int)state.getProperty(sk));
+    }
 
     std::vector<ModConnection> newConnections;
     for (auto child : state)
@@ -289,10 +308,10 @@ void ModulationMatrix::setState(const juce::ValueTree& state)
                 if (conn.hasType("Conn"))
                 {
                     ModConnection c;
-                    c.source = static_cast<ModSourceType>((int)conn.getProperty("source"));
-                    c.target = static_cast<ModTargetType>((int)conn.getProperty("target"));
-                    c.amount = (float)conn.getProperty("amount");
-                    c.enabled = conn.getProperty("enabled");
+                    c.source      = static_cast<ModSourceType>((int)conn.getProperty("source"));
+                    c.target      = static_cast<ModTargetType>((int)conn.getProperty("target"));
+                    c.amount      = (float)conn.getProperty("amount");
+                    c.enabled     = conn.getProperty("enabled");
                     c.sourceIndex = (int)conn.getProperty("sourceIndex");
                     c.targetIndex = (int)conn.getProperty("targetIndex");
                     newConnections.push_back(c);

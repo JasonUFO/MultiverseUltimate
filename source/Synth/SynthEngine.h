@@ -76,6 +76,10 @@ public:
     void setPortamento(float seconds);
     void setPortaAlways(bool always);
 
+    // CPU voice limiting (1–MAX_VOICES for classic, 1–MAX_FM_VOICES for FM)
+    void setVoiceLimit(int limit);
+    int  getVoiceLimit() const { return voiceLimit; }
+
     // Wavetable file loading
     bool loadWavetableFile(int oscIndex, const juce::File& file);
     juce::String getWavetableFilePath(int oscIndex) const;
@@ -208,6 +212,7 @@ private:
     float sampleRate = 44100.0f;
     double pitchBend = 0.0;
     int voiceCounter = 0;
+    int voiceLimit = MAX_VOICES;
 
     // Voice mode / portamento
     VoiceMode voiceMode = VoiceMode::Poly;

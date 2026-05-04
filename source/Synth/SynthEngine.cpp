@@ -639,13 +639,20 @@ void SynthEngine::setFMOperatorParams(int opIndex,
     }
 }
 
+void SynthEngine::setVoiceLimit(int limit)
+{
+    voiceLimit = juce::jlimit(1, MAX_VOICES, limit);
+}
+
 SynthEngine::VoiceInfo* SynthEngine::findFreeVoice()
 {
     VoiceInfo* oldest = nullptr;
     int oldestTime = INT_MAX;
 
-    for (auto& vi : voices)
+    const int limit = voiceLimit;
+    for (int i = 0; i < limit; ++i)
     {
+        auto& vi = voices[i];
         if (!vi.inUse)
             return &vi;
 
@@ -674,8 +681,10 @@ SynthEngine::FMVoiceInfo* SynthEngine::findFreeFMVoice()
     FMVoiceInfo* oldest = nullptr;
     int oldestTime = INT_MAX;
 
-    for (auto& vi : fmVoices)
+    const int limit = juce::jlimit(1, MAX_FM_VOICES, voiceLimit);
+    for (int i = 0; i < limit; ++i)
     {
+        auto& vi = fmVoices[i];
         if (!vi.inUse)
             return &vi;
 

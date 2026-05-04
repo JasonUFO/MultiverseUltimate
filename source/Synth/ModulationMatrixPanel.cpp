@@ -1,29 +1,112 @@
 #include "ModulationMatrixPanel.h"
 #include "../CyberpunkTheme.h"
-#include "../CyberpunkTheme.h"
+#include "../PluginProcessor.h"
 
 namespace {
-    constexpr int HEADER_H  = 36;
-    constexpr int COL_HDR_H = 20;
-    constexpr int ROW_H     = 36;
-    constexpr int ROW_GAP   = 3;
-    constexpr int PADDING   = 8;
-    constexpr int SRC_W     = 140;
-    constexpr int TGT_W     = 140;
-    constexpr int DEL_W     = 28;
-    constexpr int INNER_GAP = 4;
+    constexpr int HEADER_H   = 36;
+    constexpr int LFO_HDR_H  = 22;
+    constexpr int LFO_ROW_H  = 28;
+    constexpr int LFO_GAP    = 2;
+    constexpr int COL_HDR_H  = 20;
+    constexpr int ROW_H      = 36;
+    constexpr int ROW_GAP    = 3;
+    constexpr int PADDING    = 8;
+    constexpr int SRC_W      = 140;
+    constexpr int TGT_W      = 140;
+    constexpr int DEL_W      = 28;
+    constexpr int INNER_GAP  = 4;
+
+    // LFO row column widths
+    constexpr int LFO_LABEL_W   = 44;
+    constexpr int LFO_RATE_W    = 100;
+    constexpr int LFO_SHAPE_W   = 84;
+    constexpr int LFO_SYNC_W    = 50;
+    constexpr int LFO_DIV_W     = 60;
 }
 
-// ─── Row ────────────────────────────────────────────────────────────────────
+// ─── LFORow ──────────────────────────────────────────────────────────────────
+
+ModulationMatrixPanel::LFORow::LFORow(int index, juce::AudioProcessorValueTreeState& apvts)
+{
+    const juce::String idx = juce::String(index + 1);
+
+    label.setText("LFO " + idx, juce::dontSendNotification);
+    label.setFont(juce::Font(11.0f, juce::Font::bold));
+    label.setColour(juce::Label::textColourId, CyberpunkTheme::accentBlue);
+    label.setJustificationType(juce::Justification::centredLeft);
+
+    rateSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    rateSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 46, LFO_ROW_H - 4);
+    rateSlider.setTooltip("LFO " + idx + " rate (Hz) — overridden when SYNC is on");
+
+    shapeCombo.addItem("Sine",     1);
+    shapeCombo.addItem("Triangle", 2);
+    shapeCombo.addItem("Saw",      3);
+    shapeCombo.addItem("Square",   4);
+    shapeCombo.addItem("S&H",      5);
+    shapeCombo.setTooltip("LFO " + idx + " waveform shape");
+
+    syncButton.setButtonText("SYNC");
+    syncButton.setTooltip("Sync LFO " + idx + " rate to DAW tempo");
+
+    syncDivCombo.addItem("1/32", 1);
+    syncDivCombo.addItem("1/16", 2);
+    syncDivCombo.addItem("1/8",  3);
+    syncDivCombo.addItem("1/4",  4);
+    syncDivCombo.addItem("1/2",  5);
+    syncDivCombo.addItem("1/1",  6);
+    syncDivCombo.addItem("2/1",  7);
+    syncDivCombo.addItem("4/1",  8);
+    syncDivCombo.setTooltip("LFO " + idx + " tempo-sync division");
+
+    addAndMakeVisible(label);
+    addAndMakeVisible(rateSlider);
+    addAndMakeVisible(shapeCombo);
+    addAndMakeVisible(syncButton);
+    addAndMakeVisible(syncDivCombo);
+
+    if (auto* rateParam = apvts.getParameter("lfo" + idx + "Rate"))
+        rateAttachment = std::make_unique<juce::SliderParameterAttachment>(*rateParam, rateSlider, nullptr);
+    if (auto* shapeParam = apvts.getParameter("lfo" + idx + "Shape"))
+        shapeAttachment = std::make_unique<juce::ComboBoxParameterAttachment>(*shapeParam, shapeCombo, nullptr);
+    if (auto* syncParam = apvts.getParameter("lfo" + idx + "Sync"))
+        syncAttachment = std::make_unique<juce::ButtonParameterAttachment>(*syncParam, syncButton, nullptr);
+    if (auto* divParam = apvts.getParameter("lfo" + idx + "SyncDiv"))
+        syncDivAttachment = std::make_unique<juce::ComboBoxParameterAttachment>(*divParam, syncDivCombo, nullptr);
+}
+
+void ModulationMatrixPanel::LFORow::resized()
+{
+    auto b = getLocalBounds().reduced(2, 2);
+    label.setBounds(b.removeFromLeft(LFO_LABEL_W));
+    b.removeFromLeft(INNER_GAP);
+    rateSlider.setBounds(b.removeFromLeft(LFO_RATE_W));
+    b.removeFromLeft(INNER_GAP);
+    shapeCombo.setBounds(b.removeFromLeft(LFO_SHAPE_W));
+    b.removeFromLeft(INNER_GAP);
+    syncButton.setBounds(b.removeFromLeft(LFO_SYNC_W));
+    b.removeFromLeft(INNER_GAP);
+    syncDivCombo.setBounds(b.removeFromLeft(LFO_DIV_W));
+}
+
+// ─── Row ─────────────────────────────────────────────────────────────────────
 
 ModulationMatrixPanel::Row::Row()
 {
-    for (int i = 0; i <= static_cast<int>(ModSourceType::MPESlide); ++i)
-        sourceBox.addItem(ModulationMatrix::getSourceName(static_cast<ModSourceType>(i)), i + 1);
+    for (int i = 0; i < MAX_MOD_SOURCES; ++i)
+    {
+        const char* name = ModulationMatrix::getSourceName(static_cast<ModSourceType>(i));
+        if (name && name[0] != '\0')
+            sourceBox.addItem(name, i + 1);
+    }
     sourceBox.setSelectedId(1, juce::dontSendNotification);
 
-    for (int i = 0; i <= static_cast<int>(ModTargetType::OscPhaseDistAmount); ++i)
-        targetBox.addItem(ModulationMatrix::getTargetName(static_cast<ModTargetType>(i)), i + 1);
+    for (int i = 0; i < MAX_MOD_TARGETS; ++i)
+    {
+        const char* name = ModulationMatrix::getTargetName(static_cast<ModTargetType>(i));
+        if (name && name[0] != '\0')
+            targetBox.addItem(name, i + 1);
+    }
     targetBox.setSelectedId(1, juce::dontSendNotification);
 
     amountSlider.setRange(-1.0, 1.0, 0.01);
@@ -59,7 +142,7 @@ ModulationMatrixPanel::Row::Row()
 
     deleteButton.onClick = [this]() { if (onDelete) onDelete(); };
 
-    sourceBox.setTooltip   ("Modulation source: LFO1, LFO2, Envelope, Velocity, Random…");
+    sourceBox.setTooltip   ("Modulation source: LFO1-8, Envelopes, Velocity, Random…");
     targetBox.setTooltip   ("Modulation target: Pitch, Filter Cutoff, Volume, Effect parameter…");
     amountSlider.setTooltip("Modulation depth: how strongly the source affects the target (−1.0 to +1.0)");
     deleteButton.setTooltip("Remove this modulation route");
@@ -77,7 +160,7 @@ void ModulationMatrixPanel::Row::resized()
     amountSlider.setBounds(b);
 }
 
-// ─── Panel ──────────────────────────────────────────────────────────────────
+// ─── Panel ───────────────────────────────────────────────────────────────────
 
 ModulationMatrixPanel::ModulationMatrixPanel(PluginProcessor& p, ModulationMatrix& m)
     : processorRef(p), matrix(m)
@@ -96,6 +179,13 @@ ModulationMatrixPanel::ModulationMatrixPanel(PluginProcessor& p, ModulationMatri
     addButton.setTooltip("Add a new modulation route (source → target with depth)");
     addAndMakeVisible(addButton);
 
+    // Build LFO rows
+    for (int i = 0; i < 8; ++i)
+    {
+        lfoRows[i] = std::make_unique<LFORow>(i, processorRef.apvts);
+        addAndMakeVisible(*lfoRows[i]);
+    }
+
     rebuild();
     startTimer(200);
 }
@@ -109,7 +199,39 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
 {
     g.fillAll(CyberpunkTheme::bgBase);
 
-    // Draw neumorphic cards for each row
+    // LFO section header
+    const int lfoSectionTop = HEADER_H;
+    g.setColour(CyberpunkTheme::textSecondary);
+    g.setFont(juce::Font(10.5f, juce::Font::bold));
+    g.drawText("LFO BANKS", PADDING, lfoSectionTop, 80, LFO_HDR_H, juce::Justification::centredLeft);
+
+    // Thin separator line under LFO section
+    const int lfoSectionBottom = HEADER_H + LFO_HDR_H + 8 * (LFO_ROW_H + LFO_GAP) + 4;
+    g.setColour(CyberpunkTheme::shadowDark.withAlpha(0.6f));
+    g.drawHorizontalLine(lfoSectionBottom, PADDING, (float)(getWidth() - PADDING));
+
+    // Draw neumorphic cards for each LFO row
+    for (const auto& row : lfoRows)
+    {
+        if (row)
+        {
+            auto b = row->getBounds().expanded(1, 0);
+            CyberpunkTheme::drawNeumorphicRect(g, b.toFloat(), 5.0f, 2.0f);
+            g.setColour(CyberpunkTheme::bgRaised.withAlpha(0.7f));
+            g.fillRoundedRectangle(b.toFloat(), 5.0f);
+        }
+    }
+
+    // Column headers for connections section
+    const int connHeaderY = lfoSectionBottom + 4;
+    const int rowLeft = PADDING + 2;
+    g.setColour(CyberpunkTheme::textSecondary);
+    g.setFont(juce::Font(11.0f));
+    g.drawText("SOURCE", rowLeft,                                           connHeaderY, SRC_W, COL_HDR_H, juce::Justification::centredLeft);
+    g.drawText("TARGET", rowLeft + SRC_W + INNER_GAP,                      connHeaderY, TGT_W, COL_HDR_H, juce::Justification::centredLeft);
+    g.drawText("AMOUNT", rowLeft + SRC_W + INNER_GAP + TGT_W + INNER_GAP, connHeaderY, 80,   COL_HDR_H, juce::Justification::centredLeft);
+
+    // Draw neumorphic cards for each connection row
     const float cr = 6.0f;
     for (const auto& b : rowBounds)
     {
@@ -121,20 +243,12 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
         g.drawRoundedRectangle(b.toFloat().reduced(1.5f), cr, 1.0f);
     }
 
-    // Column headers — x positions mirror Row::resized() with PADDING offset
-    const int rowLeft = PADDING + 2;
-    g.setColour(CyberpunkTheme::textSecondary);
-    g.setFont(juce::Font(11.0f));
-    g.drawText("SOURCE", rowLeft,                                              HEADER_H, SRC_W,  COL_HDR_H, juce::Justification::centredLeft);
-    g.drawText("TARGET", rowLeft + SRC_W + INNER_GAP,                         HEADER_H, TGT_W,  COL_HDR_H, juce::Justification::centredLeft);
-    g.drawText("AMOUNT", rowLeft + SRC_W + INNER_GAP + TGT_W + INNER_GAP,    HEADER_H, 80,     COL_HDR_H, juce::Justification::centredLeft);
-
     if (rows.empty())
     {
         g.setColour(CyberpunkTheme::textMuted);
         g.setFont(13.0f);
         g.drawText("No connections — press + to add one",
-                   getLocalBounds().withTrimmedTop(HEADER_H + COL_HDR_H + 16),
+                   getLocalBounds().withTop(lfoSectionBottom + COL_HDR_H + 24),
                    juce::Justification::centredTop);
     }
 }
@@ -143,10 +257,23 @@ void ModulationMatrixPanel::resized()
 {
     auto b = getLocalBounds().reduced(PADDING);
 
+    // Header row: title + add button
     auto headerRow = b.removeFromTop(HEADER_H - 8);
     titleLabel.setBounds(headerRow.withTrimmedRight(36));
     addButton.setBounds(headerRow.removeFromRight(28));
 
+    // LFO section header gap
+    b.removeFromTop(LFO_HDR_H);
+
+    // 8 LFO rows
+    for (int i = 0; i < 8; ++i)
+    {
+        lfoRows[i]->setBounds(b.removeFromTop(LFO_ROW_H));
+        b.removeFromTop(LFO_GAP);
+    }
+    b.removeFromTop(8); // spacing before separator + col header
+
+    // Connections column header + rows
     b.removeFromTop(COL_HDR_H + 4);
 
     rowBounds.clear();

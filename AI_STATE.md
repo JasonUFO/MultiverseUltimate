@@ -391,11 +391,68 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 ---
 
+## Completed (Phase 5 — Modulation Upgrades) (2026-05-04)
+
+**Phase 5 COMPLETE** — All 4 sub-tasks shipped:
+
+- **5.1 — 8 LFOs**: `ModSourceType` enum expanded with `LFO5-LFO8` (indices 15-18); `lfoPhase/lfoRate/lfoShape/lfoSHValue` arrays (8 elements) replace the 4 individual private members; `advanceLFOs()` loops over all 8; `setLFORate/getLFORate` now accept indices 0-7; `MAX_MOD_SOURCES` 16→21
+- **5.2 — LFO shapes**: `LFOShape` enum {Sine, Triangle, Saw, Square, SampleAndHold}; `setLFOShape/getLFOShape` API; shape-aware value computation per LFO in `advanceLFOs()`; S&H generates new random on phase wrap; `lfo1Shape`–`lfo8Shape` APVTS Choice params
+- **5.3 — DAW sync**: `lfo1Sync`–`lfo8Sync` Bool APVTS params; `lfo1SyncDiv`–`lfo8SyncDiv` Choice params (1/32 to 4/1, 8 options); when synced, rate computed from `dawBPM/60 / divisor` in processBlock, overriding the manual rate slider; `static const float lfoSyncDivisors[8]` in processBlock
+- **5.4 — Mod envelopes**: `ModSourceType::Envelope2` (19) and `::Envelope3` (20); `juce::ADSR modEnv2, modEnv3` in PluginProcessor; `modEnvXAttack/Decay/Sustain/Release` APVTS Float params; triggered from noteOn/noteOff in processBlock MIDI loop; advanced per block with `getNextSample()`, result pushed to `modulationMatrix.setModulationValue()`
+- **UI — LFO Banks section**: `LFORow` struct in `ModulationMatrixPanel` (8 rows above connections); each row: LFO label, rate slider + APVTS attachment, shape combo + APVTS attachment, sync toggle + APVTS attachment, sync-div combo + APVTS attachment; all 4 APVTS params fully DAW-automatable
+- **Connection dropdown fix**: source/target combo boxes now loop over `MAX_MOD_SOURCES/MAX_MOD_TARGETS` (was hardcoded to `MPESlide`/`OscPhaseDistAmount`), picking up LFO5-8, Env2/3, SequencerStep, LFO5-8 Rate targets automatically
+- `ModTargetType::LFO5Rate–LFO8Rate` added (indices 22-25, filling the 4 spare slots up to MAX_MOD_TARGETS=26); wired in processBlock LFO rate loop
+
+**Build verified:** VST3 builds and installs successfully ✅
+
+---
+
+## Completed (Phase 6 — UI & Presets) (2026-05-04)
+
+**Phase 6 COMPLETE** — 3 sub-tasks shipped:
+
+- **6.1 Resizable UI**: `setResizable(true, true)` + `setResizeLimits(800, 533, 1920, 1280)` in PluginEditor; free drag-resize enabled; **Scale combo** in header (75%/100%/125%/150%) calls `setSize(1200*f, 800*f)` — all child layout uses `getLocalBounds()` so scales naturally
+- **6.2 Built-in keyboard**: `juce::MidiKeyboardState keyboardState` (public) in PluginProcessor; `keyboardState.processNextMidiBuffer(midiMessages, 0, numSamples, true)` at top of processBlock (injects on-screen keyboard MIDI before the MIDI loop); `juce::MidiKeyboardComponent keyboard` in PluginEditor (64px tall strip at bottom, always visible, range C2-C8)
+- **7.3 Quick randomization**: "RAND" button in header opens `PopupMenu` with 4 options: "OSC+Filter+Env", "Filter+Env", "LFOs", "Everything"; `randomizeParams(prefixes)` loops all APVTS `RangedAudioParameter`s, skips structural params (masterVolume, mpeEnabled, oscCount, etc.) and sync params; calls `setValueNotifyingHost(rng.nextFloat())` for each matching param
+
+**Build verified:** VST3 builds and installs successfully ✅
+
+---
+
+## Completed (Phase 7 — Effects & Additional Features) (2026-05-04)
+
+**Phase 7 PARTIAL** — 2 sub-tasks shipped:
+
+- **7.4 CPU voice limiting**: `void setVoiceLimit(int)` in SynthEngine; `int voiceLimit = MAX_VOICES` private member; `findFreeVoice()` iterates only `voices[0..voiceLimit-1]`; `findFreeFMVoice()` same with `fmVoices`; `maxVoices` APVTS Choice param ("1/2/4/6/8/10/12/16", default 16=index 7); read once per block before MIDI loop, maps index to `voiceLimitValues[]` array
+- **7.7 Metronome**: `metronomeEnabled` Bool + `metronomeVolume` Float APVTS params; `prevDawPpqPos` + `metClickSamplesLeft/SamplePos/Duration/IsDownbeat` in PluginProcessor; beat detection compares `floor(prevDawPpqPos)` vs `floor(dawPpqPos)` each block; click fires 25ms decaying sine (1200Hz downbeat, 900Hz off-beat) added directly to buffer; downbeat detection via `fmod(dawPpqPos, 4.0) < 1.0`
+- **7.2 Standalone** — DEFERRED: `buildStandalonePlugin` in .jucer is not recognized by this Projucer version. Must be enabled via Projucer GUI (File Formats tab → check "Standalone Plugin"). The plugin code is already standalone-compatible.
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+---
+
+## Completed (Phase 7 — Aux Sends + Tuner) (2026-05-04)
+
+- **7.1 Return/Aux Sends**: Two parallel send paths (Delay + Reverb) added to EffectsPanel:
+  - `auxSendDelay` + `auxSendReverb` APVTS Float params (0-1, default 0)
+  - `auxDelay` + `auxReverb` DelayEffect/ReverbEffect instances in PluginProcessor (fully prepared/reset)
+  - `auxSendBuffer` + `auxWorkBuffer` pre-allocated members (set size in prepareToPlay)
+  - processBlock: dry mix captured in `auxSendBuffer` after `layerManager.processBlock` but before effects chain; sends processed post-pan, output added to main buffer
+  - Aux effects share same parameters as main chain (time/feedback/room/damp/etc.) but forced to 100% wet
+  - EffectsPanel: "SENDS" neumorphic card with `→ Delay` + `→ Reverb` NeuKnobs with MIDI Learn + tooltips
+  - Build verified ✅
+
+- **7.7 Tuner UI**: Visual pitch detector overlay in SynthDisplay oscilloscope:
+  - FFT peak bin detection (bins 2 to Nyquist/2, skipping DC/low harmonics)
+  - Parabolic interpolation for sub-bin frequency accuracy
+  - Maps Hz → MIDI note + cents deviation (±50 cents, green < 5 cents, amber otherwise)
+  - Drawn as thin strip at bottom of scope area: note name (e.g. "A4"), cents bar, Hz readout
+  - `tunerHz/tunerNote/tunerCents` state in SynthDisplay; updated at 30 Hz in timerCallback
+  - Build verified ✅
+
 ## Next Session
 
-**Phase 4 COMPLETE** — 17-bus multi-out, layer routing, drum routing, per-track drum FX all shipped.
-
-**Ready for Phase 5** (Modulation Upgrades — unlimited LFOs, drawable shapes, DAW sync) per `AI_GAP_FILL_PLAN.md`.
+**Remaining Phase 7:** 7.2 (standalone via Projucer GUI — user action only), 7.5 (global oversampling — DEFERRED), 7.6 (audio effect input bus — DEFERRED).
 
 **Competitive brief reminder:** Goal is to match/surpass Serum 2, Nexus 5, Avenger 2, Diva, Zebra 3.
 

@@ -14,6 +14,25 @@ public:
     void timerCallback() override;
 
 private:
+    // ── LFO bank row ─────────────────────────────────────────────────────────
+    struct LFORow : public juce::Component
+    {
+        juce::Label      label;
+        juce::Slider     rateSlider;
+        juce::ComboBox   shapeCombo;
+        juce::ToggleButton syncButton { "SYNC" };
+        juce::ComboBox   syncDivCombo;
+
+        std::unique_ptr<juce::SliderParameterAttachment>   rateAttachment;
+        std::unique_ptr<juce::ComboBoxParameterAttachment> shapeAttachment;
+        std::unique_ptr<juce::ButtonParameterAttachment>   syncAttachment;
+        std::unique_ptr<juce::ComboBoxParameterAttachment> syncDivAttachment;
+
+        LFORow(int index, juce::AudioProcessorValueTreeState& apvts);
+        void resized() override;
+    };
+
+    // ── Mod connection row ────────────────────────────────────────────────────
     struct Row : public juce::Component
     {
         juce::ComboBox sourceBox, targetBox;
@@ -27,12 +46,16 @@ private:
         void resized() override;
     };
 
-    PluginProcessor& processorRef;
+    PluginProcessor&  processorRef;
     ModulationMatrix& matrix;
+
     juce::Label titleLabel;
     juce::TextButton addButton{ "+" };
+
+    std::array<std::unique_ptr<LFORow>, 8> lfoRows;
+
     std::vector<std::unique_ptr<Row>> rows;
-    std::vector<juce::Rectangle<int>> rowBounds; // for card drawing
+    std::vector<juce::Rectangle<int>> rowBounds;
     int lastConnectionCount = -1;
 
     void rebuild();

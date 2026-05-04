@@ -212,6 +212,16 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     addAndMakeVisible(reverbWidthSlider);    addAndMakeVisible(reverbWidthLabel);
     addAndMakeVisible(reverbFreezeButton);   addAndMakeVisible(reverbFreezeLabel);
 
+    // --- Aux Sends ---
+    setupLabel(sendsSectionLabel, "AUX SENDS");
+    addAndMakeVisible(sendsSectionLabel);
+    setupSlider(auxSendDelaySlider,  0.0, 1.0, 0.0);
+    setupSlider(auxSendReverbSlider, 0.0, 1.0, 0.0);
+    setupLabel(auxSendDelayLabel,  "\xe2\x86\x92 Delay");
+    setupLabel(auxSendReverbLabel, "\xe2\x86\x92 Reverb");
+    addAndMakeVisible(auxSendDelaySlider);   addAndMakeVisible(auxSendDelayLabel);
+    addAndMakeVisible(auxSendReverbSlider);  addAndMakeVisible(auxSendReverbLabel);
+
     // --- APVTS attachments ---
     auto& apvts = processorRef.apvts;
 
@@ -244,6 +254,8 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     reverbLFDampAttach   = std::make_unique<SliderAttachment>(apvts, "reverbLFDamp",   reverbLFDampSlider);
     reverbWidthAttach    = std::make_unique<SliderAttachment>(apvts, "reverbWidth",    reverbWidthSlider);
     reverbFreezeAttach   = std::make_unique<ButtonAttachment>(apvts, "reverbFreeze",   reverbFreezeButton);
+    auxSendDelayAttach   = std::make_unique<SliderAttachment>(apvts, "auxSendDelay",   auxSendDelaySlider);
+    auxSendReverbAttach  = std::make_unique<SliderAttachment>(apvts, "auxSendReverb",  auxSendReverbSlider);
 
     // --- MIDI Learn init (after attachments) ---
     chorusRateSlider.init (processorRef, "chorusRate");
@@ -300,6 +312,11 @@ EffectsPanel::EffectsPanel(PluginProcessor& p)
     reverbLFDampSlider.setTooltip("Reverb LF Damping: low-frequency damping on the wet signal");
     reverbWidthSlider.setTooltip ("Reverb Width: stereo spread (0=mono, 1=full stereo)");
     reverbFreezeButton.setTooltip("Reverb Freeze: hold the reverb tail indefinitely");
+
+    auxSendDelaySlider.init (processorRef, "auxSendDelay");
+    auxSendReverbSlider.init(processorRef, "auxSendReverb");
+    auxSendDelaySlider.setTooltip ("Aux Send to Delay: routes a parallel pre-FX signal to the delay (100% wet). 0 = off.");
+    auxSendReverbSlider.setTooltip("Aux Send to Reverb: routes a parallel pre-FX signal to the reverb (100% wet). 0 = off.");
 }
 
 void EffectsPanel::setupSlider(juce::Slider& s, double min, double max, double value, double skew)
@@ -372,6 +389,15 @@ void EffectsPanel::paint(juce::Graphics& g)
         g.setColour(CyberpunkTheme::shadowLight.withAlpha(0.3f));
         g.drawRoundedRectangle(reverbSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
     }
+    if (sendsSectionBounds.getHeight() > 0)
+    {
+        CyberpunkTheme::drawNeumorphicRect(g, sendsSectionBounds.toFloat(), cr, 3.0f);
+        g.setColour(CyberpunkTheme::bgRaised);
+        g.fillRoundedRectangle(sendsSectionBounds.toFloat(), cr);
+        // Accent border for the sends section
+        g.setColour(CyberpunkTheme::neonCyan.withAlpha(0.25f));
+        g.drawRoundedRectangle(sendsSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
+    }
 }
 
 void EffectsPanel::resized()
@@ -386,12 +412,6 @@ void EffectsPanel::resized()
     chainStrip.setBounds(area.removeFromTop(56));
     area.removeFromTop(gap);
 
-    // Two-column split
-    const int colGap = 12;
-    auto leftCol  = area.removeFromLeft((area.getWidth() - colGap) / 2);
-    area.removeFromLeft(colGap);
-    auto rightCol = area;
-
     auto placeKnob = [&](juce::Rectangle<int>& row, juce::Slider& knob, juce::Label& lbl)
     {
         auto col = row.removeFromLeft(knobSz + gap);
@@ -399,6 +419,24 @@ void EffectsPanel::resized()
         lbl .setBounds(col.removeFromTop(labelH));
         row.removeFromLeft(gap);
     };
+
+    // Aux sends strip (horizontal row with 2 knobs)
+    {
+        const int sendsH = labelH + knobSz + labelH;
+        auto sec = area.removeFromTop(sendsH);
+        sendsSectionBounds = sec;
+        sendsSectionLabel.setBounds(sec.removeFromTop(labelH));
+        auto row = sec;
+        placeKnob(row, auxSendDelaySlider,  auxSendDelayLabel);
+        placeKnob(row, auxSendReverbSlider, auxSendReverbLabel);
+    }
+    area.removeFromTop(gap);
+
+    // Two-column split
+    const int colGap = 12;
+    auto leftCol  = area.removeFromLeft((area.getWidth() - colGap) / 2);
+    area.removeFromLeft(colGap);
+    auto rightCol = area;
 
     // ── LEFT: Chorus, Distortion, EQ ─────────────────────────────────────────
 

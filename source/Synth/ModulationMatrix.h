@@ -6,7 +6,7 @@
 #include <atomic>
 #include "JuceHeader.h"
 
-constexpr int MAX_MOD_SOURCES = 16;
+constexpr int MAX_MOD_SOURCES = 21;
 constexpr int MAX_MOD_TARGETS = 26;
 constexpr int MAX_MOD_CONNECTIONS = 32;
 
@@ -26,7 +26,13 @@ enum class ModSourceType : uint8_t
     EnvelopeFollower,
     MPEPressure,
     MPESlide,
-    SequencerStep
+    SequencerStep,
+    LFO5,
+    LFO6,
+    LFO7,
+    LFO8,
+    Envelope2,
+    Envelope3
 };
 
 enum class ModTargetType : uint8_t
@@ -52,7 +58,20 @@ enum class ModTargetType : uint8_t
     GranularSpray,
     GranularPitchScatter,
     OscShapeAmount,
-    OscPhaseDistAmount
+    OscPhaseDistAmount,
+    LFO5Rate,
+    LFO6Rate,
+    LFO7Rate,
+    LFO8Rate
+};
+
+enum class LFOShape : uint8_t
+{
+    Sine,
+    Triangle,
+    Saw,
+    Square,
+    SampleAndHold
 };
 
 struct ModConnection
@@ -83,9 +102,11 @@ public:
     void prepare(double sampleRate, int samplesPerBlock);
     void prepareForBlock();
 
-    // LFO rate control (index 0=LFO1, 1=LFO2, 2=LFO3, 3=LFO4)
+    // LFO control (index 0-7 for LFO1-LFO8)
     void setLFORate(int lfoIndex, float rateHz);
     float getLFORate(int lfoIndex) const;
+    void setLFOShape(int lfoIndex, LFOShape shape);
+    LFOShape getLFOShape(int lfoIndex) const;
 
     // Advance all LFOs by given number of samples and update sourceValues
     void advanceLFOs(int numSamples = 1);
@@ -112,21 +133,27 @@ public:
     {
         switch (type)
         {
-            case ModSourceType::LFO1: return "LFO 1";
-            case ModSourceType::LFO2: return "LFO 2";
-            case ModSourceType::LFO3: return "LFO 3";
-            case ModSourceType::LFO4: return "LFO 4";
-            case ModSourceType::Envelope: return "Envelope";
-            case ModSourceType::Velocity: return "Velocity";
-            case ModSourceType::NoteNumber: return "Note Number";
-            case ModSourceType::Aftertouch: return "Aftertouch";
-            case ModSourceType::ModWheel: return "Mod Wheel";
-            case ModSourceType::PitchBend: return "Pitch Bend";
-            case ModSourceType::Random: return "Random";
-            case ModSourceType::EnvelopeFollower: return "Env Follower";
-            case ModSourceType::MPEPressure: return "MPE Pressure";
-            case ModSourceType::MPESlide: return "MPE Slide";
-            case ModSourceType::SequencerStep: return "Seq Step";
+            case ModSourceType::LFO1:            return "LFO 1";
+            case ModSourceType::LFO2:            return "LFO 2";
+            case ModSourceType::LFO3:            return "LFO 3";
+            case ModSourceType::LFO4:            return "LFO 4";
+            case ModSourceType::Envelope:        return "Envelope";
+            case ModSourceType::Velocity:        return "Velocity";
+            case ModSourceType::NoteNumber:      return "Note Number";
+            case ModSourceType::Aftertouch:      return "Aftertouch";
+            case ModSourceType::ModWheel:        return "Mod Wheel";
+            case ModSourceType::PitchBend:       return "Pitch Bend";
+            case ModSourceType::Random:          return "Random";
+            case ModSourceType::EnvelopeFollower:return "Env Follower";
+            case ModSourceType::MPEPressure:     return "MPE Pressure";
+            case ModSourceType::MPESlide:        return "MPE Slide";
+            case ModSourceType::SequencerStep:   return "Seq Step";
+            case ModSourceType::LFO5:            return "LFO 5";
+            case ModSourceType::LFO6:            return "LFO 6";
+            case ModSourceType::LFO7:            return "LFO 7";
+            case ModSourceType::LFO8:            return "LFO 8";
+            case ModSourceType::Envelope2:       return "Env 2";
+            case ModSourceType::Envelope3:       return "Env 3";
         }
         return "";
     }
@@ -135,28 +162,32 @@ public:
     {
         switch (type)
         {
-            case ModTargetType::OscillatorPitch: return "OSC Pitch";
-            case ModTargetType::OscillatorLevel: return "OSC Level";
-            case ModTargetType::OscillatorWaveform: return "OSC Wave";
-            case ModTargetType::FilterCutoff: return "Filter Cutoff";
-            case ModTargetType::FilterResonance: return "Filter Resonance";
-            case ModTargetType::AmpVolume: return "Volume";
-            case ModTargetType::AmpPan: return "Pan";
-            case ModTargetType::LFO1Rate: return "LFO 1 Rate";
-            case ModTargetType::LFO2Rate: return "LFO 2 Rate";
-            case ModTargetType::LFO3Rate: return "LFO 3 Rate";
-            case ModTargetType::LFO4Rate: return "LFO 4 Rate";
-            case ModTargetType::EffectParam1: return "Effect Param 1";
-            case ModTargetType::EffectParam2: return "Effect Param 2";
-            case ModTargetType::EffectParam3: return "Effect Param 3";
-            case ModTargetType::EffectMix: return "Effect Mix";
-            case ModTargetType::GranularPosition: return "Gran Position";
-            case ModTargetType::GranularDensity: return "Gran Density";
-            case ModTargetType::GranularGrainSize: return "Gran Grain Size";
-            case ModTargetType::GranularSpray: return "Gran Spray";
-            case ModTargetType::GranularPitchScatter: return "Gran Pitch Scatter";
-            case ModTargetType::OscShapeAmount: return "OSC Shape Amt";
-            case ModTargetType::OscPhaseDistAmount: return "OSC PhaseDist Amt";
+            case ModTargetType::OscillatorPitch:     return "OSC Pitch";
+            case ModTargetType::OscillatorLevel:     return "OSC Level";
+            case ModTargetType::OscillatorWaveform:  return "OSC Wave";
+            case ModTargetType::FilterCutoff:        return "Filter Cutoff";
+            case ModTargetType::FilterResonance:     return "Filter Resonance";
+            case ModTargetType::AmpVolume:           return "Volume";
+            case ModTargetType::AmpPan:              return "Pan";
+            case ModTargetType::LFO1Rate:            return "LFO 1 Rate";
+            case ModTargetType::LFO2Rate:            return "LFO 2 Rate";
+            case ModTargetType::LFO3Rate:            return "LFO 3 Rate";
+            case ModTargetType::LFO4Rate:            return "LFO 4 Rate";
+            case ModTargetType::EffectParam1:        return "Effect Param 1";
+            case ModTargetType::EffectParam2:        return "Effect Param 2";
+            case ModTargetType::EffectParam3:        return "Effect Param 3";
+            case ModTargetType::EffectMix:           return "Effect Mix";
+            case ModTargetType::GranularPosition:    return "Gran Position";
+            case ModTargetType::GranularDensity:     return "Gran Density";
+            case ModTargetType::GranularGrainSize:   return "Gran Grain Size";
+            case ModTargetType::GranularSpray:       return "Gran Spray";
+            case ModTargetType::GranularPitchScatter:return "Gran Pitch Scatter";
+            case ModTargetType::OscShapeAmount:      return "OSC Shape Amt";
+            case ModTargetType::OscPhaseDistAmount:  return "OSC PhaseDist Amt";
+            case ModTargetType::LFO5Rate:            return "LFO 5 Rate";
+            case ModTargetType::LFO6Rate:            return "LFO 6 Rate";
+            case ModTargetType::LFO7Rate:            return "LFO 7 Rate";
+            case ModTargetType::LFO8Rate:            return "LFO 8 Rate";
         }
         return "";
     }
@@ -174,15 +205,11 @@ private:
     std::vector<ModConnection> connections;
     std::array<SourceValue, MAX_MOD_SOURCES> sourceValues;
 
-    std::atomic<float> lfo1Phase{0.0f};
-    std::atomic<float> lfo2Phase{0.0f};
-    std::atomic<float> lfo3Phase{0.0f};
-    std::atomic<float> lfo4Phase{0.0f};
-
-    float lfo1Rate = 1.0f;  // Hz
-    float lfo2Rate = 1.0f;
-    float lfo3Rate = 1.0f;
-    float lfo4Rate = 1.0f;
+    // Per-LFO state (indices 0-7 = LFO1-LFO8)
+    std::array<std::atomic<float>, 8> lfoPhase;
+    std::array<float, 8> lfoRate;
+    std::array<LFOShape, 8> lfoShape;
+    std::array<float, 8> lfoSHValue;
 
     int nextConnectionId = 0;
 

@@ -59,6 +59,18 @@ private:
     juce::Label        midiLearnLabel;
     juce::ComboBox     paramSelector;
 
+    // Built-in keyboard
+    juce::MidiKeyboardComponent keyboard;
+    static constexpr int KEYBOARD_H = 64;
+
+    // Quick randomize
+    juce::TextButton randomizeButton { "RAND" };
+    void showRandomizeMenu();
+    void randomizeParams(const juce::StringArray& prefixes, bool filterBoring = true);
+
+    // UI scale
+    juce::ComboBox scaleCombo;
+
     void setupTabs();
     void setupMidiLearnButton();
     void updateMidiLearnUI();

@@ -98,6 +98,10 @@ public:
     SamplerEngine     samplerEngine;
     DelayEffect       delay;
     ReverbEffect      reverb;
+    DelayEffect       auxDelay;    // parallel send path
+    ReverbEffect      auxReverb;   // parallel send path
+    juce::AudioBuffer<float> auxSendBuffer;  // pre-chain dry mix
+    juce::AudioBuffer<float> auxWorkBuffer;  // temp for per-send processing
     ChorusEffect      chorus[2];
     DistortionEffect  distortion[2];
     EQEffect          eq[2];
@@ -112,8 +116,10 @@ public:
     Arpeggiator       arpeggiator;
     PatternEngine     patternEngine;
 
-    // LFO base rates — not yet automated (no UI knobs)
-    float baseLfoRates[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    float baseLfoRates[8] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+
+    // Independent ADSR mod envelopes used as modulation sources Env2/Env3
+    juce::ADSR modEnv2, modEnv3;
     float basePitchBend = 0.0f;
     float baseFilterModAmount = 0.0f;
 
@@ -147,6 +153,16 @@ public:
 
     bool dawWasPlaying = false;
     float envFollowerLevel = 0.0f;
+    double prevDawPpqPos = -1.0;
+
+    // Metronome click state
+    int  metClickSamplesLeft  = 0;
+    int  metClickSamplePos    = 0;
+    int  metClickDuration     = 0;
+    bool metClickIsDownbeat   = false;
+
+    // Built-in keyboard — UI writes MIDI into this state, processBlock injects it into the buffer
+    juce::MidiKeyboardState keyboardState;
 
     // Display FIFO — audio thread writes, UI thread reads (30 Hz)
     static constexpr int DISPLAY_FIFO_SIZE = 4096;

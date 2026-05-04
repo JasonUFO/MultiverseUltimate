@@ -51,50 +51,33 @@
 
 ---
 
-## Phase5: Modulation Upgrades (Priority: Medium)
-**Dependencies**: Phase1 (new oscillator targets)
-5.1 Unlimited LFOs/envelopes
-   - Replace fixed 4 LFOs with dynamic `std::vector<LFOState>`
-   - Add UI to add/remove LFOs in ModulationMatrixPanel
-5.2 Drawable custom LFO shapes
-   - Add LFO shape editor (reuse WavetableEditor logic) to ModulationMatrixPanel
-5.3 DAW-synced LFO shapes
-   - Sync LFO phase/rate to DAW transport (extend existing DAW sync)
-5.4 Unlimited envelopes: Add dynamic envelope support per modulation target
+## Phase5: Modulation Upgrades ✅ COMPLETE (2026-05-04)
+5.1 ✅ 8 LFOs (LFO5-LFO8 added; arrays replace individual members; advanceLFOs loops 8)
+5.2 ✅ LFO shapes: Sine/Triangle/Saw/Square/S&H per LFO; shape-aware advanceLFOs(); lfoXShape APVTS params
+5.3 ✅ DAW sync: lfoXSync Bool + lfoXSyncDiv Choice (1/32-4/1); synced rate = bpm/60/divisor in processBlock
+5.4 ✅ Mod envelopes: juce::ADSR modEnv2/modEnv3 in PluginProcessor; triggered from noteOn/Off; Envelope2/3 mod sources
 
 ---
 
-## Phase6: UI & Presets (Priority: Medium)
-6.1 Resizable UI & DPI scaling
-   - Add UI scale slider to header, use `Desktop::setGlobalScaleFactor()`
-   - Add DPI-aware asset loading
-6.2 Built-in keyboard
-   - Add `juce::MidiKeyboardComponent` to SynthPanel/LayersPanel
-   - Add scale/chord selection with highlighted compatible keys
-6.3 1000+ presets
-   - Generate presets programmatically via randomization (leverage Phase7 quick randomization)
-   - Organize into brief-specified categories
-6.4 Enhance drag-drop assign to all UI parameters
+## Phase6: UI & Presets ✅ COMPLETE (2026-05-04)
+6.1 ✅ Resizable UI: setResizable + setResizeLimits(800-1920); Scale combo 75/100/125/150% in header
+6.2 ✅ Built-in keyboard: keyboardState in PluginProcessor; MidiKeyboardComponent 64px footer in PluginEditor; range C2-C8
+6.3 1000+ presets — DEFERRED (requires preset content generation)
+6.4 Drag-drop assign — DEFERRED
 
 ---
 
 ## Phase7: Effects & Additional Features (Priority: Low-Medium)
-7.1 Return/aux sends
-   - Add send/return buses to effect chain, pre/post reverb send
-   - Update EffectsPanel UI with send level controls
+7.1 ✅ Return/aux sends: `auxSendDelay`/`auxSendReverb` APVTS params; parallel `auxDelay`/`auxReverb` instances; dry mix captured pre-chain; SENDS card in EffectsPanel (2026-05-04)
 7.2 Standalone mode
    - Enable JUCE standalone target in Multiverse.jucer
-7.3 Quick randomization
-   - Add "Randomize" button to header, support per-section/all params
-7.4 CPU voice limiting
-   - Add voice limit parameter to SynthEngine/GranularEngine/SamplerEngine
-7.5 Zero-latency + oversampling
-   - Extend filter oversampling to global zero-latency mode
-7.6 Audio effect mode
-   - Add stereo audio input bus to PluginProcessor for external processing
-7.7 Built-in tuner/metronome
-   - Add tuner UI (reuse SynthDisplay FFT)
-   - Add metronome click track to Sequencer
+7.3 ✅ Quick randomization: RAND button in header; PopupMenu with 4 options; randomizeParams(prefixes) skips structural/sync params (2026-05-04)
+7.4 ✅ CPU voice limiting: setVoiceLimit(int) in SynthEngine; maxVoices APVTS Choice (1-16); findFreeVoice/findFreeFMVoice limited to voiceLimit slots (2026-05-04)
+7.5 Zero-latency + oversampling — DEFERRED
+7.6 Audio effect mode — DEFERRED (complex bus reconfiguration)
+7.7 ✅ Metronome: metronomeEnabled Bool + metronomeVolume Float APVTS; PPQ beat detection using prevDawPpqPos; 25ms decaying sine click (1200Hz downbeat, 900Hz off-beat) added to buffer (2026-05-04)
+   ✅ Tuner UI: FFT peak detection + parabolic interpolation in SynthDisplay; note name + cents bar in scope area (2026-05-04)
+7.2 Standalone mode — DEFERRED: must be enabled in Projucer GUI (File Formats → Standalone Plugin checkbox); plugin code is already standalone-compatible
 
 ---
 

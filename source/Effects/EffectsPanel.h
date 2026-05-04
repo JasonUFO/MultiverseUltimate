@@ -78,9 +78,15 @@ private:
     juce::ToggleButton reverbFreezeButton;
     juce::Label reverbFreezeLabel;
 
+    // --- Aux Sends ---
+    juce::Label sendsSectionLabel;
+    NeuKnob auxSendDelaySlider, auxSendReverbSlider;
+    juce::Label auxSendDelayLabel, auxSendReverbLabel;
+
     // Section card bounds (filled in resized())
     juce::Rectangle<int> chorusSectionBounds, distortionSectionBounds, eqSectionBounds;
     juce::Rectangle<int> compressorSectionBounds, delaySectionBounds, reverbSectionBounds;
+    juce::Rectangle<int> sendsSectionBounds;
 
     void setupSlider(juce::Slider& s, double min, double max, double value, double skew = 1.0);
     void setupLabel (juce::Label& l, const juce::String& text);
@@ -96,6 +102,7 @@ private:
     std::unique_ptr<SliderAttachment> reverbRoomAttach, reverbDampAttach, reverbWetAttach;
     std::unique_ptr<SliderAttachment> reverbPreDelayAttach, reverbLFDampAttach, reverbWidthAttach;
     std::unique_ptr<ButtonAttachment> reverbFreezeAttach;
+    std::unique_ptr<SliderAttachment> auxSendDelayAttach, auxSendReverbAttach;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EffectsPanel)
 };

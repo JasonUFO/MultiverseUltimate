@@ -86,6 +86,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         juce::ParameterID{"reverbFreeze", 1}, "Reverb Freeze", false));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"auxSendDelay", 1}, "Aux Send to Delay",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"auxSendReverb", 1}, "Aux Send to Reverb",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID{"chorusRate",  1}, "Chorus Rate",
         juce::NormalisableRange<float>(0.1f, 5.0f), 0.5f));
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -139,15 +146,58 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         juce::ParameterID{"samplerPan", 1}, "Sampler Pan",
         juce::NormalisableRange<float>(-1.0f, 1.0f), 0.0f));
 
-    for (int i = 1; i <= 4; ++i)
+    for (int i = 1; i <= 8; ++i)
+    {
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"lfo" + juce::String(i) + "Rate", 1},
             "LFO " + juce::String(i) + " Rate",
             juce::NormalisableRange<float>(0.01f, 20.0f, 0.0f, 0.3f), 1.0f));
+        layout.add(std::make_unique<juce::AudioParameterChoice>(
+            juce::ParameterID{"lfo" + juce::String(i) + "Shape", 1},
+            "LFO " + juce::String(i) + " Shape",
+            juce::StringArray{"Sine", "Triangle", "Saw", "Square", "S&H"}, 0));
+        layout.add(std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"lfo" + juce::String(i) + "Sync", 1},
+            "LFO " + juce::String(i) + " Sync", false));
+        layout.add(std::make_unique<juce::AudioParameterChoice>(
+            juce::ParameterID{"lfo" + juce::String(i) + "SyncDiv", 1},
+            "LFO " + juce::String(i) + " Sync Div",
+            juce::StringArray{"1/32", "1/16", "1/8", "1/4", "1/2", "1/1", "2/1", "4/1"}, 3));
+    }
+
+    for (int e = 2; e <= 3; ++e)
+    {
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"modEnv" + juce::String(e) + "Attack", 1},
+            "Mod Env " + juce::String(e) + " Attack",
+            juce::NormalisableRange<float>(0.001f, 4.0f, 0.0f, 0.3f), 0.01f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"modEnv" + juce::String(e) + "Decay", 1},
+            "Mod Env " + juce::String(e) + " Decay",
+            juce::NormalisableRange<float>(0.001f, 4.0f, 0.0f, 0.3f), 0.1f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"modEnv" + juce::String(e) + "Sustain", 1},
+            "Mod Env " + juce::String(e) + " Sustain",
+            juce::NormalisableRange<float>(0.0f, 1.0f), 0.7f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"modEnv" + juce::String(e) + "Release", 1},
+            "Mod Env " + juce::String(e) + " Release",
+            juce::NormalisableRange<float>(0.001f, 8.0f, 0.0f, 0.3f), 0.2f));
+    }
 
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{"fmAlgorithm", 1}, "FM Algorithm",
         juce::StringArray{"1", "2", "3", "4", "5", "6", "7", "8"}, 0));
+
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"maxVoices", 1}, "Max Voices",
+        juce::StringArray{"1", "2", "4", "6", "8", "10", "12", "16"}, 7));
+
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"metronomeEnabled", 1}, "Metronome", false));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"metronomeVolume", 1}, "Metronome Volume",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
 
     for (int op = 1; op <= 4; ++op)
     {
@@ -439,6 +489,12 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     delay.reset();
     reverb.prepare (sampleRate, samplesPerBlock);
     reverb.reset();
+    auxDelay.prepare (sampleRate, samplesPerBlock);
+    auxDelay.reset();
+    auxReverb.prepare (sampleRate, samplesPerBlock);
+    auxReverb.reset();
+    auxSendBuffer.setSize (2, samplesPerBlock, false, true, false);
+    auxWorkBuffer.setSize (2, samplesPerBlock, false, true, false);
     for (int ch = 0; ch < 2; ++ch)
     {
         chorus[ch].prepare    (sampleRate, samplesPerBlock); chorus[ch].reset();
@@ -447,6 +503,8 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
         compressor[ch].prepare(sampleRate, samplesPerBlock); compressor[ch].reset();
     }
     modulationMatrix.prepare (sampleRate, samplesPerBlock);
+    modEnv2.setSampleRate(sampleRate);
+    modEnv3.setSampleRate(sampleRate);
 }
 
 void PluginProcessor::releaseResources()
@@ -484,6 +542,14 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         return;
 
     buffer.clear();
+    keyboardState.processNextMidiBuffer(midiMessages, 0, buffer.getNumSamples(), true);
+
+    // CPU voice limiting — apply once per block before notes are processed
+    {
+        static const int voiceLimitValues[] = {1, 2, 4, 6, 8, 10, 12, 16};
+        int limitIdx = juce::jlimit(0, 7, (int)*apvts.getRawParameterValue("maxVoices"));
+        synthEngine.setVoiceLimit(voiceLimitValues[limitIdx]);
+    }
 
     // Read automatable parameters from APVTS (atomic loads — safe on audio thread)
     const float masterVolume        = *apvts.getRawParameterValue("masterVolume");
@@ -656,6 +722,25 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     dawWasPlaying = dawPlaying;
 
+    // Metronome beat detection
+    {
+        const bool metEnabled = *apvts.getRawParameterValue("metronomeEnabled") > 0.5f;
+        if (metEnabled && dawPlaying && dawPpqPos >= 0.0 && prevDawPpqPos >= 0.0)
+        {
+            const double prevBeat = std::floor(prevDawPpqPos);
+            const double curBeat  = std::floor(dawPpqPos);
+            if (curBeat > prevBeat)
+            {
+                metClickDuration     = juce::roundToInt(0.025 * getSampleRate()); // 25ms
+                metClickSamplesLeft  = metClickDuration;
+                metClickSamplePos    = 0;
+                // Downbeat = every 4 beats
+                metClickIsDownbeat   = (std::fmod(dawPpqPos, 4.0) < 1.0);
+            }
+        }
+        prevDawPpqPos = dawPpqPos;
+    }
+
     const int numSamples = buffer.getNumSamples();
 
     // Arpeggiator: capture keyboard NoteOn/Off before sequencer output is added,
@@ -771,6 +856,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             samplerEngine.noteOn(note, vel);
             granularEngine.noteOn(note, vel);
             layerManager.noteOn(note, vel, ch);
+            modEnv2.noteOn();
+            modEnv3.noteOn();
         }
         else if (message.isNoteOff())
         {
@@ -788,6 +875,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                 samplerEngine.noteOff(note);
                 granularEngine.noteOff(note);
                 layerManager.noteOff(note);
+                modEnv2.noteOff();
+                modEnv3.noteOff();
             }
         }
         else if (message.isPitchWheel())
@@ -932,13 +1021,25 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     const int numChannels = buffer.getNumChannels();
 
-    // Read LFO base rates once per block
-    const float lfoBaseRates[4] = {
-        *apvts.getRawParameterValue("lfo1Rate"),
-        *apvts.getRawParameterValue("lfo2Rate"),
-        *apvts.getRawParameterValue("lfo3Rate"),
-        *apvts.getRawParameterValue("lfo4Rate"),
-    };
+    // LFO rates (with optional DAW sync override per LFO)
+    static const float lfoSyncDivisors[8] = { 1.0f/32, 1.0f/16, 1.0f/8, 1.0f/4, 1.0f/2, 1.0f, 2.0f, 4.0f };
+    float lfoBaseRates[8];
+    for (int i = 0; i < 8; ++i)
+    {
+        const juce::String idx = juce::String(i + 1);
+        bool synced = *apvts.getRawParameterValue("lfo" + idx + "Sync") > 0.5f;
+        if (synced)
+        {
+            int divIdx = juce::jlimit(0, 7, (int)*apvts.getRawParameterValue("lfo" + idx + "SyncDiv"));
+            lfoBaseRates[i] = (float)(dawBPM / 60.0) / lfoSyncDivisors[divIdx];
+        }
+        else
+        {
+            lfoBaseRates[i] = *apvts.getRawParameterValue("lfo" + idx + "Rate");
+        }
+        modulationMatrix.setLFOShape(i, static_cast<LFOShape>(
+            (int)*apvts.getRawParameterValue("lfo" + idx + "Shape")));
+    }
 
     // Push envelope follower into modulation matrix before computing sums
     modulationMatrix.setModulationValue(ModSourceType::EnvelopeFollower, 0, envFollowerLevel);
@@ -986,11 +1087,37 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     synthEngine.setOscillatorWaveform(0, static_cast<WaveformType>(
         static_cast<int>(juce::jlimit(0.0f, 4.0f, waveIdx))));
 
-    for (int lfo = 0; lfo < 4; ++lfo)
+    for (int lfo = 0; lfo < 8; ++lfo)
     {
-        ModTargetType lfoRateTarget = static_cast<ModTargetType>(static_cast<int>(ModTargetType::LFO1Rate) + lfo);
+        ModTargetType lfoRateTarget = lfo < 4
+            ? static_cast<ModTargetType>(static_cast<int>(ModTargetType::LFO1Rate) + lfo)
+            : static_cast<ModTargetType>(static_cast<int>(ModTargetType::LFO5Rate) + (lfo - 4));
         float newRate = lfoBaseRates[lfo] + modSums[static_cast<int>(lfoRateTarget)];
         modulationMatrix.setLFORate(lfo, juce::jlimit(0.01f, 100.0f, newRate));
+    }
+
+    // Mod envelopes 2 & 3 — set params and advance
+    modEnv2.setParameters({
+        *apvts.getRawParameterValue("modEnv2Attack"),
+        *apvts.getRawParameterValue("modEnv2Decay"),
+        *apvts.getRawParameterValue("modEnv2Sustain"),
+        *apvts.getRawParameterValue("modEnv2Release")
+    });
+    modEnv3.setParameters({
+        *apvts.getRawParameterValue("modEnv3Attack"),
+        *apvts.getRawParameterValue("modEnv3Decay"),
+        *apvts.getRawParameterValue("modEnv3Sustain"),
+        *apvts.getRawParameterValue("modEnv3Release")
+    });
+    {
+        float env2Level = 0.0f, env3Level = 0.0f;
+        for (int i = 0; i < numSamples; ++i)
+        {
+            env2Level = modEnv2.getNextSample();
+            env3Level = modEnv3.getNextSample();
+        }
+        modulationMatrix.setModulationValue(ModSourceType::Envelope2, 0, env2Level);
+        modulationMatrix.setModulationValue(ModSourceType::Envelope3, 0, env3Level);
     }
 
     float effCutoff = juce::jlimit(20.0f, 20000.0f,
@@ -1067,6 +1194,26 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             samplerBuffer.applyGain(1, 0, numSamples, svol * juce::jlimit(0.0f, 1.0f, 1.0f + span));
     }
 
+    // Aux sends: capture dry mix before effects chain (drums + all synth engines)
+    const float auxSendDelayLevel  = *apvts.getRawParameterValue("auxSendDelay");
+    const float auxSendReverbLevel = *apvts.getRawParameterValue("auxSendReverb");
+    const bool hasAuxDelaySend  = auxSendDelayLevel  > 0.001f;
+    const bool hasAuxReverbSend = auxSendReverbLevel > 0.001f;
+    if ((hasAuxDelaySend || hasAuxReverbSend) && numChannels >= 2)
+    {
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            const float* drums = buffer        .getReadPointer(juce::jmin(ch, numChannels - 1));
+            const float* syn   = synthBuffer   .getReadPointer(ch);
+            const float* smp   = samplerBuffer .getReadPointer(ch);
+            const float* grn   = granularBuffer.getReadPointer(ch);
+            const float* lyr   = layerBuffer   .getReadPointer(ch);
+            float* dst = auxSendBuffer.getWritePointer(ch);
+            for (int i = 0; i < numSamples; ++i)
+                dst[i] = drums[i] + syn[i] + smp[i] + grn[i] + lyr[i];
+        }
+    }
+
     // Load effect chain order once per block (6 nibbles → slot 0..5 each holds an EffectID)
     const uint32_t chainPacked = effectChainOrder.load(std::memory_order_relaxed);
     int chain[6];
@@ -1125,6 +1272,42 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         if (numChannels > 1) buffer.getWritePointer(1)[i] *= panGainR;
     }
 
+    // Aux sends: parallel delay/reverb returns mixed into main output
+    if (numChannels >= 2)
+    {
+        if (hasAuxDelaySend)
+        {
+            auxDelay.setTime    (juce::jlimit(0.0f,  2.0f,  baseDelayTime));
+            auxDelay.setFeedback(juce::jlimit(0.0f, 0.95f, baseDelayFeedback));
+            auxDelay.setMix(1.0f);
+            for (int ch = 0; ch < 2; ++ch)
+                auxWorkBuffer.copyFrom(ch, 0, auxSendBuffer, ch, 0, numSamples);
+            auxWorkBuffer.applyGain(auxSendDelayLevel);
+            for (int i = 0; i < numSamples; ++i)
+                for (int ch = 0; ch < 2; ++ch)
+                    auxWorkBuffer.getWritePointer(ch)[i] = auxDelay.process(auxWorkBuffer.getReadPointer(ch)[i]);
+            for (int ch = 0; ch < 2; ++ch)
+                buffer.addFrom(ch, 0, auxWorkBuffer, ch, 0, numSamples);
+        }
+        if (hasAuxReverbSend)
+        {
+            auxReverb.setRoomSize (juce::jlimit(0.0f, 1.0f, baseReverbRoom));
+            auxReverb.setDamping  (juce::jlimit(0.0f, 1.0f, baseReverbDamp));
+            auxReverb.setWetLevel (1.0f);
+            auxReverb.setDryLevel (0.0f);
+            auxReverb.setPreDelay (baseReverbPreDelay);
+            auxReverb.setLFDamping(baseReverbLFDamp);
+            auxReverb.setWidth    (baseReverbWidth);
+            auxReverb.setFreeze   (baseReverbFreeze);
+            for (int ch = 0; ch < 2; ++ch)
+                auxWorkBuffer.copyFrom(ch, 0, auxSendBuffer, ch, 0, numSamples);
+            auxWorkBuffer.applyGain(auxSendReverbLevel);
+            auxReverb.processBlock(auxWorkBuffer.getWritePointer(0), auxWorkBuffer.getWritePointer(1), numSamples);
+            for (int ch = 0; ch < 2; ++ch)
+                buffer.addFrom(ch, 0, auxWorkBuffer, ch, 0, numSamples);
+        }
+    }
+
     // Route individual layer buses (buses 1-8)
     for (int li = 0; li < LayerManager::NUM_LAYERS; ++li)
     {
@@ -1150,6 +1333,27 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         const auto& tBuf = drumSequencer.getTrackBuffer (t);
         for (int ch = 0; ch < 2; ++ch)
             busBuf.addFrom (ch, 0, tBuf, juce::jmin (ch, tBuf.getNumChannels() - 1), 0, numSamples);
+    }
+
+    // Metronome click output — decaying sine into buffer (no allocation)
+    if (metClickSamplesLeft > 0)
+    {
+        const float clickVol = *apvts.getRawParameterValue("metronomeVolume");
+        constexpr float twoPi = 6.28318530718f;
+        const float freqHz  = metClickIsDownbeat ? 1200.0f : 900.0f;
+        const float phaseInc = twoPi * freqHz / static_cast<float>(getSampleRate());
+        const int samplesToWrite = juce::jmin(metClickSamplesLeft, numSamples);
+
+        for (int i = 0; i < samplesToWrite; ++i)
+        {
+            const float t   = 1.0f - (float)metClickSamplesLeft / (float)metClickDuration;
+            const float env = std::exp(-t * 25.0f);
+            const float s   = std::sin((float)metClickSamplePos * phaseInc) * env * clickVol * 0.35f;
+            for (int ch = 0; ch < numChannels; ++ch)
+                buffer.getWritePointer(ch)[i] += s;
+            ++metClickSamplePos;
+            --metClickSamplesLeft;
+        }
     }
 
     // Push mono mix to display FIFO (no allocation — writes directly to pre-allocated buffer)
