@@ -84,7 +84,7 @@ All items from the original "What Is Still To Do" list have been resolved. The p
 - ✅ Phase 1: Dynamic 1–8 osc/voice; 4 new types (Additive/PhaseDist/Analog/Digital); wave shaping + self-osc
 - ✅ Phase 2: Sampler tune/speed per zone; Lo/Hi key+vel range editing UI; Auto Map
 - ✅ Phase 3: Sequencer — per-pattern step length (32nd/16th/8th/Qtr/8T); per-step probability; MIDI drag-drop import; chord tracking; Seq Step mod source
-- 🔜 Phase 4: Drum Sequencer per-track FX; audio output buses
+- ✅ Phase 4: 17-bus multi-output (Bus 0=main, 1–8=Layer outs, 9–16=Drum outs); per-drum-track LayerEffectChain FX; per-track output bus routing; "BUS"+"FX" controls in LayersPanel + DrumSequencerPanel
 - 🔜 Phase 5: Unlimited LFOs, drawable shapes, DAW-synced LFOs
 - 🔜 Phase 6/7: UI polish (resizable, keyboard), effects extras, standalone
 

@@ -124,6 +124,18 @@ void LayersPanel::createRow(int index)
     // FX button — opens CallOutBox with layer effect chain controls
     row->fxButton.onClick = [this, index]() { showFXPopup(index); };
     addAndMakeVisible(row->fxButton);
+
+    // Output bus selector
+    row->busSelector.addItem("Main", 1);
+    for (int b = 1; b <= 8; ++b)
+        row->busSelector.addItem("Bus " + juce::String(b), b + 1);
+    row->busSelector.setSelectedId(1, juce::dontSendNotification);
+    row->busSelector.onChange = [this, index, row]
+    {
+        int id = row->busSelector.getSelectedId();
+        layerManager.getLayer(index).setOutputBusIndex(id <= 1 ? 0 : id - 1);
+    };
+    addAndMakeVisible(row->busSelector);
 }
 
 void LayersPanel::paint(juce::Graphics& g)
@@ -186,6 +198,10 @@ void LayersPanel::resized()
 
         // FX button
         r->fxButton.setBounds(rowArea.removeFromLeft(36).reduced(0, 6));
+        rowArea.removeFromLeft(4);
+
+        // Bus selector
+        r->busSelector.setBounds(rowArea.removeFromLeft(64).reduced(0, 3));
         rowArea.removeFromLeft(6);
 
         r->presetBtn.setBounds(rowArea.removeFromLeft(54).reduced(0, 6));
@@ -216,6 +232,8 @@ void LayersPanel::updateUI()
         r->hiVelSlider.setValue(layer.getHiVel(), juce::dontSendNotification);
         const int chFilter = layer.getMidiChannelFilter();
         r->midiChSelector.setSelectedId(chFilter == 0 ? 1 : chFilter + 1, juce::dontSendNotification);
+        const int bus = layer.getOutputBusIndex();
+        r->busSelector.setSelectedId(bus == 0 ? 1 : bus + 1, juce::dontSendNotification);
     }
 }
 

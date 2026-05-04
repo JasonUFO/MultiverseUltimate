@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include "../Layers/LayerEffectChain.h"
 
 constexpr int DRUM_TRACK_COUNT = 8;
 constexpr int DRUM_STEPS = 16;
@@ -112,6 +113,16 @@ public:
     // Sample buffer access for waveform preview (UI thread only)
     const juce::AudioBuffer<float>& getTrackSampleBuffer (int track) const;
 
+    // Per-track FX chain
+    LayerEffectChain& getTrackFX (int track);
+
+    // Per-track output bus (0 = main mix, 9-16 = individual drum buses)
+    void setTrackOutputBus (int track, int bus);
+    int  getTrackOutputBus (int track) const;
+
+    // Per-track rendered buffer (valid after process(); audio thread writes, processor reads)
+    const juce::AudioBuffer<float>& getTrackBuffer (int track) const;
+
     // State persistence
     juce::ValueTree getState() const;
     void setState(const juce::ValueTree& state);
@@ -149,6 +160,11 @@ public:
     juce::AudioFormatManager formatManager;
 
     std::atomic<float> trackLevels[DRUM_TRACK_COUNT] = {};
+
+    // Per-track FX, output bus routing, and rendered buffers
+    std::array<LayerEffectChain, DRUM_TRACK_COUNT> trackFX;
+    int trackOutputBus[DRUM_TRACK_COUNT] = {};          // 0=main, 9-16=individual buses
+    std::array<juce::AudioBuffer<float>, DRUM_TRACK_COUNT> trackBufs;
 
     float swing = 0.0f;
     float quantStepsPerBeat = 4.0f;

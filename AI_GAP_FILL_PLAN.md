@@ -43,16 +43,11 @@
 
 ---
 
-## Phase4: Audio Output & Drum Sequencer (Priority: Medium)
-**Dependencies**: JUCE bus layout support
-4.1 Unlimited audio outputs
-   - Add multiple output buses via `AudioProcessor::addBus()` in PluginProcessor
-   - Add output routing UI to SynthPanel/LayersPanel
-4.2 Individual outs per oscillator/voice
-   - Add routing controls to assign oscillators/voices to output buses
-4.3 Drum Sequencer per-track FX
-   - Extend `LayerEffectChain` to support per-drum-track effect chains
-   - Update DrumSequencerPanel UI with per-track FX toggles/mix
+## Phase4: Audio Output & Drum Sequencer ✅ COMPLETE (2026-05-04)
+**Architecture:** 17 fixed output buses (Logic Pro compatible). Layer routing at layer granularity. Drum routing at per-track granularity.
+4.1 ✅ 17 stereo output buses: Bus 0 (main), Buses 1–8 (Layer 1–8), Buses 9–16 (Drum 1–8); all disabled by default except main
+4.2 ✅ Per-layer routing: `LayerEngine::outputBusIndex`; "BUS" ComboBox in LayersPanel; `PluginProcessor` routes via `getBusBuffer()` after effects chain; `LayerManager::processBlock` skips individual-bus layers
+4.3 ✅ Per-drum-track FX: `LayerEffectChain trackFX[8]` + `trackBufs[8]` in DrumSequencer; `process()` refactored to accumulate per-track; FX applied per track; "FX" button in TrackRow → CallOutBox; "BUS" combo (Main/Out 1–8) → `setTrackOutputBus()`; state persisted
 
 ---
 

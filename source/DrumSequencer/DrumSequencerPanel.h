@@ -54,6 +54,8 @@ private:
         juce::TextButton muteButton { "M" };
         juce::TextButton soloButton { "S" };
         juce::TextButton loadButton { "+" };
+        juce::TextButton fxButton   { "FX" };
+        juce::ComboBox   busCombo;
         juce::Label levelMeter;
 
         TrackRow (int idx, DrumSequencer& seq, DrumSequencerPanel& p);
@@ -105,6 +107,7 @@ private:
     void updatePatternButtons();
     void refreshStepDisplay();
     void showVelocityMenu (int track, int step);
+    void showTrackFXPopup (int track);
     void advanceChain();
     void updateChainSlotButtons();
 

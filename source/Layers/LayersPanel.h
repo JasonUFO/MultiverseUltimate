@@ -41,6 +41,9 @@ private:
 
         // FX button
         juce::TextButton   fxButton { "FX" };
+
+        // Output bus selector (0=Main, 1-8=individual layer buses)
+        juce::ComboBox     busSelector;
     };
     std::array<std::unique_ptr<LayerRow>, 8> rows;
 

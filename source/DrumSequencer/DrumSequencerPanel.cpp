@@ -536,10 +536,28 @@ DrumSequencerPanel::TrackRow::TrackRow (int idx, DrumSequencer& seq, DrumSequenc
     levelMeter.setColour (juce::Label::textColourId, CyberpunkTheme::accentGreen);
     addAndMakeVisible (levelMeter);
 
+    fxButton.setColour (juce::TextButton::buttonColourId, juce::Colour (0xff223355));
+    fxButton.onClick = [this]() { panel.showTrackFXPopup (trackIndex); };
+    addAndMakeVisible (fxButton);
+
+    busCombo.addItem ("Main", 1);
+    for (int b = 1; b <= DRUM_TRACK_COUNT; ++b)
+        busCombo.addItem ("Out " + juce::String (b), b + 1);
+    busCombo.setSelectedId (1, juce::dontSendNotification);
+    busCombo.onChange = [this]()
+    {
+        int id = busCombo.getSelectedId();
+        int bus = (id <= 1) ? 0 : (8 + id - 1); // Main=0, Out1=9, Out2=10, ...
+        sequencer.setTrackOutputBus (trackIndex, bus);
+    };
+    addAndMakeVisible (busCombo);
+
     volumeSlider.setTooltip ("Track " + juce::String(idx + 1) + " volume (0–100%)");
     muteButton.setTooltip   ("Mute track " + juce::String(idx + 1) + " (silences this drum track)");
     soloButton.setTooltip   ("Solo track " + juce::String(idx + 1) + " (mutes all other tracks)");
     loadButton.setTooltip   ("Load an audio sample for track " + juce::String(idx + 1));
+    fxButton.setTooltip     ("Per-track FX chain for track " + juce::String(idx + 1));
+    busCombo.setTooltip     ("Output bus for track " + juce::String(idx + 1) + " (Main or individual Out 1-8)");
 }
 
 void DrumSequencerPanel::TrackRow::updateFromSequencer()
@@ -593,20 +611,76 @@ void DrumSequencerPanel::TrackRow::resized()
 {
     auto area = getLocalBounds().reduced (2);
     int nameW = 70;
-    int volW = 60;
-    int btnW = 22;
+    int volW  = 56;
+    int btnW  = 22;
+    int fxW   = 28;
+    int busW  = 58;
 
-    nameLabel.setBounds (area.removeFromLeft (nameW));
+    nameLabel.setBounds    (area.removeFromLeft (nameW));
     area.removeFromLeft (2);
     volumeSlider.setBounds (area.removeFromLeft (volW));
     area.removeFromLeft (2);
-    muteButton.setBounds (area.removeFromLeft (btnW));
+    muteButton.setBounds   (area.removeFromLeft (btnW));
     area.removeFromLeft (2);
-    soloButton.setBounds (area.removeFromLeft (btnW));
+    soloButton.setBounds   (area.removeFromLeft (btnW));
     area.removeFromLeft (2);
-    loadButton.setBounds (area.removeFromLeft (btnW));
+    loadButton.setBounds   (area.removeFromLeft (btnW));
     area.removeFromLeft (2);
-    levelMeter.setBounds (area.removeFromLeft (16));
+    fxButton.setBounds     (area.removeFromLeft (fxW));
+    area.removeFromLeft (2);
+    busCombo.setBounds     (area.removeFromLeft (busW));
+    area.removeFromLeft (2);
+    levelMeter.setBounds   (area.removeFromLeft (16));
+}
+
+void DrumSequencerPanel::showTrackFXPopup (int track)
+{
+    if (track < 0 || track >= DRUM_TRACK_COUNT) return;
+
+    auto& chain = sequencer.getTrackFX (track);
+
+    static const char* names[LayerEffectChain::NumEffects] = {
+        "Chorus", "Distortion", "EQ", "Compressor", "Delay", "Reverb"
+    };
+
+    auto* content = new juce::Component();
+    content->setSize (320, 200);
+
+    for (int fx = 0; fx < LayerEffectChain::NumEffects; ++fx)
+    {
+        const int x = 8 + (fx % 3) * 104;
+        const int y = 8 + (fx / 3) * 90;
+
+        auto* label = new juce::Label();
+        label->setText (names[fx], juce::dontSendNotification);
+        label->setBounds (x, y, 90, 18);
+        content->addAndMakeVisible (label);
+
+        auto* toggle = new juce::ToggleButton ("On");
+        toggle->setToggleState (chain.isEnabled (fx), juce::dontSendNotification);
+        toggle->setBounds (x, y + 20, 70, 20);
+        const int fxIdx = fx;
+        toggle->onStateChange = [toggle, &chain, fxIdx]()
+        {
+            chain.setEnabled (fxIdx, toggle->getToggleState());
+        };
+        content->addAndMakeVisible (toggle);
+
+        auto* mixSlider = new juce::Slider (juce::Slider::LinearHorizontal, juce::Slider::TextBoxRight);
+        mixSlider->setRange (0.0, 1.0);
+        mixSlider->setValue (chain.getMix (fx), juce::dontSendNotification);
+        mixSlider->setTextBoxStyle (juce::Slider::TextBoxRight, false, 36, 18);
+        mixSlider->setBounds (x, y + 46, 96, 22);
+        mixSlider->onValueChange = [mixSlider, &chain, fxIdx]()
+        {
+            chain.setMix (fxIdx, (float)mixSlider->getValue());
+        };
+        content->addAndMakeVisible (mixSlider);
+    }
+
+    auto& row = *trackRows[static_cast<size_t> (track)];
+    juce::CallOutBox::launchAsynchronously (
+        std::unique_ptr<juce::Component> (content), row.fxButton.getScreenBounds(), nullptr);
 }
 
 // ===== Chain helpers =====

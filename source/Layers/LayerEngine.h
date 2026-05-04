@@ -66,6 +66,10 @@ public:
     // Per-layer effect chain
     LayerEffectChain& getEffectChain() { return effectChain; }
 
+    // Output bus routing (0 = main mix, 1-8 = individual layer buses)
+    void setOutputBusIndex (int bus) { outputBusIndex = juce::jlimit (0, 8, bus); }
+    int  getOutputBusIndex () const  { return outputBusIndex; }
+
     // Access to underlying engines (for UI)
     SynthEngine* getSynthEngine() { return synthEngine.get(); }
     GranularEngine* getGranularEngine() { return granularEngine.get(); }
@@ -92,6 +96,7 @@ private:
     int loNote = 0, hiNote = 127;
     int loVel  = 0, hiVel  = 127;
     int midiChannelFilter = 0; // 0 = all
+    int outputBusIndex    = 0; // 0 = main mix, 1-8 = individual buses
 
     LayerEffectChain effectChain;
 

@@ -135,6 +135,7 @@ juce::ValueTree LayerEngine::getState() const
     tree.setProperty("loVel",             loVel,              nullptr);
     tree.setProperty("hiVel",             hiVel,              nullptr);
     tree.setProperty("midiChannelFilter", midiChannelFilter,  nullptr);
+    tree.setProperty("outputBusIndex",    outputBusIndex,     nullptr);
 
     if (granularEngine) tree.appendChild(granularEngine->getState(), nullptr);
     if (samplerEngine)  tree.appendChild(samplerEngine->getState(),  nullptr);
@@ -156,6 +157,7 @@ void LayerEngine::setState(const juce::ValueTree& tree)
     loVel             = static_cast<int>  (tree.getProperty("loVel",             0));
     hiVel             = static_cast<int>  (tree.getProperty("hiVel",             127));
     midiChannelFilter = static_cast<int>  (tree.getProperty("midiChannelFilter", 0));
+    outputBusIndex    = static_cast<int>  (tree.getProperty("outputBusIndex",    0));
 
     if (granularEngine) granularEngine->setState(tree.getChildWithName("GranularEngine"));
     if (samplerEngine)  samplerEngine->setState(tree.getChildWithName("SamplerEngine"));

@@ -22,6 +22,7 @@ void LayerManager::processBlock(juce::AudioBuffer<float>& buffer, int numSamples
     {
         if (anySoloed && !layer->isSoloed()) continue;
         if (layer->isMuted()) continue;
+        if (layer->getOutputBusIndex() > 0) continue; // routed to individual bus by processor
 
         layer->processBlock(buffer, numSamples);
     }

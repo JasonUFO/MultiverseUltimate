@@ -100,21 +100,22 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Phase 1 | Dynamic 1–8 osc count; 4 new types (Additive/PhaseDist/Analog/Digital); per-osc wave shaping + self-osc; 2 new mod targets (OscShapeAmount, OscPhaseDistAmount) |
 | Phase 2 | Sampler: per-zone `tuning` (±24 st) + `speed` (0.25–4×) controls; Lo/Hi Key + Lo/Hi Vel range editing UI; Auto Map button (distributes zones evenly across 0–127) |
 | Phase 3 | Sequencer: MIDI drag-drop import (FileDragAndDropTarget); smart chord tracking (10-chord table, 50ms); per-pattern step length (SeqPattern::stepLengthMultiplier, STEP ComboBox); per-step probability (Step::probability, dot indicator, right-click submenu); ModSourceType::SequencerStep mod source (normalized 0→1) |
+| Phase 4 | 17-bus multi-output (all-DAW); per-drum-track FX + individual bus routing |
 
 ## Next Steps
 
 ### Gap-Fill Implementation (Current Focus)
 **Plan:** `AI_GAP_FILL_PLAN.md`
-**Phases 0, 1, 2, and 3 complete.** Next: Phase 4 (Audio outputs) or Phase 5 (Modulation Upgrades — unlimited LFOs).
+**Phases 0–4 complete.** Next: Phase 5 (Modulation Upgrades — unlimited LFOs, drawable shapes, DAW sync).
 **Priority order (remaining):**
 1. ~~Phase 0: Verify ModulationMatrix/SamplerEngine wiring~~ ✅
 2. ~~Phase 1: Core synthesis & oscillator upgrades~~ ✅
 3. ~~Phase 2: Sampler enhancements (tune/speed/key-vel ranges/auto-map)~~ ✅
 4. ~~Phase 3: Sequencer upgrades (step length, probability, chord detect, MIDI drop, Seq Step mod source)~~ ✅
-5. Phase 4-7: Audio outputs, modulation, UI, effects, additional features
+5. ~~Phase 4: Multi-output buses + per-drum-track FX~~ ✅
+6. Phase 5–7: Modulation upgrades, UI polish, effects extras, standalone
 
 **Remaining clarifications (for later phases):**
-3. Multi-output: osc-level, voice-level, or layer-level?
 4. 1000+ presets: programmatic or curated?
 5. Standalone mode: separate executable or audio effect?
 
@@ -190,3 +191,5 @@ Complete — `CyberpunkTheme` renamed to `CyberpunkTheme`, all panels updated, n
 - Mod targets `OscShapeAmount` (index 20) and `OscPhaseDistAmount` (index 21) added. `MAX_MOD_TARGETS` raised from 24 to 26. Wired in `processBlock` on osc 0 only (base param `osc1ShapeAmt`/`osc1PhaseDist` + mod sum).
 - SynthPanel: `oscControls[8]`, `wavetableEditors[8]`. Layout: ≤4 strips = 1 row (220px); 5–8 strips = 2 rows (460px). `+ OSC`/`- OSC` buttons at top of OSC section. Shape controls (shapeTypeSelector, shapeAmtSlider, selfOscSlider, phaseDistSlider) added to each strip; shapeAmt hidden when Off; phaseDistSlider hidden unless PhaseDist type selected. `updateVisibility()` reads `oscCount` APVTS value to determine which strips are shown.
 - **Phase 3 — Sequencer:** `Step` struct now has `float probability = 1.0f`; `SeqPattern` now has `float stepLengthMultiplier = 1.0f` (0.5=32nd, 1=16th, 2=8th, 4=quarter, 1.333=8th-triplet). `updateSamplesPerStep()` multiplies base 16th-note duration by `stepLengthMultiplier`. `loadPattern()` calls `updateSamplesPerStep()` after copy. `setState()` calls `updateSamplesPerStep()` at end. `setStepLengthMultiplier()` + `setStepProbability()` are the setters. Probability check uses xorshift32 `fastRand()`: skip if `fastRand() >= (uint32_t)(prob * UINT32_MAX)`. `ModSourceType::SequencerStep` is enum slot 14 (within MAX_MOD_SOURCES=16); wired in processBlock after `sequencer.process()` as `currentStep / (numSteps-1)`. `SequencerPanel` inherits `FileDragAndDropTarget`; `filesDropped()` opens first .mid/.midi via `juce::MidiFile`, converts timestamps to seconds, quantizes note-ons to the 16-step grid — slot = `round(t / maxTime * numSteps)`. `dragOver` bool triggers cyan border glow in `paint()`. `detectChord()` collects pitch classes from active steps and calls file-static `detectChordFromClasses()` which tries all 12 roots against 10 chord patterns; result shown in `chordLabel` (right of export button).
+- **Phase 4 — Multi-output buses:** `PluginProcessor` declares 17 fixed stereo output buses in constructor: Bus 0 = main (always active), Buses 1–8 = Layer 1–8 (disabled by default), Buses 9–16 = Drum Track 1–8 (disabled by default). `isBusesLayoutSupported()` requires bus 0 stereo; all others stereo-or-disabled. In `processBlock`, individual-bus layers are routed via `getBusBuffer(buffer, false, busIdx)` after the main effects chain; individual drum buses are routed from `drumSequencer.getTrackBuffer(t)` via the same mechanism. `LayerManager::processBlock` skips layers with `outputBusIndex > 0` to avoid double-processing. `LayersPanel` has a "BUS" ComboBox per row (Main / Bus 1–8); `DrumSequencerPanel::TrackRow` has "BUS" ComboBox (Main / Out 1–8) and "FX" button. Bus mapping: LayerEngine `outputBusIndex` 0=main, 1–8=buses 1–8; DrumSequencer `trackOutputBus[t]` 0=main, 9–16=buses 9–16.
+- **Phase 4 — Drum per-track FX:** `DrumSequencer` now has `std::array<LayerEffectChain, 8> trackFX` and `std::array<juce::AudioBuffer<float>, 8> trackBufs` (pre-allocated in `prepare()`). `process()` refactored: voices accumulate into `trackBufs[av.trackIndex]` per sample; after the sample loop, `trackFX[t].processBlock(trackBufs[t], n)` is applied per track; bus-0 tracks are summed into `mainBuffer`; non-zero-bus tracks remain in `trackBufs[t]` for PluginProcessor routing. `getTrackBuffer(t)` / `getTrackFX(t)` / `setTrackOutputBus(t, bus)` / `getTrackOutputBus(t)` are the new public API. Track FX + outputBus persisted as XML children in the Track node of `DrumSequencer::getState()`. `showTrackFXPopup(int track)` in DrumSequencerPanel launches a `CallOutBox` with 6 enable toggles + mix sliders — identical pattern to `LayersPanel::showFXPopup`.

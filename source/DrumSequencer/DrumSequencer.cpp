@@ -75,16 +75,23 @@ void DrumSequencer::prepare (double sr, int spb)
     for (auto& v : voices)
         v.voice.prepare (sampleRate);
 
+    for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
+    {
+        trackFX[t].prepare (sampleRate, samplesPerBlock);
+        trackBufs[t].setSize (2, samplesPerBlock);
+    }
+
     updateSamplesPerStep();
 }
 
-void DrumSequencer::process (juce::AudioBuffer<float>& buffer, int numSamples)
+void DrumSequencer::process (juce::AudioBuffer<float>& mainBuffer, int numSamples)
 {
+    // Always clear per-track buffers so bus routing sees silence when stopped
+    for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
+        trackBufs[t].clear();
+
     if (!playing.load())
         return;
-
-    auto* left = buffer.getWritePointer (0);
-    auto* right = buffer.getNumChannels() > 1 ? buffer.getWritePointer (1) : left;
 
     for (int i = 0; i < numSamples; ++i)
     {
@@ -95,31 +102,28 @@ void DrumSequencer::process (juce::AudioBuffer<float>& buffer, int numSamples)
             int nextStep = (currentStep.load() + 1) % DRUM_STEPS;
             currentStep.store (nextStep);
 
-            // Recompute effective step duration for swing
             bool nextIsOdd = (nextStep % 2) != 0;
             double factor = nextIsOdd ? (1.0 + swing * 0.33) : (1.0 - swing * 0.33);
             currentEffectiveSamplesPerStep = juce::jmax (1.0, samplesPerStep * factor);
         }
 
-        float mixL = 0.0f, mixR = 0.0f;
-        int activeCount = 0;
-
         for (auto& av : voices)
         {
-            if (!av.inUse)
-                continue;
+            if (!av.inUse) continue;
 
             if (av.voice.isActive())
             {
                 float s = av.voice.process();
-                mixL += s;
-                mixR += s;
-                ++activeCount;
-
-                float absS = std::abs(s);
-                float prev = trackLevels[av.trackIndex].load(std::memory_order_relaxed);
-                if (absS > prev)
-                    trackLevels[av.trackIndex].store(absS, std::memory_order_relaxed);
+                int t = av.trackIndex;
+                if (t >= 0 && t < DRUM_TRACK_COUNT)
+                {
+                    trackBufs[t].getWritePointer (0)[i] += s;
+                    trackBufs[t].getWritePointer (1)[i] += s;
+                    float absS = std::abs (s);
+                    float prev = trackLevels[t].load (std::memory_order_relaxed);
+                    if (absS > prev)
+                        trackLevels[t].store (absS, std::memory_order_relaxed);
+                }
             }
             else
             {
@@ -129,21 +133,32 @@ void DrumSequencer::process (juce::AudioBuffer<float>& buffer, int numSamples)
 
         for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
         {
-            float lv = trackLevels[t].load(std::memory_order_relaxed);
+            float lv = trackLevels[t].load (std::memory_order_relaxed);
             if (lv > 0.0f)
-                trackLevels[t].store(lv * 0.9999f, std::memory_order_relaxed);
+                trackLevels[t].store (lv * 0.9999f, std::memory_order_relaxed);
         }
-
-        if (activeCount > 1)
-        {
-            mixL /= static_cast<float> (activeCount);
-            mixR /= static_cast<float> (activeCount);
-        }
-
-        if (left != nullptr) left[i] = mixL;
-        if (right != nullptr) right[i] = mixR;
 
         ++sampleCounter;
+    }
+
+    // Apply per-track FX then mix bus-0 tracks into mainBuffer
+    auto* mainL = mainBuffer.getWritePointer (0);
+    auto* mainR = mainBuffer.getNumChannels() > 1 ? mainBuffer.getWritePointer (1) : mainL;
+
+    for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
+    {
+        trackFX[t].processBlock (trackBufs[t], numSamples);
+
+        if (trackOutputBus[t] == 0)
+        {
+            const auto* tL = trackBufs[t].getReadPointer (0);
+            const auto* tR = trackBufs[t].getReadPointer (1);
+            for (int i = 0; i < numSamples; ++i)
+            {
+                mainL[i] += tL[i];
+                mainR[i] += tR[i];
+            }
+        }
     }
 }
 
@@ -448,6 +463,31 @@ const juce::AudioBuffer<float>& DrumSequencer::getTrackSampleBuffer (int track) 
     return tracks[track].sampleBuffer;
 }
 
+LayerEffectChain& DrumSequencer::getTrackFX (int track)
+{
+    return trackFX[juce::jlimit (0, DRUM_TRACK_COUNT - 1, track)];
+}
+
+void DrumSequencer::setTrackOutputBus (int track, int bus)
+{
+    if (track >= 0 && track < DRUM_TRACK_COUNT)
+        trackOutputBus[track] = bus;
+}
+
+int DrumSequencer::getTrackOutputBus (int track) const
+{
+    if (track >= 0 && track < DRUM_TRACK_COUNT)
+        return trackOutputBus[track];
+    return 0;
+}
+
+const juce::AudioBuffer<float>& DrumSequencer::getTrackBuffer (int track) const
+{
+    static const juce::AudioBuffer<float> empty;
+    if (track < 0 || track >= DRUM_TRACK_COUNT) return empty;
+    return trackBufs[track];
+}
+
 juce::ValueTree DrumSequencer::getState() const
 {
     juce::ValueTree v("DrumSequencer");
@@ -468,6 +508,8 @@ juce::ValueTree DrumSequencer::getState() const
         trackNode.setProperty("rootNote", tracks[t].rootNote, nullptr);
         trackNode.setProperty("muted", tracks[t].muted, nullptr);
         trackNode.setProperty("solo", tracks[t].solo, nullptr);
+        trackNode.setProperty("outputBus", trackOutputBus[t], nullptr);
+        trackNode.appendChild(trackFX[t].getState(), nullptr);
         tracksNode.appendChild(trackNode, nullptr);
     }
     v.appendChild(tracksNode, nullptr);
@@ -545,6 +587,9 @@ void DrumSequencer::setState(const juce::ValueTree& state)
                     tracks[idx].rootNote = (int)trackNode.getProperty("rootNote");
                     tracks[idx].muted = (bool)trackNode.getProperty("muted", false);
                     tracks[idx].solo = (bool)trackNode.getProperty("solo", false);
+                    trackOutputBus[idx] = (int)trackNode.getProperty("outputBus", 0);
+                    auto fxState = trackNode.getChildWithName("LayerFX");
+                    if (fxState.isValid()) trackFX[idx].setState(fxState);
                 }
             }
         }

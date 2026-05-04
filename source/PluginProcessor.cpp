@@ -336,7 +336,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
 //==============================================================================
 PluginProcessor::PluginProcessor()
      : AudioProcessor (BusesProperties()
-                      .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
+                      .withOutput ("Output",  juce::AudioChannelSet::stereo(), true)
+                      // Individual layer buses (1-8)
+                      .withOutput ("Layer 1", juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Layer 2", juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Layer 3", juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Layer 4", juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Layer 5", juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Layer 6", juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Layer 7", juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Layer 8", juce::AudioChannelSet::stereo(), false)
+                      // Individual drum track buses (9-16)
+                      .withOutput ("Drum 1",  juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Drum 2",  juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Drum 3",  juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Drum 4",  juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Drum 5",  juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Drum 6",  juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Drum 7",  juce::AudioChannelSet::stereo(), false)
+                      .withOutput ("Drum 8",  juce::AudioChannelSet::stereo(), false)),
        apvts(*this, &undoManager, "APVTSState", createParameterLayout())
 {
 }
@@ -441,14 +459,17 @@ bool PluginProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
     juce::ignoreUnused (layouts);
     return true;
   #else
-    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+    // Main output bus must be stereo
+    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
 
-   #if ! JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-        return false;
-   #endif
+    // All additional output buses must be stereo or disabled
+    for (int i = 1; i < layouts.outputBuses.size(); ++i)
+    {
+        const auto& ch = layouts.outputBuses.getReference (i);
+        if (ch != juce::AudioChannelSet::stereo() && !ch.isDisabled())
+            return false;
+    }
 
     return true;
   #endif
@@ -663,8 +684,13 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         midiMessages.addEvents (filtered, 0, numSamples, 0);
     }
 
-    // Generate audio from drum sequencer
-    drumSequencer.process (buffer, numSamples);
+    // Generate audio from drum sequencer into a separate mix buffer
+    juce::AudioBuffer<float> drumMainBuf (2, numSamples);
+    drumMainBuf.clear();
+    drumSequencer.process (drumMainBuf, numSamples);
+    // Add drum main mix (bus-0 tracks) into the main output
+    for (int ch = 0; ch < 2 && ch < buffer.getNumChannels(); ++ch)
+        buffer.addFrom (ch, 0, drumMainBuf, ch, 0, numSamples);
 
     // Which melodic sequencer is active?
     const int activeMelodicSeq = static_cast<int> (*apvts.getRawParameterValue("melodicSequencer"));
@@ -1097,6 +1123,33 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     {
         if (numChannels > 0) buffer.getWritePointer(0)[i] *= panGainL;
         if (numChannels > 1) buffer.getWritePointer(1)[i] *= panGainR;
+    }
+
+    // Route individual layer buses (buses 1-8)
+    for (int li = 0; li < LayerManager::NUM_LAYERS; ++li)
+    {
+        auto& layer = layerManager.getLayer (li);
+        const int busIdx = layer.getOutputBusIndex();
+        if (busIdx <= 0 || layer.isMuted()) continue;
+        if (layerManager.isAnyLayerSoloed() && !layer.isSoloed()) continue;
+        if (busIdx >= getBusCount (false)) continue;
+        auto busBuf = getBusBuffer (buffer, false, busIdx);
+        if (busBuf.getNumChannels() < 2) continue;
+        busBuf.clear();
+        layer.processBlock (busBuf, numSamples);
+    }
+
+    // Route individual drum track buses (buses 9-16)
+    for (int t = 0; t < DRUM_TRACK_COUNT; ++t)
+    {
+        const int busIdx = drumSequencer.getTrackOutputBus (t);
+        if (busIdx <= 0) continue;
+        if (busIdx >= getBusCount (false)) continue;
+        auto busBuf = getBusBuffer (buffer, false, busIdx);
+        if (busBuf.getNumChannels() < 2) continue;
+        const auto& tBuf = drumSequencer.getTrackBuffer (t);
+        for (int ch = 0; ch < 2; ++ch)
+            busBuf.addFrom (ch, 0, tBuf, juce::jmin (ch, tBuf.getNumChannels() - 1), 0, numSamples);
     }
 
     // Push mono mix to display FIFO (no allocation — writes directly to pre-allocated buffer)

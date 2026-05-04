@@ -368,16 +368,38 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 ---
 
+## Completed (Phase 4 — Audio Outputs & Drum Per-Track FX) (2026-05-04)
+
+**All 3 sub-tasks shipped:**
+
+- **4.1 + 4.2 — Multi-output buses (17 total)**: Bus 0 = main mix (always active); Buses 1–8 = Layer 1–8 individual outs (disabled by default); Buses 9–16 = Drum Track 1–8 individual outs (disabled by default)
+  - `PluginProcessor` constructor declares all 17 buses via chained `.withOutput()` calls (Logic Pro / all-DAW compatible — fixed layout)
+  - `isBusesLayoutSupported()` accepts any config where bus 0 is stereo and all others are stereo-or-disabled
+  - **Layer routing**: `LayerEngine::outputBusIndex` (0=main, 1–8); `LayerManager::processBlock` skips individual-bus layers; `PluginProcessor::processBlock` routes them via `getBusBuffer()` after the effects chain; state persisted in preset XML
+  - **Drum routing**: `DrumSequencer::trackOutputBus[t]` (0=main, 9–16); per-track buffers filled in `process()`; bus-0 tracks mixed to main; PluginProcessor routes non-zero-bus tracks via `getBusBuffer()`
+  - **LayersPanel**: "BUS" ComboBox per row (Main / Bus 1–8); wired to `LayerEngine::setOutputBusIndex()`
+  - **DrumSequencerPanel**: "BUS" ComboBox per track row (Main / Out 1–8); wired to `DrumSequencer::setTrackOutputBus()`
+
+- **4.3 — Drum Sequencer per-track FX**: `LayerEffectChain trackFX[8]` in DrumSequencer (Chorus/Distortion/EQ/Compressor/Delay/Reverb per track); applied after per-track voice accumulation, before bus routing; "FX" button in each drum track row opens same CallOutBox as layer FX; state persisted in preset XML alongside trackOutputBus
+
+**Architecture:**
+- `DrumSequencer::process()` refactored: voices now accumulate into `trackBufs[DRUM_TRACK_COUNT]` (pre-allocated in `prepare()`); FX applied per track; bus-0 tracks mixed to main; non-zero-bus tracks available via `getTrackBuffer(t)`
+- `LayerManager::processBlock` skips `outputBusIndex > 0` layers (processor handles those)
+- All new state (outputBusIndex per layer, trackOutputBus + trackFX per drum track) persisted in preset XML
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+---
+
 ## Next Session
 
-**Phase 3 COMPLETE** — Sequencer drag-drop, chord detection, step length, probability, and Seq Step mod source shipped.
+**Phase 4 COMPLETE** — 17-bus multi-out, layer routing, drum routing, per-track drum FX all shipped.
 
-**Ready for Phase 4** (Audio outputs, Drum Sequencer per-track FX) or **Phase 5** (Modulation Upgrades — unlimited LFOs) per `AI_GAP_FILL_PLAN.md`.
+**Ready for Phase 5** (Modulation Upgrades — unlimited LFOs, drawable shapes, DAW sync) per `AI_GAP_FILL_PLAN.md`.
 
 **Competitive brief reminder:** Goal is to match/surpass Serum 2, Nexus 5, Avenger 2, Diva, Zebra 3.
 
 **Remaining questions (for later phases):**
-3. Multi-output: individual osc, voices, or entire layers?
 4. 1000+ presets: programmatic generation or curated?
 5. Standalone mode: separate executable or audio effect mode?
 6. 3.6 (Drag MIDI to audio / offline render) — deferred, complex feature.
