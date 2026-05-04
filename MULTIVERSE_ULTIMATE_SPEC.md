@@ -74,13 +74,21 @@ All items from the original "What Is Still To Do" list have been resolved. The p
 | Filter LP/HP/BP/Notch, sub osc, noise osc, unison spread modes | ✅ |
 | 8-layer engine: key/vel/MIDI-ch ranges, per-layer FX chain | ✅ |
 
-### 2.2 Next Phase — Cyberpunk UI (Track A)
+### 2.2 Next Phase — Gap-Fill Implementation
 
-- Full visual overhaul: `CyberpunkTheme` → `CyberpunkTheme`
-- Color palette: neonCyan (#00F0FF), neonPink (#FF2A6D), neonPurple (#B026FF) on bgVoid (#0A0A12)
-- Full spec: `AI_CYBERPUNK_PLAN.md`
-- Figma assets: `Figmacomponents/` (10 panel SVGs + 3 component SVGs)
-- Process: review SVGs → sign off → implement C++
+**Full spec:** `AI_GAP_FILL_PLAN.md` (created 2026-05-04)
+**Brief comparison:** Compared against `MULTIVERSE SYNTH BREIF.txt` — 30+ feature gaps identified
+
+**Key gaps to address:**
+- Missing synthesis engines: Additive, Phase Distortion, Analog Modeling, Digital
+- Fixed 3 oscillators/voice — brief requires unlimited with mix/match types
+- Sampler missing: time-stretch, MIDI drag/drop, multi-sampling (velocity/key layers)
+- Sequencer missing: polyrhythm, probability triggers, smart chord tracking
+- No unlimited audio outputs or per-osc/voice routing
+- Modulation missing: unlimited LFOs, drawable shapes, DAW-synced LFOs
+- UI missing: resizable/DPI scaling, built-in keyboard, 1000+ presets
+- Effects missing: return/aux sends, standalone mode
+- Missing: quick randomization, CPU limiting, zero-latency, audio effect mode, tuner/metronome
 
 ### 2.6 Modulation Matrix — Not Functional
 

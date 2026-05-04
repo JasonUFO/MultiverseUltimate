@@ -100,15 +100,25 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 
 ## Next Steps
 
-### Cyberpunk UI (Figma-First Approach)
-**Plan saved:** `AI_CYBERPUNK_PLAN.md`  
-**Scope:** Full UI replacement (CyberpunkTheme → CyberpunkTheme)  
-**Style:** Neumorphic + Cyberpunk (neon cyan/pink/purple on deep void backgrounds)  
-**Figma assets:** `Figmacomponents/` — 10 panel SVGs + 3 component SVGs + `FIGMA_BUILD_GUIDE.md`  
-**Status:** Awaiting visual sign-off. Review SVGs → approve → implement C++.
+### Gap-Fill Implementation (Current Focus)
+**Plan:** `AI_GAP_FILL_PLAN.md` (created 2026-05-04)
+**Brief comparison:** `MULTIVERSE SYNTH BREIF.txt` vs existing features analyzed — 30+ gaps identified
+**Priority order:**
+1. Phase 0: Verify ModulationMatrix/SamplerEngine wiring
+2. Phase 1: Core synthesis & oscillator upgrades (unlimited osc, missing engines)
+3. Phase 2: Sampler enhancements (time-stretch, multi-sampling, drag/drop)
+4. Phase 3: Sequencer upgrades (polyrhythm, probability, smart chord)
+5. Phase 4-7: Audio outputs, modulation, UI, effects, additional features
+
+**Pending clarification (before Phase 1):**
+1. Unlimited oscillators: per-voice or per-layer?
+2. New synth engines: per-oscillator types or standalone?
+3. Multi-output: osc-level, voice-level, or layer-level?
+4. 1000+ presets: programmatic or curated?
+5. Standalone mode: separate executable or audio effect?
 
 ### Cyberpunk UI
-See `AI_CYBERPUNK_PLAN.md` — only remaining track.
+Complete — `CyberpunkTheme` renamed to `CyberpunkTheme`, all panels updated, neumorphic section cards applied.
 
 ---
 

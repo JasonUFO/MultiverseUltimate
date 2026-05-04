@@ -267,8 +267,44 @@
 
 ---
 
+## Brief Comparison Report (2026-05-04)
+
+Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
+
+**Fully Implemented:**
+- Subtractive, Wavetable, Granular, FM synthesis
+- Sampler (zone-based, loops, crossfade)
+- Drum Sequencer (8 tracks, 16 steps, 32 voices)
+- Modulation Matrix (LFOs, envelopes, drag-drop routing)
+- Preset Browser (Factory/User banks, search, categories)
+- Cyberpunk UI (Dark Forge neumorphic theme)
+- MPE support, Macro controls, Layers system
+- Filter types (LP/HP/BP/Notch), Sub/Noise osc, Unison spread modes
+
+**Missing:**
+- Additive, Phase Distortion, Analog Modeling, Digital synthesis engines
+- Unlimited oscillators (fixed 3/voice), wave shaping, self-oscillation feedback
+- Unlimited audio outputs, individual outs per osc/voice
+- Sampler: time-stretch, MIDI drag/drop, multi-sampling (velocity/key layers)
+- Sequencer: polyrhythm/polymeter, probability triggers, smart chord tracking, audio-rate step mod
+- Modulation: unlimited LFOs/envelopes, drawable LFO shapes, DAW-synced LFOs
+- UI: resizable/DPI scaling, built-in keyboard, 1000+ presets
+- Effects: return/aux sends, standalone mode
+- Additional: quick randomization, CPU voice limiting, zero-latency mode, audio effect mode, tuner/metronome
+
+**Full gap analysis:** See `AI_GAP_FILL_PLAN.md`
+
+---
+
 ## Next Session
 
-**All tracks complete — ready for new feature work or testing.**
+**All tracks complete — ready for gap-fill work per `AI_GAP_FILL_PLAN.md`.**
 
 **Competitive brief reminder:** Goal is to match/surpass Serum 2, Nexus 5, Avenger 2, Diva, Zebra 3.
+
+**Pending clarification (before Phase 1):**
+1. Should unlimited oscillators be per-voice or per-layer?
+2. Should new synth engines be per-oscillator types or standalone engines?
+3. Multi-output: individual osc, voices, or entire layers?
+4. 1000+ presets: programmatic generation or curated?
+5. Standalone mode: separate executable or audio effect mode?
