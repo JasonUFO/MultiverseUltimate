@@ -90,19 +90,19 @@ All items from the original "What Is Still To Do" list have been resolved. The p
 - Effects missing: return/aux sends, standalone mode
 - Missing: quick randomization, CPU limiting, zero-latency, audio effect mode, tuner/metronome
 
-### 2.6 Modulation Matrix — Not Functional
+### 2.6 Modulation Matrix — ✅ Functional
 
-- [ ] **Modulation values are not applied to anything.** `ModulationMatrix::getModulationValue()` exists but no audio-rate code reads from it to modulate oscillator pitch, filter cutoff, etc.
-- [ ] **LFO oscillators exist as phase state variables** (`lfo1Phase` etc.) but are never advanced or output to sources.
-- [ ] **`ModulationMatrix` is on the UI thread** (see §2.1) — needs to be moved to `PluginProcessor` and be shared thread-safely with the editor.
+- ✅ `ModulationMatrix::advanceLFOs()` called in `PluginProcessor::processBlock` (line 1062) — LFO phases advanced per block, values stored to `sourceValues[]`.
+- ✅ `ModulationMatrix::computeModulationSums()` called in `processBlock` (lines 887, 919) — sums applied to all targets: oscillator pitch/level/waveform, filter cutoff/resonance, amp volume/pan, LFO rates, effect params, granular params.
+- ✅ `ModulationMatrix` lives in `PluginProcessor` (owned member), shared with editor via `getModulationMatrix()` — thread-safe via atomic `sourceValues` and `CriticalSection` for connection vector.
 
 ### 2.7 Code Quality / Robustness
 
-- [ ] **`PluginProcessor.h` still has `#if (MSVC)` / `#include "ipps.h"`** — Intel IPP is an Intel-specific SIMD library, not present on ARM or standard macOS. This include will error on non-MSVC compilers unless the guard is correct (it should be `#ifdef _MSC_VER`).
-- [ ] **`PluginProcessor` has a `fprintf(stderr, ...)` debug print in the constructor** — should be removed before release.
-- [ ] **`SamplerEngine` uses `juce::CriticalSection zoneLock`** but `process()` never acquires it — the lock is declared but provides no actual thread protection.
-- [ ] **`Sequencer::exportMidi()`** is declared but the implementation may be a stub — not verified.
-- [ ] **No JUCE `AudioProcessorValueTreeState`** — without APVTS, DAW automation lanes, parameter recall, and proper undo/redo are impossible. This is the standard approach for production JUCE plugins.
+- ✅ `PluginProcessor.h` has `#if defined(_MSC_VER)` guard around `#include "ipps.h"` — correct, only includes on MSVC. No issue.
+- ✅ No `fprintf` debug prints found in `PluginProcessor.cpp` or `.h`.
+- ✅ `SamplerEngine::processBuffer()` calls `prepareZonesForPlayback()` which acquires `zoneLock` (line 33 of `.cpp`) — lock is functional. `zonesReadOnly` snapshot is used for thread-safe zone access.
+- ✅ `Sequencer::exportMidi()` is fully implemented (`.cpp` line 263) — writes proper MIDI file with tempo, note events, and `updateMatchedPairs()`.
+- ✅ `juce::AudioProcessorValueTreeState apvts` is declared in `PluginProcessor.h` (line 65) and used throughout `PluginProcessor.cpp` for all parameters, automation, and undo/redo.
 
 ### 2.8 Testing
 

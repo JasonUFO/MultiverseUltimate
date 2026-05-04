@@ -252,6 +252,30 @@
 
 ---
 
+## Completed (Phase 0 — Existing Functionality Verification) (2026-05-04)
+
+**All three verification items confirmed — no fixes required:**
+
+1. **ModulationMatrix is fully functional:**
+   - `advanceLFOs(numSamples)` called at `PluginProcessor.cpp:1062` — LFO phases advanced per block, sine values stored to `sourceValues[]`
+   - `computeModulationSums()` called at lines 887 and 919 — results applied to all 20 targets (osc pitch/level/wave, filter cutoff/resonance, amp volume/pan, 4× LFO rates, 3× effect params, effect mix, 5× granular params)
+   - `ModulationMatrix` owned by `PluginProcessor` (not UI thread), shared via `getModulationMatrix()` — thread-safe via `std::atomic<float>` for source values and `juce::CriticalSection` for connection vector
+
+2. **SamplerEngine/DrumSequencer audio output wiring confirmed:**
+   - `drumSequencer.process(buffer, numSamples)` at line 636
+   - `samplerEngine.processBuffer(samplerBuffer, numSamples)` at line 985
+   - `granularEngine.processBuffer(granularBuffer, numSamples)` at line 986
+   - `layerManager.processBlock(layerBuffer, numSamples)` at line 987
+   - All four engines mixed into output buffer at lines 1013–1017
+
+3. **Per-step velocity works in both Sequencer and DrumSequencer:**
+   - `Sequencer::Step::velocity` field, `setStepVelocity()`, used in `triggerNoteOn()` → `midiVel = velocity * 127`
+   - `DrumSequencer::DrumStep::velocity` field, `setStepVelocity()`, used in `triggerTrack()` → `voice.trigger(track, velocity)`
+
+**SPEC.md §2.6/§2.7 updated** to reflect verified state (was outdated).
+
+---
+
 ## Completed (Track A — Cyberpunk UI)
 
 **Track A COMPLETE** — `CyberpunkTheme` renamed to `CyberpunkTheme` (2026-05-04):
@@ -298,7 +322,9 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 ## Next Session
 
-**All tracks complete — ready for gap-fill work per `AI_GAP_FILL_PLAN.md`.**
+**Phase 0 COMPLETE** — ModulationMatrix, Sampler/DrumSeq wiring, and per-step velocity all verified functional.
+
+**Ready for Phase 1** per `AI_GAP_FILL_PLAN.md` (Core Synthesis & Oscillator Upgrades).
 
 **Competitive brief reminder:** Goal is to match/surpass Serum 2, Nexus 5, Avenger 2, Diva, Zebra 3.
 
