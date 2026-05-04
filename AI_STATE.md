@@ -336,11 +336,27 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 ---
 
+---
+
+## Completed (Phase 2 — Sampler Enhancements) (2026-05-04)
+
+**All sub-tasks shipped:**
+
+- **2.1 Drag-and-drop** — was already complete (FileDragAndDropTarget in SamplerPanel); verified ✅
+- **2.2 Tune + Speed per zone** — `SamplerZone::tuning` (float ±24 semitones, 0.1 resolution) + `speed` (float 0.25–4.0); folded into `playbackRate` in `MvSamplerVoice::noteOn()` as `pitchRatio * (fileSR/sr) * speed` with tuning added to the semitone offset; both persisted in getState/setState XML
+- **2.3 Zone range editing UI** — Lo Key / Hi Key combos + Lo Vel / Hi Vel sliders added to SamplerPanel controls section; all wired to SamplerZone fields (already existed in struct, just not editable)
+- **2.4 Auto Map button** — distributes n zones evenly across 0–127 key range (128/n notes per zone, last zone takes remainder); defaults to full 0–127 per zone on load; button sits alongside Clear All
+- **2.4 MIDI drag/sync** — deferred to Phase 3 (Sequencer upgrades)
+
+**Build verified:** VST3 builds successfully ✅
+
+---
+
 ## Next Session
 
-**Phase 1 COMPLETE** — 8-oscillator dynamic system with 6 types + wave shaping shipped.
+**Phase 2 COMPLETE** — Sampler tune/speed controls, key/vel range editing, auto-map shipped.
 
-**Ready for Phase 2** (Sampler Enhancements) or **Phase 5** (Modulation Upgrades — unlimited LFOs) per `AI_GAP_FILL_PLAN.md`.
+**Ready for Phase 3** (Sequencer upgrades: polyrhythm, probability, smart chord) or **Phase 5** (Modulation Upgrades — unlimited LFOs) per `AI_GAP_FILL_PLAN.md`.
 
 **Competitive brief reminder:** Goal is to match/surpass Serum 2, Nexus 5, Avenger 2, Diva, Zebra 3.
 

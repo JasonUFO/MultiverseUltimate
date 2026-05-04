@@ -48,13 +48,32 @@ private:
     ZoneListModel zoneListModel;
     juce::ListBox zoneList;
 
-    juce::TextButton clearButton { "Clear All" };
-
-    juce::Label loopModeLabel  { {}, "Loop:" };
-    juce::ComboBox loopModeCombo;
+    juce::TextButton clearButton   { "Clear All" };
+    juce::TextButton autoMapButton { "Auto Map" };
 
     juce::Label rootNoteLabel  { {}, "Root:" };
     juce::ComboBox rootNoteCombo;
+
+    juce::Label tuningLabel    { {}, "Tune:" };
+    juce::Slider tuningSlider;
+
+    juce::Label speedLabel     { {}, "Speed:" };
+    juce::Slider speedSlider;
+
+    juce::Label loNoteLabel    { {}, "Lo Key:" };
+    juce::ComboBox loNoteCombo;
+
+    juce::Label hiNoteLabel    { {}, "Hi Key:" };
+    juce::ComboBox hiNoteCombo;
+
+    juce::Label loVelLabel     { {}, "Lo Vel:" };
+    juce::Slider loVelSlider;
+
+    juce::Label hiVelLabel     { {}, "Hi Vel:" };
+    juce::Slider hiVelSlider;
+
+    juce::Label loopModeLabel  { {}, "Loop:" };
+    juce::ComboBox loopModeCombo;
 
     juce::Label loopStartLabel { {}, "Start:" };
     juce::Slider loopStartSlider;
@@ -64,6 +83,8 @@ private:
 
     juce::Label xfadeLabel     { {}, "Xfade:" };
     juce::Slider xfadeSlider;
+
+    void autoMap();
 
     juce::Label        samplerVolumeLabel { {}, "Vol:" };
     NeuKnob    samplerVolumeSlider;

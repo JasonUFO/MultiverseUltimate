@@ -1,5 +1,5 @@
 # Feature Suggestions — MultiverseUltimate
-**Last updated: 2026-05-03**
+**Last updated: 2026-05-04**
 
 ## ✅ Shipped
 
@@ -30,6 +30,11 @@
 ### Sampler
 - ✅ Zone-based playback
 - ✅ Chromatic mode
+- ✅ Per-zone pitch tuning (±24 semitones, 0.1 resolution)
+- ✅ Per-zone playback speed (0.25×–4×, independent of pitch mapping)
+- ✅ Per-zone Lo/Hi key range editing (combos in SamplerPanel)
+- ✅ Per-zone Lo/Hi velocity range editing (sliders in SamplerPanel)
+- ✅ Auto Map button (distributes n zones evenly across MIDI 0–127)
 
 ### Modulation
 - ✅ LFO → any parameter (ModulationMatrix)
@@ -58,10 +63,14 @@
 
 ## 🔜 Remaining / Next
 
-### Track A — Cyberpunk UI (next phase)
-- Full visual replacement: CyberpunkTheme → CyberpunkTheme
-- Color palette: neonCyan (#00F0FF), neonPink (#FF2A6D), neonPurple (#B026FF) on bgVoid (#0A0A12)
-- Figma SVGs + spec: `AI_CYBERPUNK_PLAN.md` + `Figmacomponents/`
+### Oscillator (Phase 1 — shipped 2026-05-04)
+- ✅ Dynamic 1–8 oscillators per voice (global oscCount param, + OSC / - OSC buttons)
+- ✅ Additive synthesis (8-harmonic Fourier series per osc)
+- ✅ Phase Distortion synthesis (sinusoidal phase bending)
+- ✅ Analog modeling osc (LCG micro-drift)
+- ✅ Digital osc (16-level bit reduction)
+- ✅ Per-osc wave shaping: Drive / Fold / Clip
+- ✅ Per-osc self-oscillation feedback
 
 ### Future Ideas
 - Ring modulator

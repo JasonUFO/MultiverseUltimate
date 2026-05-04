@@ -3,7 +3,7 @@
 **Company:** Multiphase Audio  
 **Format:** VST3 / AU (macOS)  
 **Build system:** JUCE 8.x + Projucer + Xcode  
-**Last updated:** 2026-05-03
+**Last updated:** 2026-05-04
 
 ---
 
@@ -79,16 +79,20 @@ All items from the original "What Is Still To Do" list have been resolved. The p
 **Full spec:** `AI_GAP_FILL_PLAN.md` (created 2026-05-04)
 **Brief comparison:** Compared against `MULTIVERSE SYNTH BREIF.txt` — 30+ feature gaps identified
 
-**Key gaps to address:**
-- Missing synthesis engines: Additive, Phase Distortion, Analog Modeling, Digital
-- Fixed 3 oscillators/voice — brief requires unlimited with mix/match types
-- Sampler missing: time-stretch, MIDI drag/drop, multi-sampling (velocity/key layers)
-- Sequencer missing: polyrhythm, probability triggers, smart chord tracking
-- No unlimited audio outputs or per-osc/voice routing
-- Modulation missing: unlimited LFOs, drawable shapes, DAW-synced LFOs
-- UI missing: resizable/DPI scaling, built-in keyboard, 1000+ presets
-- Effects missing: return/aux sends, standalone mode
-- Missing: quick randomization, CPU limiting, zero-latency, audio effect mode, tuner/metronome
+**Gap-fill progress (as of 2026-05-04):**
+- ✅ Phase 0: Existing functionality verified
+- ✅ Phase 1: Dynamic 1–8 osc/voice; 4 new types (Additive/PhaseDist/Analog/Digital); wave shaping + self-osc
+- ✅ Phase 2: Sampler tune/speed per zone; Lo/Hi key+vel range editing UI; Auto Map
+- 🔜 Phase 3: Sequencer upgrades (polyrhythm, probability, smart chord, MIDI drag)
+- 🔜 Phase 5: Unlimited LFOs, drawable shapes, DAW-synced LFOs
+- 🔜 Phase 4/6/7: Audio outputs, UI polish, effects extras, standalone
+
+**Remaining key gaps:**
+- Sequencer: polyrhythm/polymeter, probability triggers, smart chord tracking, MIDI drag
+- Modulation: unlimited LFOs, drawable LFO shapes, DAW-synced LFOs
+- UI: resizable/DPI scaling, built-in keyboard, 1000+ presets
+- Effects: return/aux sends, standalone mode
+- Misc: quick randomization, CPU limiting, zero-latency, audio effect mode, tuner/metronome
 
 ### 2.6 Modulation Matrix — ✅ Functional
 

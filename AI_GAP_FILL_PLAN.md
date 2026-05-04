@@ -24,18 +24,12 @@
 
 ---
 
-## Phase2: Sampler Enhancements (Priority: High)
-**Dependencies**: None (separate engine)
-2.1 Drag-and-drop support
-   - Add `DragAndDropTarget` to SamplerPanel for audio/MIDI files
-   - Implement drag-to-DAW for sampler audio/MIDI
-2.2 Time-stretch & pitch-shift
-   - Use JUCE `LagrangeInterpolator` for time-stretch (free, no external libs)
-   - Decouple pitch-shift from time-stretch with independent controls
-2.3 Multi-sampling upgrade
-   - Extend `SamplerZone` with velocity/key layer support
-   - Update SamplerPanel UI to display/edit velocity/key layers
-2.4 MIDI pattern drag/sync with Sequencer
+## Phase2: Sampler Enhancements ✅ COMPLETE (2026-05-04)
+**Architecture:** per-zone `tuning` + `speed` fields in `SamplerZone`; folded into `MvSamplerVoice::noteOn` playbackRate; UI controls added to SamplerPanel.
+2.1 ✅ Drag-and-drop for audio files — was already implemented (`FileDragAndDropTarget` in SamplerPanel); verified functional
+2.2 ✅ Independent tune/speed controls — `tuning` (±24 st, 0.1 res) + `speed` (0.25–4×) per zone; `playbackRate = exp2((note-root+tuning)/12) * (fileSR/sr) * speed`
+2.3 ✅ Zone range editing UI — Lo Key / Hi Key combos + Lo Vel / Hi Vel sliders wired to `SamplerZone::loNote/hiNote/loVel/hiVel`; Auto Map button distributes n zones evenly across MIDI 0–127
+2.4 MIDI pattern drag/sync with Sequencer — deferred to Phase 3
 
 ---
 

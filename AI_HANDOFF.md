@@ -98,16 +98,18 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Layers | 8-layer engine: Synth/Granular/Sampler per layer, level/pan/mute/solo, full MIDI + audio + state wiring, "Layers" tab |
 | Track B | Filter LP/HP/BP/Notch; Sub+Noise osc; Unison Chord/Random spread; Layer key/vel/MIDI-ch ranges; Per-layer independent effect chain (LayerEffectChain) |
 | Phase 1 | Dynamic 1–8 osc count; 4 new types (Additive/PhaseDist/Analog/Digital); per-osc wave shaping + self-osc; 2 new mod targets (OscShapeAmount, OscPhaseDistAmount) |
+| Phase 2 | Sampler: per-zone `tuning` (±24 st) + `speed` (0.25–4×) controls; Lo/Hi Key + Lo/Hi Vel range editing UI; Auto Map button (distributes zones evenly across 0–127) |
 
 ## Next Steps
 
 ### Gap-Fill Implementation (Current Focus)
 **Plan:** `AI_GAP_FILL_PLAN.md`
-**Phases 0 and 1 complete.** Next: Phase 2 (Sampler Enhancements) or Phase 5 (Modulation Upgrades — unlimited LFOs).
+**Phases 0, 1, and 2 complete.** Next: Phase 3 (Sequencer upgrades) or Phase 5 (Modulation Upgrades — unlimited LFOs).
 **Priority order (remaining):**
 1. ~~Phase 0: Verify ModulationMatrix/SamplerEngine wiring~~ ✅
 2. ~~Phase 1: Core synthesis & oscillator upgrades~~ ✅
-3. Phase 2: Sampler enhancements (time-stretch, multi-sampling, drag/drop)
+3. ~~Phase 2: Sampler enhancements (tune/speed/key-vel ranges/auto-map)~~ ✅
+4. Phase 3: Sequencer upgrades (polyrhythm, probability, smart chord)
 4. Phase 3: Sequencer upgrades (polyrhythm, probability, smart chord)
 5. Phase 4-7: Audio outputs, modulation, UI, effects, additional features
 
@@ -171,6 +173,7 @@ Complete — `CyberpunkTheme` renamed to `CyberpunkTheme`, all panels updated, n
 - `PresetBrowserPanel` (`Source/Presets/PresetBrowserPanel.h/.cpp`): inherits `juce::ListBoxModel` + `Button::Listener` + `ComboBox::Listener`. Uses `juce::ListBox presetList`. Shown as 160px collapsible panel above tabs in `PluginEditor` (toggled by "Presets" button in header). `refresh()` calls `presetList.updateContent()`. Phase 4 redesign: keep all logic, only change `paint()`, `resized()`, `paintListBoxItem()`, and visual styling.
 - `WavetableEditor` (`Source/Synth/WavetableEditor.h/.cpp`): takes `WavetableOscillator&` (voice 0 master). `onWavetableChanged` callback must be set by caller to `synthEngine.distributeWavetable(oscIndex)`. Shown as full-panel overlay inside SynthPanel; toggled by "EDIT WT" button per osc strip. FFT button is a placeholder (calls normalizeFrame).
 - `WavetableOscillator` new public API: `setSample(frame,i,v)`, `getSample(frame,i)`, `clearFrame`, `normalizeFrame`, `fadeFrame`, `reverseFrame`, `generateFormula(frame, fn)`, `loadMultiCycleWavetable`, `processFFT` (placeholder), `getTableCount()`, `getTableSize()`.
+- `SamplerZone` has `tuning` (float, ±24 semitones) and `speed` (float, 0.25–4.0) fields. Both are persisted in getState/setState XML with defaults 0.0/1.0. `MvSamplerVoice::noteOn` folds them in: `playbackRate = exp2((midiNote-rootNote+tuning)/12) * (fileSR/sr) * speed`.
 - `SynthEngine::getWavetableOscillator(oscIndex)` returns `voices[0].voice.getWavetableOsc(oscIndex)` — voice 0 is the edit master. `distributeWavetable(oscIndex)` copies frame data from voice 0 to voices 1–15 via `setSample`.
 - `LayerManager` (`Source/Layers/`) manages `std::array<unique_ptr<LayerEngine>, 8>`. Each `LayerEngine` owns its own `SynthEngine`, `GranularEngine`, `SamplerEngine` (all three always allocated; only active engine processes). `LayerManager::processBlock` mixes all non-muted layers (or only soloed layers) into the output buffer. MIDI goes to all active layers. State: `juce::ValueTree` — GranularEngine + SamplerEngine sub-states only (SynthEngine has no standalone state API).
 - `LayersPanel` (`Source/Layers/LayersPanel.h/.cpp`): `rows` is `std::array<unique_ptr<LayerRow>, 8>`. `LayerRow` is a struct (not a Component) holding JUCE controls as direct members. Lambdas capture `[this, index, row]` — `row` is a raw pointer to the unique_ptr content, valid for the panel's lifetime.

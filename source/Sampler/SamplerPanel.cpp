@@ -25,6 +25,94 @@ SamplerPanel::SamplerPanel (PluginProcessor& p, SamplerEngine& engine)
     };
     addAndMakeVisible (clearButton);
 
+    // Root note
+    for (int i = 0; i < 128; ++i)
+    {
+        rootNoteCombo.addItem (juce::MidiMessage::getMidiNoteName (i, true, true, 4), i + 1);
+        loNoteCombo.addItem   (juce::MidiMessage::getMidiNoteName (i, true, true, 4), i + 1);
+        hiNoteCombo.addItem   (juce::MidiMessage::getMidiNoteName (i, true, true, 4), i + 1);
+    }
+    rootNoteCombo.setSelectedId (61, juce::dontSendNotification); // C4 = 60 → id 61
+    rootNoteCombo.onChange = [this]
+    {
+        if (selectedZoneIndex < 0 || selectedZoneIndex >= static_cast<int> (ownedZones.size())) return;
+        ownedZones[static_cast<size_t> (selectedZoneIndex)]->rootNote = rootNoteCombo.getSelectedId() - 1;
+    };
+    addAndMakeVisible (rootNoteLabel);
+    addAndMakeVisible (rootNoteCombo);
+
+    // Tuning slider (±24 semitones, 0.1 resolution)
+    tuningSlider.setSliderStyle (juce::Slider::LinearHorizontal);
+    tuningSlider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 64, 18);
+    tuningSlider.setRange (-24.0, 24.0, 0.1);
+    tuningSlider.setValue (0.0, juce::dontSendNotification);
+    tuningSlider.setEnabled (false);
+    tuningSlider.onValueChange = [this]
+    {
+        if (selectedZoneIndex < 0 || selectedZoneIndex >= static_cast<int> (ownedZones.size())) return;
+        ownedZones[static_cast<size_t> (selectedZoneIndex)]->tuning = (float) tuningSlider.getValue();
+    };
+    addAndMakeVisible (tuningLabel);
+    addAndMakeVisible (tuningSlider);
+
+    // Speed slider (0.25–4.0 multiplier)
+    speedSlider.setSliderStyle (juce::Slider::LinearHorizontal);
+    speedSlider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 64, 18);
+    speedSlider.setRange (0.25, 4.0, 0.01);
+    speedSlider.setValue (1.0, juce::dontSendNotification);
+    speedSlider.setEnabled (false);
+    speedSlider.onValueChange = [this]
+    {
+        if (selectedZoneIndex < 0 || selectedZoneIndex >= static_cast<int> (ownedZones.size())) return;
+        ownedZones[static_cast<size_t> (selectedZoneIndex)]->speed = (float) speedSlider.getValue();
+    };
+    addAndMakeVisible (speedLabel);
+    addAndMakeVisible (speedSlider);
+
+    // Lo/Hi key range combos
+    loNoteCombo.setSelectedId (1, juce::dontSendNotification);
+    loNoteCombo.onChange = [this]
+    {
+        if (selectedZoneIndex < 0 || selectedZoneIndex >= static_cast<int> (ownedZones.size())) return;
+        ownedZones[static_cast<size_t> (selectedZoneIndex)]->loNote = loNoteCombo.getSelectedId() - 1;
+    };
+    hiNoteCombo.setSelectedId (128, juce::dontSendNotification);
+    hiNoteCombo.onChange = [this]
+    {
+        if (selectedZoneIndex < 0 || selectedZoneIndex >= static_cast<int> (ownedZones.size())) return;
+        ownedZones[static_cast<size_t> (selectedZoneIndex)]->hiNote = hiNoteCombo.getSelectedId() - 1;
+    };
+    addAndMakeVisible (loNoteLabel);
+    addAndMakeVisible (loNoteCombo);
+    addAndMakeVisible (hiNoteLabel);
+    addAndMakeVisible (hiNoteCombo);
+
+    // Lo/Hi velocity range sliders
+    loVelSlider.setSliderStyle (juce::Slider::LinearHorizontal);
+    loVelSlider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 64, 18);
+    loVelSlider.setRange (0.0, 127.0, 1.0);
+    loVelSlider.setValue (0.0, juce::dontSendNotification);
+    loVelSlider.setEnabled (false);
+    loVelSlider.onValueChange = [this]
+    {
+        if (selectedZoneIndex < 0 || selectedZoneIndex >= static_cast<int> (ownedZones.size())) return;
+        ownedZones[static_cast<size_t> (selectedZoneIndex)]->loVel = static_cast<int> (loVelSlider.getValue());
+    };
+    hiVelSlider.setSliderStyle (juce::Slider::LinearHorizontal);
+    hiVelSlider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 64, 18);
+    hiVelSlider.setRange (0.0, 127.0, 1.0);
+    hiVelSlider.setValue (127.0, juce::dontSendNotification);
+    hiVelSlider.setEnabled (false);
+    hiVelSlider.onValueChange = [this]
+    {
+        if (selectedZoneIndex < 0 || selectedZoneIndex >= static_cast<int> (ownedZones.size())) return;
+        ownedZones[static_cast<size_t> (selectedZoneIndex)]->hiVel = static_cast<int> (hiVelSlider.getValue());
+    };
+    addAndMakeVisible (loVelLabel);
+    addAndMakeVisible (loVelSlider);
+    addAndMakeVisible (hiVelLabel);
+    addAndMakeVisible (hiVelSlider);
+
     // Loop mode
     loopModeCombo.addItem ("None",      1);
     loopModeCombo.addItem ("Forward",   2);
@@ -39,17 +127,9 @@ SamplerPanel::SamplerPanel (PluginProcessor& p, SamplerEngine& engine)
     addAndMakeVisible (loopModeLabel);
     addAndMakeVisible (loopModeCombo);
 
-    // Root note
-    for (int i = 0; i < 128; ++i)
-        rootNoteCombo.addItem (juce::MidiMessage::getMidiNoteName (i, true, true, 4), i + 1);
-    rootNoteCombo.setSelectedId (61, juce::dontSendNotification); // C4 = 60 → id 61
-    rootNoteCombo.onChange = [this]
-    {
-        if (selectedZoneIndex < 0 || selectedZoneIndex >= static_cast<int> (ownedZones.size())) return;
-        ownedZones[static_cast<size_t> (selectedZoneIndex)]->rootNote = rootNoteCombo.getSelectedId() - 1;
-    };
-    addAndMakeVisible (rootNoteLabel);
-    addAndMakeVisible (rootNoteCombo);
+    // Auto Map button
+    autoMapButton.onClick = [this] { autoMap(); };
+    addAndMakeVisible (autoMapButton);
 
     // Loop sliders
     auto setupSlider = [this] (juce::Slider& s, juce::Label& l)
@@ -103,8 +183,15 @@ SamplerPanel::SamplerPanel (PluginProcessor& p, SamplerEngine& engine)
 
     // Tooltips
     clearButton.setTooltip       ("Remove all loaded sample zones");
-    loopModeCombo.setTooltip     ("Loop mode: None (one-shot) / Forward / Ping-Pong");
+    autoMapButton.setTooltip     ("Distribute zones evenly across the full key range (C-1 to G9)");
     rootNoteCombo.setTooltip     ("Root note: MIDI pitch at which the sample plays at its original speed");
+    tuningSlider.setTooltip      ("Tune: pitch offset in semitones (±24), 0.1 resolution — shifts pitch independently of root note");
+    speedSlider.setTooltip       ("Speed: playback rate multiplier (0.25×–4×) — changes tempo independently of pitch mapping");
+    loNoteCombo.setTooltip       ("Lo Key: lowest MIDI note this zone responds to");
+    hiNoteCombo.setTooltip       ("Hi Key: highest MIDI note this zone responds to");
+    loVelSlider.setTooltip       ("Lo Vel: minimum velocity (0–127) this zone responds to");
+    hiVelSlider.setTooltip       ("Hi Vel: maximum velocity (0–127) this zone responds to");
+    loopModeCombo.setTooltip     ("Loop mode: None (one-shot) / Forward / Ping-Pong");
     loopStartSlider.setTooltip   ("Loop start point (sample index). Drag to set where the loop begins.");
     loopEndSlider.setTooltip     ("Loop end point (sample index). Drag to set where the loop ends.");
     xfadeSlider.setTooltip       ("Loop crossfade length: smoothes the loop boundary to reduce clicks");
@@ -203,14 +290,22 @@ void SamplerPanel::resized()
 
     row (samplerVolumeLabel, samplerVolumeSlider);
     row (samplerPanLabel,    samplerPanSlider);
-    row (rootNoteLabel,  rootNoteCombo);
-    row (loopModeLabel,  loopModeCombo);
-    row (loopStartLabel, loopStartSlider);
-    row (loopEndLabel,   loopEndSlider);
-    row (xfadeLabel,     xfadeSlider);
+    row (rootNoteLabel,      rootNoteCombo);
+    row (tuningLabel,        tuningSlider);
+    row (speedLabel,         speedSlider);
+    row (loNoteLabel,        loNoteCombo);
+    row (hiNoteLabel,        hiNoteCombo);
+    row (loVelLabel,         loVelSlider);
+    row (hiVelLabel,         hiVelSlider);
+    row (loopModeLabel,      loopModeCombo);
+    row (loopStartLabel,     loopStartSlider);
+    row (loopEndLabel,       loopEndSlider);
+    row (xfadeLabel,         xfadeSlider);
 
     area.removeFromTop (6);
-    clearButton.setBounds (area.removeFromTop (26));
+    auto btnRow = area.removeFromTop (26);
+    clearButton.setBounds   (btnRow.removeFromLeft (btnRow.getWidth() / 2).withTrimmedRight (2));
+    autoMapButton.setBounds (btnRow.withTrimmedLeft (2));
 }
 
 bool SamplerPanel::isInterestedInFileDrag (const juce::StringArray& files)
@@ -290,6 +385,12 @@ void SamplerPanel::updateControlsForSelectedZone()
     bool valid = selectedZoneIndex >= 0 && selectedZoneIndex < static_cast<int> (ownedZones.size());
 
     rootNoteCombo.setEnabled (valid);
+    tuningSlider.setEnabled (valid);
+    speedSlider.setEnabled (valid);
+    loNoteCombo.setEnabled (valid);
+    hiNoteCombo.setEnabled (valid);
+    loVelSlider.setEnabled (valid);
+    hiVelSlider.setEnabled (valid);
     loopModeCombo.setEnabled (valid);
     loopStartSlider.setEnabled (valid);
     loopEndSlider.setEnabled (valid);
@@ -301,8 +402,14 @@ void SamplerPanel::updateControlsForSelectedZone()
     const auto& zone = *ownedZones[static_cast<size_t> (selectedZoneIndex)];
     int total = zone.audioData.getNumSamples();
 
-    rootNoteCombo.setSelectedId (zone.rootNote + 1, juce::dontSendNotification);
-    loopModeCombo.setSelectedId (static_cast<int> (zone.loopMode) + 1, juce::dontSendNotification);
+    rootNoteCombo.setSelectedId (zone.rootNote + 1,                          juce::dontSendNotification);
+    tuningSlider.setValue       ((double) zone.tuning,                       juce::dontSendNotification);
+    speedSlider.setValue        ((double) zone.speed,                        juce::dontSendNotification);
+    loNoteCombo.setSelectedId   (zone.loNote + 1,                            juce::dontSendNotification);
+    hiNoteCombo.setSelectedId   (zone.hiNote + 1,                            juce::dontSendNotification);
+    loVelSlider.setValue        ((double) zone.loVel,                        juce::dontSendNotification);
+    hiVelSlider.setValue        ((double) zone.hiVel,                        juce::dontSendNotification);
+    loopModeCombo.setSelectedId (static_cast<int> (zone.loopMode) + 1,      juce::dontSendNotification);
 
     loopStartSlider.setRange (0.0, total - 1, 1.0);
     loopStartSlider.setValue (zone.loopStart, juce::dontSendNotification);
@@ -346,4 +453,23 @@ void SamplerPanel::ZoneListModel::listBoxItemClicked (int row, const juce::Mouse
 {
     panel.selectedZoneIndex = row;
     panel.updateControlsForSelectedZone();
+}
+
+// ---------------------------------------------------------------------------
+// Auto Map
+// ---------------------------------------------------------------------------
+
+void SamplerPanel::autoMap()
+{
+    int n = static_cast<int> (ownedZones.size());
+    if (n == 0) return;
+
+    int notesPerZone = 128 / n;
+    for (int i = 0; i < n; ++i)
+    {
+        ownedZones[i]->loNote = i * notesPerZone;
+        ownedZones[i]->hiNote = (i == n - 1) ? 127 : (i + 1) * notesPerZone - 1;
+    }
+    updateZoneList();
+    updateControlsForSelectedZone();
 }

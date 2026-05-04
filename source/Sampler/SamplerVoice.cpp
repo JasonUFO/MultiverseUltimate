@@ -16,8 +16,8 @@ void MvSamplerVoice::noteOn (const SamplerZone* zone, int note, float vel)
     pingPongForward = true;
     active = true;
 
-    double pitchRatio = std::pow (2.0, (midiNote - zone->rootNote) / 12.0);
-    playbackRate = pitchRatio * (zone->fileSampleRate / sampleRate);
+    double pitchRatio = std::pow (2.0, (midiNote - zone->rootNote + (double)zone->tuning) / 12.0);
+    playbackRate = pitchRatio * (zone->fileSampleRate / sampleRate) * (double)zone->speed;
 
     sustainLevel = 0.7f;
     attackInc  = 1.0f / static_cast<float> (0.005  * sampleRate);

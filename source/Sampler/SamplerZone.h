@@ -24,6 +24,10 @@ struct SamplerZone
     juce::AudioBuffer<float> audioData;
     double fileSampleRate = 44100.0;
 
+    // Pitch and speed (independent controls)
+    float tuning = 0.0f;   // semitones offset, ±24
+    float speed  = 1.0f;   // playback speed multiplier, 0.25–4.0
+
     // Loop settings (sample positions within audioData)
     int loopStart = 0;
     int loopEnd = 0;           // 0 means use full buffer length
