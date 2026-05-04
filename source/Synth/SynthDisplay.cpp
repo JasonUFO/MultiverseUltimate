@@ -1,6 +1,7 @@
 #include "SynthDisplay.h"
+#include "../CyberpunkTheme.h"
 #include "../PluginProcessor.h"
-#include "../MultiverseTheme.h"
+#include "../CyberpunkTheme.h"
 
 SynthDisplay::SynthDisplay() : fft(FFT_ORDER)
 {
@@ -104,14 +105,14 @@ void SynthDisplay::paint(juce::Graphics& g)
         }
 
         // Glow layer then crisp stroke
-        g.setColour(MultiverseTheme::accentBlue.withAlpha(0.18f));
+        g.setColour(CyberpunkTheme::accentBlue.withAlpha(0.18f));
         g.strokePath(wave, juce::PathStrokeType(4.5f, juce::PathStrokeType::curved,
                                                 juce::PathStrokeType::rounded));
-        g.setColour(MultiverseTheme::accentBlue);
+        g.setColour(CyberpunkTheme::accentBlue);
         g.strokePath(wave, juce::PathStrokeType(1.5f, juce::PathStrokeType::curved,
                                                 juce::PathStrokeType::rounded));
 
-        g.setColour(MultiverseTheme::textMuted);
+        g.setColour(CyberpunkTheme::textMuted);
         g.setFont(juce::Font(8.0f));
         g.drawText("OSC", (int)scopeArea.getX(), (int)scopeArea.getY(), 24, 10,
                    juce::Justification::centredLeft, false);
@@ -138,14 +139,14 @@ void SynthDisplay::paint(juce::Graphics& g)
                 bars.addRectangle(sox + float(x), sbot - barH, 1.5f, barH);
         }
 
-        juce::ColourGradient grad(MultiverseTheme::accentPurple, sox, sbot,
-                                  MultiverseTheme::accentBlue.brighter(0.4f), sox, specArea.getY(),
+        juce::ColourGradient grad(CyberpunkTheme::accentPurple, sox, sbot,
+                                  CyberpunkTheme::accentBlue.brighter(0.4f), sox, specArea.getY(),
                                   false);
         g.setGradientFill(grad);
         g.fillPath(bars);
 
         // Peak hold — 1px per column
-        g.setColour(MultiverseTheme::accentBlue.brighter(0.6f));
+        g.setColour(CyberpunkTheme::accentBlue.brighter(0.6f));
         for (int x = 0; x < dispW; ++x)
         {
             if (fftPeak[(int)(float(x) / float(dispW - 1) * float(numBins - 1))] < 0.01f) continue;
@@ -155,7 +156,7 @@ void SynthDisplay::paint(juce::Graphics& g)
             g.fillRect(sox + float(x), sbot - fftPeak[bin] * sh, 1.5f, 1.5f);
         }
 
-        g.setColour(MultiverseTheme::textMuted);
+        g.setColour(CyberpunkTheme::textMuted);
         g.setFont(juce::Font(8.0f));
         g.drawText("FFT", (int)specArea.getX(), (int)specArea.getY(), 22, 10,
                    juce::Justification::centredLeft, false);

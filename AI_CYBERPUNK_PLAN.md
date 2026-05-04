@@ -1,7 +1,7 @@
 # Multiverse Ultimate — Neumorphic Cyberpunk UI Plan
 
 **Status:** Figma SVGs created, ready for sign-off  
-**Scope:** Full UI replacement (MultiverseTheme → CyberpunkTheme)  
+**Scope:** Full UI replacement (CyberpunkTheme → CyberpunkTheme)  
 **Approach:** Figma-first — SVGs in `Figmacomponents/` ready for review
 
 ---
@@ -58,7 +58,7 @@
 - **Section title**: 10px bold, `textSecondary`, positioned at X=8, Y=5 from top-left
 
 ### 3.2 NeuKnob (Rotary Slider) — KEY COMPONENT
-Based on `NeuKnob` + `MultiverseTheme::drawRotarySlider`:
+Based on `NeuKnob` + `CyberpunkTheme::drawRotarySlider`:
 
 **Outer disc:**
 - **Size**: 60-80px diameter (per panel)
@@ -210,12 +210,12 @@ Each panel uses **collapsible neumorphic cards** with 16px padding, 10px gaps.
 
 ### 7.1 New Theme Class
 Create `CyberpunkTheme : public juce::LookAndFeel_V4`
-- Replace all `MultiverseTheme` references with `CyberpunkTheme`
+- Replace all `CyberpunkTheme` references with `CyberpunkTheme`
 - Update color constants to new palette
 - Keep `drawNeumorphicRect()` / `drawNeumorphicEllipse()` helpers (update colors)
 
 ### 7.2 Files to Modify
-1. **New file**: `Source/CyberpunkTheme.h` + `.cpp` (based on MultiverseTheme)
+1. **New file**: `Source/CyberpunkTheme.h` + `.cpp` (based on CyberpunkTheme)
 2. **Modify**: `PluginEditor.cpp` — `setLookAndFeel(&cyberpunkTheme)`
 3. **Modify**: `NeuKnob.cpp` — use `neonCyan` / `neonPink` for arcs
 4. **Modify**: All 10 panel `paint()` methods — use new color constants
@@ -229,7 +229,7 @@ Create `CyberpunkTheme : public juce::LookAndFeel_V4`
 
 ### 7.4 Component Count to Update
 - `NeuKnob`: ~63+ instances across all panels
-- `MultiverseTheme::drawNeumorphicRect` calls: ~20+ (all panel paint() methods)
+- `CyberpunkTheme::drawNeumorphicRect` calls: ~20+ (all panel paint() methods)
 - `drawRotarySlider`: 1 (in theme, uses new colors)
 - `drawLinearSlider`: 1 (in theme, uses new colors)
 - All label/text colors throughout

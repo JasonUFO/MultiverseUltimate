@@ -1,5 +1,6 @@
 #include "DrumSequencerPanel.h"
-#include "../MultiverseTheme.h"
+#include "../CyberpunkTheme.h"
+#include "../CyberpunkTheme.h"
 
 DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
     : sequencer (seq)
@@ -36,7 +37,7 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
 
     bpmLabel.setText ("BPM", juce::dontSendNotification);
     bpmLabel.setJustificationType (juce::Justification::centredRight);
-    bpmLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    bpmLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     addAndMakeVisible (bpmLabel);
 
     bpmSlider.setRange (40.0, 240.0, 0.5);
@@ -70,7 +71,7 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
     addAndMakeVisible (stopButton);
 
     positionLabel.setText ("Step: —", juce::dontSendNotification);
-    positionLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    positionLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     positionLabel.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (positionLabel);
 
@@ -93,7 +94,7 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
 
     // Swing
     swingLabel.setText ("Swing", juce::dontSendNotification);
-    swingLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    swingLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     swingLabel.setJustificationType (juce::Justification::centredRight);
     addAndMakeVisible (swingLabel);
 
@@ -111,7 +112,7 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
 
     // Quantization
     quantLabel.setText ("Quant", juce::dontSendNotification);
-    quantLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    quantLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     quantLabel.setJustificationType (juce::Justification::centredRight);
     addAndMakeVisible (quantLabel);
 
@@ -132,7 +133,7 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
 
     // Pattern chain
     chainToggleButton.setClickingTogglesState (true);
-    chainToggleButton.setColour (juce::TextButton::buttonOnColourId, MultiverseTheme::accentGreen.darker (0.2f));
+    chainToggleButton.setColour (juce::TextButton::buttonOnColourId, CyberpunkTheme::accentGreen.darker (0.2f));
     chainToggleButton.onClick = [this]()
     {
         chainActive = chainToggleButton.getToggleState();
@@ -305,9 +306,9 @@ void DrumSequencerPanel::fileDragExit (const juce::StringArray&)
 
 void DrumSequencerPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (MultiverseTheme::bgBase);
+    g.fillAll (CyberpunkTheme::bgBase);
 
-     g.setColour (MultiverseTheme::textSecondary);
+     g.setColour (CyberpunkTheme::textSecondary);
      g.setFont (juce::Font (12.0f, juce::Font::bold));
      g.drawText ("DRUM SEQUENCER", getLocalBounds().removeFromTop (24), juce::Justification::centred);
 
@@ -315,40 +316,40 @@ void DrumSequencerPanel::paint (juce::Graphics& g)
     const float cr = 8.0f;
     if (transportBounds.getHeight() > 0)
     {
-        MultiverseTheme::drawNeumorphicRect (g, transportBounds.toFloat(), cr, 3.0f);
-        g.setColour (MultiverseTheme::bgRaised);
+        CyberpunkTheme::drawNeumorphicRect (g, transportBounds.toFloat(), cr, 3.0f);
+        g.setColour (CyberpunkTheme::bgRaised);
         g.fillRoundedRectangle (transportBounds.toFloat(), cr);
-        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
         g.drawRoundedRectangle (transportBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (swingBounds.getHeight() > 0)
     {
-        MultiverseTheme::drawNeumorphicRect (g, swingBounds.toFloat(), cr, 3.0f);
-        g.setColour (MultiverseTheme::bgRaised);
+        CyberpunkTheme::drawNeumorphicRect (g, swingBounds.toFloat(), cr, 3.0f);
+        g.setColour (CyberpunkTheme::bgRaised);
         g.fillRoundedRectangle (swingBounds.toFloat(), cr);
-        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
         g.drawRoundedRectangle (swingBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (patternBounds.getHeight() > 0)
     {
-        MultiverseTheme::drawNeumorphicRect (g, patternBounds.toFloat(), cr, 3.0f);
-        g.setColour (MultiverseTheme::bgRaised);
+        CyberpunkTheme::drawNeumorphicRect (g, patternBounds.toFloat(), cr, 3.0f);
+        g.setColour (CyberpunkTheme::bgRaised);
         g.fillRoundedRectangle (patternBounds.toFloat(), cr);
-        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
         g.drawRoundedRectangle (patternBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (gridBounds.getHeight() > 0)
     {
-        MultiverseTheme::drawNeumorphicRect (g, gridBounds.toFloat(), cr, 3.0f);
-        g.setColour (MultiverseTheme::bgRaised);
+        CyberpunkTheme::drawNeumorphicRect (g, gridBounds.toFloat(), cr, 3.0f);
+        g.setColour (CyberpunkTheme::bgRaised);
         g.fillRoundedRectangle (gridBounds.toFloat(), cr);
-        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
         g.drawRoundedRectangle (gridBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
 
     if (isDragOver)
     {
-        g.setColour (MultiverseTheme::accentBlue.withAlpha (0.25f));
+        g.setColour (CyberpunkTheme::accentBlue.withAlpha (0.25f));
         g.drawRoundedRectangle (getLocalBounds().toFloat().reduced (4), 4, 2);
     }
 }
@@ -437,20 +438,20 @@ void DrumSequencerPanel::DrumStepButton::paint (juce::Graphics& g)
     juce::Colour bg, border;
     if (highlighted)
     {
-        bg = MultiverseTheme::accentAmber;
-        border = MultiverseTheme::accentAmber.brighter (0.3f);
+        bg = CyberpunkTheme::accentAmber;
+        border = CyberpunkTheme::accentAmber.brighter (0.3f);
     }
     else if (active)
     {
         // Velocity intensity: dark blue (low) → bright cyan (high)
         float v = juce::jlimit (0.0f, 1.0f, velocity);
-        bg     = MultiverseTheme::accentBlue.darker (0.5f).interpolatedWith (MultiverseTheme::accentBlue, v);
-        border = MultiverseTheme::accentBlue.darker (0.7f).interpolatedWith (MultiverseTheme::accentBlue.brighter (0.3f), v);
+        bg     = CyberpunkTheme::accentBlue.darker (0.5f).interpolatedWith (CyberpunkTheme::accentBlue, v);
+        border = CyberpunkTheme::accentBlue.darker (0.7f).interpolatedWith (CyberpunkTheme::accentBlue.brighter (0.3f), v);
     }
     else
     {
-        bg = MultiverseTheme::bgRaised;
-        border = MultiverseTheme::shadowLight;
+        bg = CyberpunkTheme::bgRaised;
+        border = CyberpunkTheme::shadowLight;
     }
 
     g.setColour (bg);
@@ -493,7 +494,7 @@ DrumSequencerPanel::TrackRow::TrackRow (int idx, DrumSequencer& seq, DrumSequenc
     addAndMakeVisible (volumeSlider);
 
     muteButton.setClickingTogglesState (true);
-    muteButton.setColour (juce::TextButton::buttonOnColourId, MultiverseTheme::accentAmber.darker (0.3f));
+    muteButton.setColour (juce::TextButton::buttonOnColourId, CyberpunkTheme::accentAmber.darker (0.3f));
     muteButton.onClick = [this]()
     {
         sequencer.setTrackMuted (trackIndex, muteButton.getToggleState());
@@ -501,7 +502,7 @@ DrumSequencerPanel::TrackRow::TrackRow (int idx, DrumSequencer& seq, DrumSequenc
     addAndMakeVisible (muteButton);
 
     soloButton.setClickingTogglesState (true);
-    soloButton.setColour (juce::TextButton::buttonOnColourId, MultiverseTheme::accentAmber.darker (0.2f));
+    soloButton.setColour (juce::TextButton::buttonOnColourId, CyberpunkTheme::accentAmber.darker (0.2f));
     soloButton.onClick = [this]()
     {
         sequencer.setTrackSolo (trackIndex, soloButton.getToggleState());
@@ -531,8 +532,8 @@ DrumSequencerPanel::TrackRow::TrackRow (int idx, DrumSequencer& seq, DrumSequenc
     };
     addAndMakeVisible (loadButton);
 
-    levelMeter.setColour (juce::Label::backgroundColourId, MultiverseTheme::bgDeep);
-    levelMeter.setColour (juce::Label::textColourId, MultiverseTheme::accentGreen);
+    levelMeter.setColour (juce::Label::backgroundColourId, CyberpunkTheme::bgDeep);
+    levelMeter.setColour (juce::Label::textColourId, CyberpunkTheme::accentGreen);
     addAndMakeVisible (levelMeter);
 
     volumeSlider.setTooltip ("Track " + juce::String(idx + 1) + " volume (0–100%)");
@@ -551,12 +552,12 @@ void DrumSequencerPanel::TrackRow::updateFromSequencer()
     float level = sequencer.getTrackLevel (trackIndex);
     int meterHeight = static_cast<int> (level * getHeight());
     levelMeter.setColour (juce::Label::backgroundColourId,
-                          MultiverseTheme::accentGreen.withAlpha (0.3f + level * 0.7f));
+                          CyberpunkTheme::accentGreen.withAlpha (0.3f + level * 0.7f));
 }
 
 void DrumSequencerPanel::TrackRow::paint (juce::Graphics& g)
 {
-    g.setColour (MultiverseTheme::bgRaised.darker (0.2f));
+    g.setColour (CyberpunkTheme::bgRaised.darker (0.2f));
     g.fillRoundedRectangle (getLocalBounds().toFloat().reduced (1), 2.0f);
 
     // Waveform preview in name label area when a sample is loaded
@@ -564,7 +565,7 @@ void DrumSequencerPanel::TrackRow::paint (juce::Graphics& g)
     if (buf.getNumSamples() >0)
     {
         auto waveArea = juce::Rectangle<int> (2, 2, 68, getHeight() - 4);
-        g.setColour (MultiverseTheme::bgDeep);
+        g.setColour (CyberpunkTheme::bgDeep);
         g.fillRect (waveArea);
 
         const float* samples = buf.getReadPointer (0);
@@ -573,7 +574,7 @@ void DrumSequencerPanel::TrackRow::paint (juce::Graphics& g)
         float cy = waveArea.getCentreY();
         float halfH = (waveArea.getHeight() - 2) *0.45f;
 
-        g.setColour (MultiverseTheme::accentBlue.withAlpha (0.85f));
+        g.setColour (CyberpunkTheme::accentBlue.withAlpha (0.85f));
         juce::Path path;
         for (int px = 0; px < w; ++px)
         {

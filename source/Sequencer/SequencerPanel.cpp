@@ -1,5 +1,6 @@
 #include "SequencerPanel.h"
-#include "../MultiverseTheme.h"
+#include "../CyberpunkTheme.h"
+#include "../CyberpunkTheme.h"
 
 // ===== StepButton =====
 
@@ -17,18 +18,18 @@ void StepButton::paint (juce::Graphics& g)
     juce::Colour bg, border;
     if (highlighted)
     {
-        bg = MultiverseTheme::accentAmber;
-        border = MultiverseTheme::accentAmber.brighter (0.3f);
+        bg = CyberpunkTheme::accentAmber;
+        border = CyberpunkTheme::accentAmber.brighter (0.3f);
     }
     else if (active)
     {
-        bg = MultiverseTheme::accentBlue.darker (0.2f);
-        border = MultiverseTheme::accentBlue;
+        bg = CyberpunkTheme::accentBlue.darker (0.2f);
+        border = CyberpunkTheme::accentBlue;
     }
     else
     {
-        bg = MultiverseTheme::bgRaised;
-        border = MultiverseTheme::shadowLight;
+        bg = CyberpunkTheme::bgRaised;
+        border = CyberpunkTheme::shadowLight;
     }
 
     g.setColour (bg);
@@ -79,7 +80,7 @@ SequencerPanel::SequencerPanel (Sequencer& seq) : sequencer (seq)
 
     bpmLabel.setText ("BPM", juce::dontSendNotification);
     bpmLabel.setJustificationType (juce::Justification::centredRight);
-    bpmLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    bpmLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     addAndMakeVisible (bpmLabel);
 
     bpmSlider.setRange (40.0, 240.0, 0.5);
@@ -242,44 +243,44 @@ void SequencerPanel::exportMidi()
 
 void SequencerPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (MultiverseTheme::bgBase);
+    g.fillAll (CyberpunkTheme::bgBase);
 
      // Draw neumorphic section cards
      const float cr = 8.0f;
      if (transportBounds.getHeight() > 0)
      {
-         MultiverseTheme::drawNeumorphicRect (g, transportBounds.toFloat(), cr, 3.0f);
-         g.setColour (MultiverseTheme::bgRaised);
+         CyberpunkTheme::drawNeumorphicRect (g, transportBounds.toFloat(), cr, 3.0f);
+         g.setColour (CyberpunkTheme::bgRaised);
          g.fillRoundedRectangle (transportBounds.toFloat(), cr);
-         g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+         g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
          g.drawRoundedRectangle (transportBounds.toFloat().reduced (0.5f), cr, 1.0f);
      }
      if (patternBounds.getHeight() > 0)
      {
-         MultiverseTheme::drawNeumorphicRect (g, patternBounds.toFloat(), cr, 3.0f);
-         g.setColour (MultiverseTheme::bgRaised);
+         CyberpunkTheme::drawNeumorphicRect (g, patternBounds.toFloat(), cr, 3.0f);
+         g.setColour (CyberpunkTheme::bgRaised);
          g.fillRoundedRectangle (patternBounds.toFloat(), cr);
-         g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+         g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
          g.drawRoundedRectangle (patternBounds.toFloat().reduced (0.5f), cr, 1.0f);
      }
      if (stepGridBounds.getHeight() > 0)
      {
-         MultiverseTheme::drawNeumorphicRect (g, stepGridBounds.toFloat(), cr, 3.0f);
-         g.setColour (MultiverseTheme::bgRaised);
+         CyberpunkTheme::drawNeumorphicRect (g, stepGridBounds.toFloat(), cr, 3.0f);
+         g.setColour (CyberpunkTheme::bgRaised);
          g.fillRoundedRectangle (stepGridBounds.toFloat(), cr);
-         g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+         g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
          g.drawRoundedRectangle (stepGridBounds.toFloat().reduced (0.5f), cr, 1.0f);
      }
      if (exportBounds.getHeight() > 0)
      {
-         MultiverseTheme::drawNeumorphicRect (g, exportBounds.toFloat(), cr, 3.0f);
-         g.setColour (MultiverseTheme::bgRaised);
+         CyberpunkTheme::drawNeumorphicRect (g, exportBounds.toFloat(), cr, 3.0f);
+         g.setColour (CyberpunkTheme::bgRaised);
          g.fillRoundedRectangle (exportBounds.toFloat(), cr);
-         g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+         g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
          g.drawRoundedRectangle (exportBounds.toFloat().reduced (0.5f), cr, 1.0f);
      }
 
-     g.setColour (MultiverseTheme::textSecondary);
+     g.setColour (CyberpunkTheme::textSecondary);
      g.setFont (juce::Font (10.5f, juce::Font::bold));
      g.drawText ("SEQUENCER / ARPEGGIATOR", getLocalBounds().removeFromTop (20), juce::Justification::centred);
 }

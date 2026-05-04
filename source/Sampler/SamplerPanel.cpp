@@ -1,6 +1,7 @@
 #include "SamplerPanel.h"
+#include "../CyberpunkTheme.h"
 #include "../PluginProcessor.h"
-#include "../MultiverseTheme.h"
+#include "../CyberpunkTheme.h"
 
 SamplerPanel::SamplerPanel (PluginProcessor& p, SamplerEngine& engine)
     : samplerEngine (engine), zoneListModel (*this), processorRef (p)
@@ -121,13 +122,13 @@ SamplerPanel::~SamplerPanel()
 
  void SamplerPanel::paint (juce::Graphics& g)
 {
-     g.fillAll (MultiverseTheme::bgBase);
+     g.fillAll (CyberpunkTheme::bgBase);
 
       // Title bar
        auto titleArea = getLocalBounds().removeFromTop (24);
-       g.setColour (MultiverseTheme::bgRaised.darker (0.2f));
+       g.setColour (CyberpunkTheme::bgRaised.darker (0.2f));
        g.fillRect (titleArea);
-       g.setColour (MultiverseTheme::textPrimary);
+       g.setColour (CyberpunkTheme::textPrimary);
        g.setFont (juce::Font (13.0f, juce::Font::bold));
        g.drawText ("SAMPLER", titleArea, juce::Justification::centred);
 
@@ -135,26 +136,26 @@ SamplerPanel::~SamplerPanel()
       const float cr = 8.0f;
       if (dropZoneBounds.getHeight() > 0)
       {
-          MultiverseTheme::drawNeumorphicRect (g, dropZoneBounds.toFloat(), cr, 3.0f);
-          g.setColour (MultiverseTheme::bgRaised);
+          CyberpunkTheme::drawNeumorphicRect (g, dropZoneBounds.toFloat(), cr, 3.0f);
+          g.setColour (CyberpunkTheme::bgRaised);
           g.fillRoundedRectangle (dropZoneBounds.toFloat(), cr);
-          g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+          g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
           g.drawRoundedRectangle (dropZoneBounds.toFloat().reduced (0.5f), cr, 1.0f);
       }
       if (zoneListBounds.getHeight() > 0)
       {
-          MultiverseTheme::drawNeumorphicRect (g, zoneListBounds.toFloat(), cr, 3.0f);
-          g.setColour (MultiverseTheme::bgRaised);
+          CyberpunkTheme::drawNeumorphicRect (g, zoneListBounds.toFloat(), cr, 3.0f);
+          g.setColour (CyberpunkTheme::bgRaised);
           g.fillRoundedRectangle (zoneListBounds.toFloat(), cr);
-          g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+          g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
           g.drawRoundedRectangle (zoneListBounds.toFloat().reduced (0.5f), cr, 1.0f);
       }
       if (controlsBounds.getHeight() > 0)
       {
-          MultiverseTheme::drawNeumorphicRect (g, controlsBounds.toFloat(), cr, 3.0f);
-          g.setColour (MultiverseTheme::bgRaised);
+          CyberpunkTheme::drawNeumorphicRect (g, controlsBounds.toFloat(), cr, 3.0f);
+          g.setColour (CyberpunkTheme::bgRaised);
           g.fillRoundedRectangle (controlsBounds.toFloat(), cr);
-          g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+          g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
           g.drawRoundedRectangle (controlsBounds.toFloat().reduced (0.5f), cr, 1.0f);
       }
 
@@ -163,11 +164,11 @@ SamplerPanel::~SamplerPanel()
       {
           auto dropArea = dropZoneBounds.reduced (8, 4);
 
-          g.setColour (isDragOver ? MultiverseTheme::accentBlue.withAlpha (0.3f) : MultiverseTheme::bgRaised);
+          g.setColour (isDragOver ? CyberpunkTheme::accentBlue.withAlpha (0.3f) : CyberpunkTheme::bgRaised);
           g.fillRoundedRectangle (dropArea.toFloat(), 5.0f);
-          g.setColour (isDragOver ? MultiverseTheme::accentBlue.withAlpha (0.6f) : MultiverseTheme::textMuted);
+          g.setColour (isDragOver ? CyberpunkTheme::accentBlue.withAlpha (0.6f) : CyberpunkTheme::textMuted);
           g.drawRoundedRectangle (dropArea.toFloat(), 5.0f, 1.5f);
-          g.setColour (isDragOver ? MultiverseTheme::textPrimary : MultiverseTheme::textMuted);
+          g.setColour (isDragOver ? CyberpunkTheme::textPrimary : CyberpunkTheme::textMuted);
           g.setFont (12.0f);
           g.drawText (isDragOver ? "Release to load" : "Drop audio files here",
                       dropArea, juce::Justification::centred);
@@ -326,13 +327,13 @@ int SamplerPanel::ZoneListModel::getNumRows()
  void SamplerPanel::ZoneListModel::paintListBoxItem (
      int row, juce::Graphics& g, int w, int h, bool selected)
 {
-     g.fillAll (selected ? MultiverseTheme::accentBlue.withAlpha (0.25f) : MultiverseTheme::bgDeep);
+     g.fillAll (selected ? CyberpunkTheme::accentBlue.withAlpha (0.25f) : CyberpunkTheme::bgDeep);
 
      if (row < 0 || row >= static_cast<int> (panel.ownedZones.size()))
          return;
 
      const auto& zone = *panel.ownedZones[static_cast<size_t> (row)];
-     g.setColour (MultiverseTheme::textPrimary.withAlpha (0.85f));
+     g.setColour (CyberpunkTheme::textPrimary.withAlpha (0.85f));
      g.setFont (11.5f);
 
      juce::String text = zone.name + "   ["

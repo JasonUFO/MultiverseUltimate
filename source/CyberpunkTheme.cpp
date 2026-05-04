@@ -1,23 +1,31 @@
-#include "MultiverseTheme.h"
+#include "CyberpunkTheme.h"
 
 //==============================================================================
 // Palette
-const juce::Colour MultiverseTheme::bgBase      { 0xff171720 };
-const juce::Colour MultiverseTheme::bgRaised    { 0xff1e1e2c };
-const juce::Colour MultiverseTheme::bgDeep      { 0xff111119 };
-const juce::Colour MultiverseTheme::shadowDark  { 0xff0b0b12 };
-const juce::Colour MultiverseTheme::shadowLight { 0xff252535 };
-const juce::Colour MultiverseTheme::accentBlue  { 0xff5b8def };
-const juce::Colour MultiverseTheme::accentPurple{ 0xffc084fc };
-const juce::Colour MultiverseTheme::accentGreen { 0xff34d399 };
-const juce::Colour MultiverseTheme::accentAmber { 0xfffbbf24 };
-const juce::Colour MultiverseTheme::textPrimary  { 0xffe4e8f0 };
-const juce::Colour MultiverseTheme::textSecondary{ 0xff7a8499 };
-const juce::Colour MultiverseTheme::textMuted    { 0xff3d4358 };
-const juce::Colour MultiverseTheme::textLabel    { 0xff5a6280 };
+const juce::Colour CyberpunkTheme::bgVoid      { 0x0A0A12 };
+const juce::Colour CyberpunkTheme::bgBase      { 0x0D0D1A };
+const juce::Colour CyberpunkTheme::bgRaised    { 0x1A1A2E };
+const juce::Colour CyberpunkTheme::bgDeep      { 0x12121F };
+const juce::Colour CyberpunkTheme::shadowDark  { 0x050510 };
+const juce::Colour CyberpunkTheme::shadowLight { 0x25253D };
+
+const juce::Colour CyberpunkTheme::neonCyan    { 0x00F0FF };
+const juce::Colour CyberpunkTheme::neonPink    { 0xFF2A6D };
+const juce::Colour CyberpunkTheme::neonPurple  { 0xB026FF };
+const juce::Colour CyberpunkTheme::neonGreen   { 0x05FFA1 };
+
+const juce::Colour CyberpunkTheme::accentBlue  { neonCyan };
+const juce::Colour CyberpunkTheme::accentPurple{ neonPurple };
+const juce::Colour CyberpunkTheme::accentGreen { neonGreen };
+const juce::Colour CyberpunkTheme::accentAmber { neonPink };
+
+const juce::Colour CyberpunkTheme::textPrimary  { 0xE8E8FF };
+const juce::Colour CyberpunkTheme::textSecondary{ 0x8888AA };
+const juce::Colour CyberpunkTheme::textMuted    { 0x44445A };
+const juce::Colour CyberpunkTheme::textLabel    { 0x5A6280 };
 
 //==============================================================================
-MultiverseTheme::MultiverseTheme()
+CyberpunkTheme::CyberpunkTheme()
 {
     // Window / panel backgrounds
     setColour (juce::ResizableWindow::backgroundColourId, bgBase);
@@ -32,23 +40,23 @@ MultiverseTheme::MultiverseTheme()
     // Sliders
     setColour (juce::Slider::backgroundColourId,         bgDeep);
     setColour (juce::Slider::thumbColourId,              bgRaised);
-    setColour (juce::Slider::trackColourId,              accentBlue);
-    setColour (juce::Slider::rotarySliderFillColourId,   accentBlue);
+    setColour (juce::Slider::trackColourId,              neonCyan);
+    setColour (juce::Slider::rotarySliderFillColourId,   neonCyan);
     setColour (juce::Slider::rotarySliderOutlineColourId,bgDeep);
     setColour (juce::Slider::textBoxTextColourId,        textSecondary);
     setColour (juce::Slider::textBoxBackgroundColourId,  bgDeep);
     setColour (juce::Slider::textBoxOutlineColourId,     juce::Colours::transparentBlack);
-    setColour (juce::Slider::textBoxHighlightColourId,   accentBlue.withAlpha (0.3f));
+    setColour (juce::Slider::textBoxHighlightColourId,   neonCyan.withAlpha (0.3f));
 
     // TextButton
     setColour (juce::TextButton::buttonColourId,   bgRaised);
     setColour (juce::TextButton::buttonOnColourId, bgDeep);
     setColour (juce::TextButton::textColourOffId,  textSecondary);
-    setColour (juce::TextButton::textColourOnId,   accentBlue);
+    setColour (juce::TextButton::textColourOnId,   neonCyan);
 
     // ToggleButton
     setColour (juce::ToggleButton::textColourId,        textSecondary);
-    setColour (juce::ToggleButton::tickColourId,        accentBlue);
+    setColour (juce::ToggleButton::tickColourId,        neonCyan);
     setColour (juce::ToggleButton::tickDisabledColourId,textMuted);
 
     // ComboBox
@@ -57,18 +65,18 @@ MultiverseTheme::MultiverseTheme()
     setColour (juce::ComboBox::outlineColourId,       juce::Colours::transparentBlack);
     setColour (juce::ComboBox::buttonColourId,        bgRaised);
     setColour (juce::ComboBox::arrowColourId,         textSecondary);
-    setColour (juce::ComboBox::focusedOutlineColourId,accentBlue);
+    setColour (juce::ComboBox::focusedOutlineColourId,neonCyan);
 
     // PopupMenu
     setColour (juce::PopupMenu::backgroundColourId,           bgRaised);
     setColour (juce::PopupMenu::textColourId,                 textPrimary);
     setColour (juce::PopupMenu::headerTextColourId,           textSecondary);
-    setColour (juce::PopupMenu::highlightedBackgroundColourId,accentBlue.withAlpha (0.2f));
+    setColour (juce::PopupMenu::highlightedBackgroundColourId,neonCyan.withAlpha (0.2f));
     setColour (juce::PopupMenu::highlightedTextColourId,      textPrimary);
 
     // Tabs
     setColour (juce::TabbedButtonBar::tabTextColourId,    textSecondary);
-    setColour (juce::TabbedButtonBar::frontTextColourId,  accentBlue);
+    setColour (juce::TabbedButtonBar::frontTextColourId,  neonCyan);
     setColour (juce::TabbedButtonBar::tabOutlineColourId, juce::Colours::transparentBlack);
     setColour (juce::TabbedComponent::backgroundColourId, bgBase);
     setColour (juce::TabbedComponent::outlineColourId,    juce::Colours::transparentBlack);
@@ -76,10 +84,10 @@ MultiverseTheme::MultiverseTheme()
     // TextEditor
     setColour (juce::TextEditor::backgroundColourId,      bgDeep);
     setColour (juce::TextEditor::textColourId,            textPrimary);
-    setColour (juce::TextEditor::highlightColourId,       accentBlue.withAlpha (0.3f));
+    setColour (juce::TextEditor::highlightColourId,       neonCyan.withAlpha (0.3f));
     setColour (juce::TextEditor::highlightedTextColourId, textPrimary);
     setColour (juce::TextEditor::outlineColourId,         juce::Colours::transparentBlack);
-    setColour (juce::TextEditor::focusedOutlineColourId,  accentBlue.withAlpha (0.5f));
+    setColour (juce::TextEditor::focusedOutlineColourId,  neonCyan.withAlpha (0.5f));
 
     // ListBox
     setColour (juce::ListBox::backgroundColourId, bgDeep);
@@ -88,7 +96,7 @@ MultiverseTheme::MultiverseTheme()
 
     // ScrollBar
     setColour (juce::ScrollBar::backgroundColourId, juce::Colours::transparentBlack);
-    setColour (juce::ScrollBar::thumbColourId,      accentBlue.withAlpha (0.5f));
+    setColour (juce::ScrollBar::thumbColourId,      neonCyan.withAlpha (0.5f));
     setColour (juce::ScrollBar::trackColourId,      bgDeep);
 
     // GroupComponent
@@ -98,19 +106,19 @@ MultiverseTheme::MultiverseTheme()
     // Tooltip
     setColour (juce::TooltipWindow::backgroundColourId, bgRaised);
     setColour (juce::TooltipWindow::textColourId,       textPrimary);
-    setColour (juce::TooltipWindow::outlineColourId,    accentBlue.withAlpha (0.3f));
+    setColour (juce::TooltipWindow::outlineColourId,    neonCyan.withAlpha (0.3f));
 
     // TableListBox / headers
     setColour (juce::TableHeaderComponent::backgroundColourId,      bgRaised);
     setColour (juce::TableHeaderComponent::textColourId,            textSecondary);
     setColour (juce::TableHeaderComponent::outlineColourId,         shadowDark);
-    setColour (juce::TableHeaderComponent::highlightColourId,       accentBlue.withAlpha (0.15f));
+    setColour (juce::TableHeaderComponent::highlightColourId,       neonCyan.withAlpha (0.15f));
 }
 
 //==============================================================================
 // Neumorphic shadow helpers
 
-void MultiverseTheme::drawNeumorphicEllipse (juce::Graphics& g,
+void CyberpunkTheme::drawNeumorphicEllipse (juce::Graphics& g,
                                               juce::Rectangle<float> b, float offset)
 {
     juce::Path p;
@@ -127,7 +135,7 @@ void MultiverseTheme::drawNeumorphicEllipse (juce::Graphics& g,
     }
 }
 
-void MultiverseTheme::drawNeumorphicRect (juce::Graphics& g,
+void CyberpunkTheme::drawNeumorphicRect (juce::Graphics& g,
                                            juce::Rectangle<float> b,
                                            float cornerRadius, float offset)
 {
@@ -146,11 +154,11 @@ void MultiverseTheme::drawNeumorphicRect (juce::Graphics& g,
 }
 
 //==============================================================================
-void MultiverseTheme::drawRotarySlider (juce::Graphics& g,
-                                         int x, int y, int w, int h,
-                                         float sliderPos,
-                                         float startAngle, float endAngle,
-                                         juce::Slider& slider)
+void CyberpunkTheme::drawRotarySlider (juce::Graphics& g,
+                                       int x, int y, int w, int h,
+                                       float sliderPos,
+                                       float startAngle, float endAngle,
+                                       juce::Slider& slider)
 {
     const float radius = juce::jmin (w / 2.0f, h / 2.0f) - 6.0f;
     if (radius < 4.0f) return;
@@ -248,11 +256,11 @@ void MultiverseTheme::drawRotarySlider (juce::Graphics& g,
 }
 
 //==============================================================================
-void MultiverseTheme::drawLinearSlider (juce::Graphics& g,
-                                         int x, int y, int w, int h,
-                                         float sliderPos, float minPos, float maxPos,
-                                         juce::Slider::SliderStyle style,
-                                         juce::Slider& slider)
+void CyberpunkTheme::drawLinearSlider (juce::Graphics& g,
+                                       int x, int y, int w, int h,
+                                       float sliderPos, float minPos, float maxPos,
+                                       juce::Slider::SliderStyle style,
+                                       juce::Slider& slider)
 {
     const bool isHoriz = (style == juce::Slider::LinearHorizontal ||
                            style == juce::Slider::LinearBar);
@@ -274,8 +282,8 @@ void MultiverseTheme::drawLinearSlider (juce::Graphics& g,
         if (sliderPos > minPos + 1.0f)
         {
             auto fill = track.withRight (sliderPos);
-            juce::ColourGradient grad (accentBlue.darker (0.3f), minPos, 0.0f,
-                                       accentBlue,               sliderPos, 0.0f, false);
+            juce::ColourGradient grad (neonCyan.darker (0.3f), minPos, 0.0f,
+                                       neonCyan,               sliderPos, 0.0f, false);
             g.setGradientFill (grad);
             g.fillRoundedRectangle (fill, trackH / 2.0f);
         }
@@ -313,8 +321,8 @@ void MultiverseTheme::drawLinearSlider (juce::Graphics& g,
         if (sliderPos < minPos - 1.0f)
         {
             auto fill = track.withTop (sliderPos).withBottom (minPos);
-            juce::ColourGradient grad (accentBlue, 0.0f, minPos,
-                                       accentBlue.darker (0.3f), 0.0f, sliderPos, false);
+            juce::ColourGradient grad (neonCyan, 0.0f, minPos,
+                                       neonCyan.darker (0.3f), 0.0f, sliderPos, false);
             g.setGradientFill (grad);
             g.fillRoundedRectangle (fill, trackW / 2.0f);
         }
@@ -343,8 +351,8 @@ void MultiverseTheme::drawLinearSlider (juce::Graphics& g,
 }
 
 //==============================================================================
-void MultiverseTheme::drawToggleButton (juce::Graphics& g, juce::ToggleButton& button,
-                                         bool /*highlight*/, bool /*down*/)
+void CyberpunkTheme::drawToggleButton (juce::Graphics& g, juce::ToggleButton& button,
+                                       bool /*highlight*/, bool /*down*/)
 {
     const bool on = button.getToggleState();
     auto bounds = button.getLocalBounds().toFloat().reduced (2.0f);
@@ -358,7 +366,7 @@ void MultiverseTheme::drawToggleButton (juce::Graphics& g, juce::ToggleButton& b
     // Active tint
     if (on)
     {
-        g.setColour (accentBlue.withAlpha (0.18f));
+        g.setColour (neonCyan.withAlpha (0.18f));
         g.fillRoundedRectangle (bounds, corner);
     }
 
@@ -369,10 +377,10 @@ void MultiverseTheme::drawToggleButton (juce::Graphics& g, juce::ToggleButton& b
 
     if (on)
     {
-        g.setColour (accentBlue.withAlpha (0.35f));
+        g.setColour (neonCyan.withAlpha (0.35f));
         g.fillEllipse (ledX - 2.5f, ledY - 2.5f, ledSize + 5.0f, ledSize + 5.0f);
     }
-    g.setColour (on ? accentBlue : juce::Colour (0xff1e2030));
+    g.setColour (on ? neonCyan : juce::Colour (0xff1e2030));
     g.fillEllipse (ledX, ledY, ledSize, ledSize);
 
     // Label text
@@ -385,9 +393,9 @@ void MultiverseTheme::drawToggleButton (juce::Graphics& g, juce::ToggleButton& b
 }
 
 //==============================================================================
-void MultiverseTheme::drawButtonBackground (juce::Graphics& g, juce::Button& button,
-                                             const juce::Colour& /*bgColour*/,
-                                             bool highlight, bool isDown)
+void CyberpunkTheme::drawButtonBackground (juce::Graphics& g, juce::Button& button,
+                                           const juce::Colour& /*bgColour*/,
+                                           bool highlight, bool isDown)
 {
     auto bounds = button.getLocalBounds().toFloat().reduced (1.0f);
     const float corner = 6.0f;
@@ -397,9 +405,9 @@ void MultiverseTheme::drawButtonBackground (juce::Graphics& g, juce::Button& but
     {
         g.setColour (bgDeep);
         g.fillRoundedRectangle (bounds, corner);
-        g.setColour (accentBlue.withAlpha (0.15f));
+        g.setColour (neonCyan.withAlpha (0.15f));
         g.fillRoundedRectangle (bounds, corner);
-        g.setColour (accentBlue.withAlpha (0.35f));
+        g.setColour (neonCyan.withAlpha (0.35f));
         g.drawRoundedRectangle (bounds, corner, 1.0f);
     }
     else
@@ -412,11 +420,11 @@ void MultiverseTheme::drawButtonBackground (juce::Graphics& g, juce::Button& but
     }
 }
 
-void MultiverseTheme::drawButtonText (juce::Graphics& g, juce::TextButton& button,
-                                       bool highlight, bool isDown)
+void CyberpunkTheme::drawButtonText (juce::Graphics& g, juce::TextButton& button,
+                                     bool highlight, bool isDown)
 {
     const bool active = isDown || button.getToggleState();
-    g.setColour (active ? accentBlue
+    g.setColour (active ? neonCyan
                         : (highlight ? textPrimary : textSecondary));
     g.setFont (juce::Font (11.0f, juce::Font::plain));
     g.drawFittedText (button.getButtonText(), button.getLocalBounds(),
@@ -424,9 +432,9 @@ void MultiverseTheme::drawButtonText (juce::Graphics& g, juce::TextButton& butto
 }
 
 //==============================================================================
-void MultiverseTheme::drawComboBox (juce::Graphics& g, int width, int height,
-                                     bool isButtonDown, int buttonX, int buttonY,
-                                     int buttonW, int /*buttonH*/, juce::ComboBox& /*box*/)
+void CyberpunkTheme::drawComboBox (juce::Graphics& g, int width, int height,
+                                   bool isButtonDown, int buttonX, int buttonY,
+                                   int buttonW, int /*buttonH*/, juce::ComboBox& /*box*/)
 {
     auto bounds = juce::Rectangle<float> (0.0f, 0.0f, (float)width, (float)height).reduced (1.0f);
     const float corner = 6.0f;
@@ -449,8 +457,8 @@ void MultiverseTheme::drawComboBox (juce::Graphics& g, int width, int height,
 }
 
 //==============================================================================
-void MultiverseTheme::drawTabAreaBehindFrontButton (juce::TabbedButtonBar& /*bar*/,
-                                                     juce::Graphics& g, int w, int h)
+void CyberpunkTheme::drawTabAreaBehindFrontButton (juce::TabbedButtonBar& /*bar*/,
+                                                   juce::Graphics& g, int w, int h)
 {
     // Dark tray behind all tabs
     g.setColour (bgBase.darker (0.08f));
@@ -460,8 +468,8 @@ void MultiverseTheme::drawTabAreaBehindFrontButton (juce::TabbedButtonBar& /*bar
     g.drawLine (0.0f, (float)h - 1.0f, (float)w, (float)h - 1.0f, 1.0f);
 }
 
-void MultiverseTheme::drawTabButton (juce::TabBarButton& button, juce::Graphics& g,
-                                      bool mouseOver, bool /*mouseDown*/)
+void CyberpunkTheme::drawTabButton (juce::TabBarButton& button, juce::Graphics& g,
+                                    bool mouseOver, bool /*mouseDown*/)
 {
     const bool front = button.isFrontTab();
     auto bounds = button.getLocalBounds().toFloat().reduced (2.0f, 3.0f);
@@ -470,9 +478,9 @@ void MultiverseTheme::drawTabButton (juce::TabBarButton& button, juce::Graphics&
     if (front)
     {
         // Active tab: accent tint + underline
-        g.setColour (accentBlue.withAlpha (0.13f));
+        g.setColour (neonCyan.withAlpha (0.13f));
         g.fillRoundedRectangle (bounds, corner);
-        g.setColour (accentBlue);
+        g.setColour (neonCyan);
         g.fillRect (bounds.getX() + 4.0f, bounds.getBottom() - 2.0f,
                     bounds.getWidth() - 8.0f, 2.0f);
     }
@@ -483,19 +491,19 @@ void MultiverseTheme::drawTabButton (juce::TabBarButton& button, juce::Graphics&
     }
 
     g.setFont (juce::Font (11.0f, juce::Font::plain));
-    g.setColour (front ? accentBlue
+    g.setColour (front ? neonCyan
                        : (mouseOver ? textSecondary.brighter (0.15f) : textSecondary));
     g.drawFittedText (button.getButtonText(), bounds.toNearestInt(),
                       juce::Justification::centred, 1);
 }
 
 //==============================================================================
-void MultiverseTheme::drawLabel (juce::Graphics& g, juce::Label& label)
+void CyberpunkTheme::drawLabel (juce::Graphics& g, juce::Label& label)
 {
     if (label.isBeingEdited())
     {
         // Editing border only — TextEditor handles its own content
-        g.setColour (accentBlue.withAlpha (0.45f));
+        g.setColour (neonCyan.withAlpha (0.45f));
         g.drawRoundedRectangle (label.getLocalBounds().toFloat().reduced (1.0f), 3.0f, 1.0f);
         return;
     }
@@ -518,7 +526,7 @@ void MultiverseTheme::drawLabel (juce::Graphics& g, juce::Label& label)
 }
 
 //==============================================================================
-void MultiverseTheme::drawPopupMenuBackground (juce::Graphics& g, int width, int height)
+void CyberpunkTheme::drawPopupMenuBackground (juce::Graphics& g, int width, int height)
 {
     g.setColour (bgRaised);
     g.fillRoundedRectangle (0.0f, 0.0f, (float)width, (float)height, 6.0f);
@@ -526,15 +534,15 @@ void MultiverseTheme::drawPopupMenuBackground (juce::Graphics& g, int width, int
     g.drawRoundedRectangle (0.5f, 0.5f, (float)width - 1.0f, (float)height - 1.0f, 6.0f, 1.0f);
 }
 
-void MultiverseTheme::drawPopupMenuItem (juce::Graphics& g,
-                                          const juce::Rectangle<int>& area,
-                                          bool isSeparator, bool isActive,
-                                          bool isHighlighted, bool isTicked,
-                                          bool hasSubMenu,
-                                          const juce::String& text,
-                                          const juce::String& shortcut,
-                                          const juce::Drawable* /*icon*/,
-                                          const juce::Colour* textColour)
+void CyberpunkTheme::drawPopupMenuItem (juce::Graphics& g,
+                                        const juce::Rectangle<int>& area,
+                                        bool isSeparator, bool isActive,
+                                        bool isHighlighted, bool isTicked,
+                                        bool hasSubMenu,
+                                        const juce::String& text,
+                                        const juce::String& shortcut,
+                                        const juce::Drawable* /*icon*/,
+                                        const juce::Colour* textColour)
 {
     if (isSeparator)
     {
@@ -546,7 +554,7 @@ void MultiverseTheme::drawPopupMenuItem (juce::Graphics& g,
 
     if (isHighlighted && isActive)
     {
-        g.setColour (accentBlue.withAlpha (0.18f));
+        g.setColour (neonCyan.withAlpha (0.18f));
         g.fillRoundedRectangle (area.toFloat().reduced (2.0f, 1.0f), 4.0f);
     }
 
@@ -559,7 +567,7 @@ void MultiverseTheme::drawPopupMenuItem (juce::Graphics& g,
 
     if (isTicked)
     {
-        g.setColour (accentBlue);
+        g.setColour (neonCyan);
         g.fillEllipse (textArea.getX(), textArea.getCentreY() - 3.0f, 6.0f, 6.0f);
         textArea = textArea.withLeft (textArea.getX() + 12.0f);
         g.setColour (col);
@@ -587,10 +595,10 @@ void MultiverseTheme::drawPopupMenuItem (juce::Graphics& g,
 }
 
 //==============================================================================
-void MultiverseTheme::drawScrollbar (juce::Graphics& g, juce::ScrollBar& /*bar*/,
-                                      int x, int y, int w, int h,
-                                      bool isVertical, int thumbPos, int thumbSize,
-                                      bool isMouseOver, bool /*isMouseDown*/)
+void CyberpunkTheme::drawScrollbar (juce::Graphics& g, juce::ScrollBar& /*bar*/,
+                                    int x, int y, int w, int h,
+                                    bool isVertical, int thumbPos, int thumbSize,
+                                    bool isMouseOver, bool /*isMouseDown*/)
 {
     // Track
     g.setColour (bgDeep.withAlpha (0.5f));
@@ -604,6 +612,6 @@ void MultiverseTheme::drawScrollbar (juce::Graphics& g, juce::ScrollBar& /*bar*/
     else
         thumb = { (float)(x + thumbPos), (float)y + 1.0f, (float)thumbSize, (float)h - 2.0f };
 
-    g.setColour (accentBlue.withAlpha (isMouseOver ? 0.65f : 0.40f));
+    g.setColour (neonCyan.withAlpha (isMouseOver ? 0.65f : 0.40f));
     g.fillRoundedRectangle (thumb, 2.0f);
 }

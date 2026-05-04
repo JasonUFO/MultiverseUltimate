@@ -69,14 +69,14 @@ All items from the original "What Is Still To Do" list have been resolved. The p
 | MIDI: note on/off, pitch bend, CC, sustain, sostenuto, MPE, all-notes-off | ✅ |
 | MIDI Learn + Macro controls | ✅ |
 | 10-tab UI: Synth, Drums, Modulation, Sampler, Sequencer, Pro Seq, Arp, Effects, Granular, Layers | ✅ |
-| Dark Forge neumorphic UI (MultiverseTheme, NeuKnob, SynthDisplay) | ✅ |
+| Dark Forge neumorphic UI (CyberpunkTheme, NeuKnob, SynthDisplay) | ✅ |
 | WavetableEditor (draw, formula gen, import multi-cycle WAV) | ✅ |
 | Filter LP/HP/BP/Notch, sub osc, noise osc, unison spread modes | ✅ |
 | 8-layer engine: key/vel/MIDI-ch ranges, per-layer FX chain | ✅ |
 
 ### 2.2 Next Phase — Cyberpunk UI (Track A)
 
-- Full visual overhaul: `MultiverseTheme` → `CyberpunkTheme`
+- Full visual overhaul: `CyberpunkTheme` → `CyberpunkTheme`
 - Color palette: neonCyan (#00F0FF), neonPink (#FF2A6D), neonPurple (#B026FF) on bgVoid (#0A0A12)
 - Full spec: `AI_CYBERPUNK_PLAN.md`
 - Figma assets: `Figmacomponents/` (10 panel SVGs + 3 component SVGs)

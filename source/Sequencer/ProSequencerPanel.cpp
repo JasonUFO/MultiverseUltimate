@@ -1,5 +1,6 @@
 #include "ProSequencerPanel.h"
-#include "../MultiverseTheme.h"
+#include "../CyberpunkTheme.h"
+#include "../CyberpunkTheme.h"
 
 // =============================================================================
 // ProStepButton
@@ -18,18 +19,18 @@ void ProStepButton::paint (juce::Graphics& g)
     juce::Colour bg, border;
     if (highlighted)
     {
-        bg     = MultiverseTheme::accentAmber;
-        border = MultiverseTheme::accentAmber.brighter (0.3f);
+        bg     = CyberpunkTheme::accentAmber;
+        border = CyberpunkTheme::accentAmber.brighter (0.3f);
     }
     else if (active)
     {
-        bg     = MultiverseTheme::accentBlue.darker (0.2f);
-        border = MultiverseTheme::accentBlue;
+        bg     = CyberpunkTheme::accentBlue.darker (0.2f);
+        border = CyberpunkTheme::accentBlue;
     }
     else
     {
-        bg     = MultiverseTheme::bgRaised;
-        border = MultiverseTheme::shadowLight;
+        bg     = CyberpunkTheme::bgRaised;
+        border = CyberpunkTheme::shadowLight;
     }
 
     g.setColour (bg);
@@ -49,9 +50,9 @@ void ProStepButton::paint (juce::Graphics& g)
         if (!highlighted && velocity >0.0f)
         {
             auto bar = bounds.removeFromBottom (5.0f).reduced (2.0f, 0.0f);
-            g.setColour (MultiverseTheme::accentBlue.darker (0.3f));
+            g.setColour (CyberpunkTheme::accentBlue.darker (0.3f));
             g.fillRoundedRectangle (bar, 2.0f);
-            g.setColour (MultiverseTheme::accentBlue);
+            g.setColour (CyberpunkTheme::accentBlue);
             g.fillRoundedRectangle (bar.withWidth (bar.getWidth() * velocity), 2.0f);
         }
         }
@@ -80,7 +81,7 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
     // Transport row
     bpmLabel.setText ("BPM", juce::dontSendNotification);
     bpmLabel.setJustificationType (juce::Justification::centredRight);
-    bpmLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    bpmLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     addAndMakeVisible (bpmLabel);
 
     bpmSlider.setRange (40.0, 240.0, 0.5);
@@ -125,7 +126,7 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
 
     // Play mode controls
     playModeLabel.setText ("Mode:", juce::dontSendNotification);
-    playModeLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    playModeLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     addAndMakeVisible (playModeLabel);
 
     fwdBtn.setClickingTogglesState (true);
@@ -144,7 +145,7 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
 
     // Num steps
     numStepsLabel.setText ("Steps:", juce::dontSendNotification);
-    numStepsLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    numStepsLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     addAndMakeVisible (numStepsLabel);
 
     numStepsBox.addItem ("8",  1);
@@ -167,12 +168,12 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
 
     // Row labels
     row1Label.setText ("Steps 1 – 16", juce::dontSendNotification);
-    row1Label.setColour (juce::Label::textColourId, MultiverseTheme::textMuted);
+    row1Label.setColour (juce::Label::textColourId, CyberpunkTheme::textMuted);
     row1Label.setFont (juce::Font (9.5f));
     addAndMakeVisible (row1Label);
 
     row2Label.setText ("Steps 17 – 32", juce::dontSendNotification);
-    row2Label.setColour (juce::Label::textColourId, MultiverseTheme::textMuted);
+    row2Label.setColour (juce::Label::textColourId, CyberpunkTheme::textMuted);
     row2Label.setFont (juce::Font (9.5f));
     addAndMakeVisible (row2Label);
 
@@ -200,12 +201,12 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
 
     // Step editor header
     stepEditorTitle.setText ("Click a step to edit", juce::dontSendNotification);
-    stepEditorTitle.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    stepEditorTitle.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     addAndMakeVisible (stepEditorTitle);
 
     // Note picker
     noteLabel.setText ("Note:", juce::dontSendNotification);
-    noteLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    noteLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     addAndMakeVisible (noteLabel);
     noteBtn.onClick = [this]() { if (selectedStep >= 0) showNoteMenu (selectedStep); };
     addAndMakeVisible (noteBtn);
@@ -213,7 +214,7 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
     auto setupSlider = [this](juce::Slider& sl, juce::Label& lbl, const juce::String& name)
     {
         lbl.setText (name, juce::dontSendNotification);
-        lbl.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+        lbl.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
         sl.setSliderStyle (juce::Slider::LinearHorizontal);
         sl.setTextBoxStyle (juce::Slider::TextBoxLeft, false, 40, 18);
         addAndMakeVisible (lbl);
@@ -252,7 +253,7 @@ ProSequencerPanel::ProSequencerPanel (ProSequencer& seq) : sequencer (seq)
     };
 
     ratchetLabel.setText ("Ratchet:", juce::dontSendNotification);
-    ratchetLabel.setColour (juce::Label::textColourId, MultiverseTheme::textSecondary);
+    ratchetLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
     addAndMakeVisible (ratchetLabel);
 
     for (int r = 1; r <= 8; ++r)
@@ -292,9 +293,9 @@ ProSequencerPanel::~ProSequencerPanel()
 
 void ProSequencerPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (MultiverseTheme::bgBase);
+    g.fillAll (CyberpunkTheme::bgBase);
 
-    g.setColour (MultiverseTheme::textSecondary);
+    g.setColour (CyberpunkTheme::textSecondary);
     g.setFont (juce::Font (11.0f, juce::Font::bold));
     g.drawText ("PRO SEQUENCER   4 LANES \xc3\x97 32 STEPS",
                 getLocalBounds().removeFromTop (28).reduced (10, 0),
@@ -304,34 +305,34 @@ void ProSequencerPanel::paint (juce::Graphics& g)
     const float cr = 8.0f;
     if (transportBounds.getHeight() > 0)
     {
-        MultiverseTheme::drawNeumorphicRect (g, transportBounds.toFloat(), cr, 3.0f);
-        g.setColour (MultiverseTheme::bgRaised);
+        CyberpunkTheme::drawNeumorphicRect (g, transportBounds.toFloat(), cr, 3.0f);
+        g.setColour (CyberpunkTheme::bgRaised);
         g.fillRoundedRectangle (transportBounds.toFloat(), cr);
-        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
         g.drawRoundedRectangle (transportBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (laneModeBounds.getHeight() > 0)
     {
-        MultiverseTheme::drawNeumorphicRect (g, laneModeBounds.toFloat(), cr, 3.0f);
-        g.setColour (MultiverseTheme::bgRaised);
+        CyberpunkTheme::drawNeumorphicRect (g, laneModeBounds.toFloat(), cr, 3.0f);
+        g.setColour (CyberpunkTheme::bgRaised);
         g.fillRoundedRectangle (laneModeBounds.toFloat(), cr);
-        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
         g.drawRoundedRectangle (laneModeBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (stepGridBounds.getHeight() > 0)
     {
-        MultiverseTheme::drawNeumorphicRect (g, stepGridBounds.toFloat(), cr, 3.0f);
-        g.setColour (MultiverseTheme::bgRaised);
+        CyberpunkTheme::drawNeumorphicRect (g, stepGridBounds.toFloat(), cr, 3.0f);
+        g.setColour (CyberpunkTheme::bgRaised);
         g.fillRoundedRectangle (stepGridBounds.toFloat(), cr);
-        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
         g.drawRoundedRectangle (stepGridBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (editorBounds.getHeight() > 0)
     {
-        MultiverseTheme::drawNeumorphicRect (g, editorBounds.toFloat(), cr, 3.0f);
-        g.setColour (MultiverseTheme::bgRaised);
+        CyberpunkTheme::drawNeumorphicRect (g, editorBounds.toFloat(), cr, 3.0f);
+        g.setColour (CyberpunkTheme::bgRaised);
         g.fillRoundedRectangle (editorBounds.toFloat(), cr);
-        g.setColour (MultiverseTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
         g.drawRoundedRectangle (editorBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
 }

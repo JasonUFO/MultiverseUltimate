@@ -1,6 +1,6 @@
 #pragma once
 #include "MidiLearnSlider.h"
-#include "MultiverseTheme.h"
+#include "CyberpunkTheme.h"
 
 // Extends MidiLearnSlider (MIDI learn + macro badge) with two visual extras:
 //   1. Value pill — rounded rect above the knob showing the current value

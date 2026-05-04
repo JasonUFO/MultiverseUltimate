@@ -58,7 +58,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - Undo/Redo (Cmd+Z / Cmd+Shift+Z) ✅
 - Filter oversampling (Off/2x/4x/Auto) ✅
 - Preset system (XML) with Factory/User banks ✅
-- Dark Forge UI theme (`MultiverseTheme`) — neumorphic knobs, sliders, buttons, tabs, menus ✅
+- Dark Forge UI theme (`CyberpunkTheme`) — neumorphic knobs, sliders, buttons, tabs, menus ✅
 - NeuKnob (`Source/NeuKnob.h/.cpp`) — value pill on hover/drag, amber arc when macro-assigned ✅
 - SynthDisplay (`Source/Synth/SynthDisplay.h/.cpp`) — real-time oscilloscope (left) + FFT spectrum (right), 30 Hz, lock-free FIFO ✅
 - WavetableEditor (`Source/Synth/WavetableEditor.h/.cpp`) — draw/edit wavetable frames, formula gen, import ✅
@@ -87,7 +87,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Granular | Granular engine — 16 voices × 32 grains, file loading, 4 env shapes, full ADSR, new "Granular" tab |
 | 2+5 | Velocity/NoteNumber/Random/EnvelopeFollower sources wired; 5 granular mod targets added; MAX_MOD_TARGETS=24 |
 | MPE | Per-note pitch bend (±48 st), pressure, slide; MPE Pressure + MPE Slide mod sources; "MPE" toggle in SynthPanel |
-| UI-1 | MultiverseTheme LookAndFeel — Dark Forge design system; neumorphic knobs, sliders, buttons, tabs, menus |
+| UI-1 | CyberpunkTheme LookAndFeel — Dark Forge design system; neumorphic knobs, sliders, buttons, tabs, menus |
 | UI-2 | NeuKnob — extends MidiLearnSlider; value pill on hover/drag; amber arc when macro-assigned |
 | UI-3 | SynthDisplay — real-time oscilloscope + FFT spectrum; lock-free FIFO in PluginProcessor |
 | UI-4 | PresetBrowserPanel — Dark Forge redesign, 220px, search bar, category pills, neumorphic cards |
@@ -102,7 +102,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 
 ### Cyberpunk UI (Figma-First Approach)
 **Plan saved:** `AI_CYBERPUNK_PLAN.md`  
-**Scope:** Full UI replacement (MultiverseTheme → CyberpunkTheme)  
+**Scope:** Full UI replacement (CyberpunkTheme → CyberpunkTheme)  
 **Style:** Neumorphic + Cyberpunk (neon cyan/pink/purple on deep void backgrounds)  
 **Figma assets:** `Figmacomponents/` — 10 panel SVGs + 3 component SVGs + `FIGMA_BUILD_GUIDE.md`  
 **Status:** Awaiting visual sign-off. Review SVGs → approve → implement C++.
@@ -136,8 +136,8 @@ See `AI_CYBERPUNK_PLAN.md` — only remaining track.
 - Font: `juce::Font(size, style)` still compiles in JUCE 8 but is deprecated — use `juce::Font(juce::FontOptions{}.withHeight(size))` for new code. Old form raises `-Wdeprecated-declarations` but does not break the build.
 - `juce::TextEditor::caretColourId` does not exist in JUCE 8 — do not use it.
 - `juce::TableHeaderComponent::separatorColourId` does not exist in JUCE 8 — do not use it.
-- `MultiverseTheme` (`Source/MultiverseTheme.h/.cpp`) is the global LookAndFeel installed in `PluginEditor`. Dark Forge palette constants (`bgBase`, `bgRaised`, `bgDeep`, `accentBlue`, etc.) are `static const` members — include `MultiverseTheme.h` to access them from panels.
-- `MultiverseTheme::drawNeumorphicRect()` is `public static` — callable from panel paint() for section card borders without subclassing.
+- `CyberpunkTheme` (`Source/CyberpunkTheme.h/.cpp`) is the global LookAndFeel installed in `PluginEditor`. Dark Forge palette constants (`bgBase`, `bgRaised`, `bgDeep`, `accentBlue`, etc.) are `static const` members — include `CyberpunkTheme.h` to access them from panels.
+- `CyberpunkTheme::drawNeumorphicRect()` is `public static` — callable from panel paint() for section card borders without subclassing.
 - `ModulationMatrix::getActiveConnectionsForTarget()` returns by value (thread-safety fix — do not change to ref/pointer).
 - Effect chain order is packed as 6 nibbles in `std::atomic<uint32_t> effectChainOrder` — `getChainSlot(pos)` / `swapChainSlots(a,b)` are the only API.
 - New effects (Chorus/Distortion/EQ/Compressor) have stereo L/R instances (`chorus[2]`, etc.); Delay is shared mono.
@@ -156,7 +156,7 @@ See `AI_CYBERPUNK_PLAN.md` — only remaining track.
 - MPE channel state reset on `noteOnMPE()` — prevents stale pitch bend bleed when a channel is recycled.
 - CC74 neutral value is 63 (not 0); normalised to -1..+1 before storing in `mpeChannels[].slide`.
 - `ModSourceType::MPEPressure` and `ModSourceType::MPESlide` are the two new mod sources; fed from most-recent member-channel message.
-- `NeuKnob` extends `MidiLearnSlider` — use NeuKnob everywhere you'd use MidiLearnSlider; it's a drop-in. Value pill fires from paint() (isMouseOver/isMouseButtonDown check). Amber arc managed by ArcTimer (inner juce::Timer struct, 10 Hz), calls setColour/removeColour only on state change to avoid repaint storms. `MultiverseTheme::drawRotarySlider` uses `slider.findColour(rotarySliderFillColourId)` — component-level setColour overrides the LookAndFeel color.
+- `NeuKnob` extends `MidiLearnSlider` — use NeuKnob everywhere you'd use MidiLearnSlider; it's a drop-in. Value pill fires from paint() (isMouseOver/isMouseButtonDown check). Amber arc managed by ArcTimer (inner juce::Timer struct, 10 Hz), calls setColour/removeColour only on state change to avoid repaint storms. `CyberpunkTheme::drawRotarySlider` uses `slider.findColour(rotarySliderFillColourId)` — component-level setColour overrides the LookAndFeel color.
 - `juce::Font::getStringWidthFloat` does not exist in this project's JUCE version — use character-count estimation or `getStringWidth` (int) for pill sizing.
 - `SynthDisplay`: lives at `Source/Synth/SynthDisplay.h/.cpp`. Ring buffer: `RING_SIZE=2048`, `ringWritePos` (masked with `& (RING_SIZE-1)`). FFT: `juce::dsp::FFT fft{FFT_ORDER}` (order 10, 1024-point). Audio data arrives via `PluginProcessor::pullDisplaySamples(float*, int)` (public, message-thread safe). `pushDisplaySamples` is private, called at end of processBlock after pan.
 - `PresetBrowserPanel` (`Source/Presets/PresetBrowserPanel.h/.cpp`): inherits `juce::ListBoxModel` + `Button::Listener` + `ComboBox::Listener`. Uses `juce::ListBox presetList`. Shown as 160px collapsible panel above tabs in `PluginEditor` (toggled by "Presets" button in header). `refresh()` calls `presetList.updateContent()`. Phase 4 redesign: keep all logic, only change `paint()`, `resized()`, `paintListBoxItem()`, and visual styling.

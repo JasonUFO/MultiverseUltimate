@@ -1,6 +1,7 @@
 #include "SynthPanel.h"
+#include "../CyberpunkTheme.h"
 #include "../PluginProcessor.h"
-#include "../MultiverseTheme.h"
+#include "../CyberpunkTheme.h"
 
 SynthPanel::SynthPanel(PluginProcessor& p)
     : processorRef(p), synthEngine(p.getSynthEngine())
@@ -504,12 +505,12 @@ void SynthPanel::drawSection(juce::Graphics& g, juce::Rectangle<int> r,
                                const juce::String& title) const
 {
     const float cr = 8.0f;
-    MultiverseTheme::drawNeumorphicRect(g, r.toFloat(), cr, 3.0f);
-    g.setColour(MultiverseTheme::bgRaised);
+    CyberpunkTheme::drawNeumorphicRect(g, r.toFloat(), cr, 3.0f);
+    g.setColour(CyberpunkTheme::bgRaised);
     g.fillRoundedRectangle(r.toFloat(), cr);
-    g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+    g.setColour(CyberpunkTheme::shadowLight.withAlpha(0.3f));
     g.drawRoundedRectangle(r.toFloat().reduced(0.5f), cr, 1.0f);
-    g.setColour(MultiverseTheme::textLabel);
+    g.setColour(CyberpunkTheme::textLabel);
     g.setFont(juce::Font(10.0f, juce::Font::bold));
     g.drawText(title, r.getX() + 8, r.getY() + 5, 100, 14, juce::Justification::centredLeft);
 }
@@ -582,7 +583,7 @@ void SynthPanel::updateVisibility()
 //==============================================================================
 void SynthPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseTheme::bgBase);
+    g.fillAll(CyberpunkTheme::bgBase);
 
     const bool isFM = (modeSelector.getSelectedId() == 2);
 
@@ -606,7 +607,7 @@ void SynthPanel::paint(juce::Graphics& g)
     }
 
     // Mode badge
-    const juce::Colour badgeCol = isFM ? MultiverseTheme::accentBlue.withAlpha(0.7f) : MultiverseTheme::accentBlue;
+    const juce::Colour badgeCol = isFM ? CyberpunkTheme::accentBlue.withAlpha(0.7f) : CyberpunkTheme::accentBlue;
     g.setColour(badgeCol.withAlpha(0.18f));
     g.fillRoundedRectangle(modeBadgeRect.toFloat(), 4.0f);
     g.setColour(badgeCol);

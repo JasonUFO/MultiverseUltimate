@@ -1,10 +1,10 @@
 #pragma once
 #include <JuceHeader.h>
 
-class MultiverseTheme : public juce::LookAndFeel_V4
+class CyberpunkTheme : public juce::LookAndFeel_V4
 {
 public:
-    MultiverseTheme();
+    CyberpunkTheme();
 
     void drawRotarySlider (juce::Graphics&, int x, int y, int w, int h,
                            float sliderPos, float startAngle, float endAngle,
@@ -47,15 +47,25 @@ public:
                         bool isMouseOver, bool isMouseDown) override;
 
     // Palette — accessible from panels
+    static const juce::Colour bgVoid;
     static const juce::Colour bgBase;
     static const juce::Colour bgRaised;
     static const juce::Colour bgDeep;
     static const juce::Colour shadowDark;
     static const juce::Colour shadowLight;
-    static const juce::Colour accentBlue;
-    static const juce::Colour accentPurple;
-    static const juce::Colour accentGreen;
-    static const juce::Colour accentAmber;
+
+    // Neon accents
+    static const juce::Colour neonCyan;
+    static const juce::Colour neonPink;
+    static const juce::Colour neonPurple;
+    static const juce::Colour neonGreen;
+
+    // Legacy color aliases
+    static const juce::Colour accentBlue;   // alias for neonCyan
+    static const juce::Colour accentPurple; // alias for neonPurple
+    static const juce::Colour accentGreen;  // alias for neonGreen
+    static const juce::Colour accentAmber;  // alias for neonPink
+
     static const juce::Colour textPrimary;
     static const juce::Colour textSecondary;
     static const juce::Colour textMuted;
@@ -68,5 +78,5 @@ private:
     static void drawNeumorphicEllipse (juce::Graphics&, juce::Rectangle<float>,
                                        float offset = 4.0f);
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MultiverseTheme)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CyberpunkTheme)
 };

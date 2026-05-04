@@ -50,7 +50,7 @@
 - ✅ Preset browser with categories (Factory / User banks)
 - ✅ Undo / Redo (Cmd+Z / Cmd+Shift+Z)
 - ✅ Tooltips on all controls
-- ✅ Neumorphic Dark Forge UI (MultiverseTheme)
+- ✅ Neumorphic Dark Forge UI (CyberpunkTheme)
 - ✅ Real-time oscilloscope + FFT spectrum (SynthDisplay)
 - ✅ WavetableEditor (draw, formula gen, import)
 
@@ -59,7 +59,7 @@
 ## 🔜 Remaining / Next
 
 ### Track A — Cyberpunk UI (next phase)
-- Full visual replacement: MultiverseTheme → CyberpunkTheme
+- Full visual replacement: CyberpunkTheme → CyberpunkTheme
 - Color palette: neonCyan (#00F0FF), neonPink (#FF2A6D), neonPurple (#B026FF) on bgVoid (#0A0A12)
 - Figma SVGs + spec: `AI_CYBERPUNK_PLAN.md` + `Figmacomponents/`
 

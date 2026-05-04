@@ -1,5 +1,6 @@
 #include "ModulationMatrixPanel.h"
-#include "../MultiverseTheme.h"
+#include "../CyberpunkTheme.h"
+#include "../CyberpunkTheme.h"
 
 namespace {
     constexpr int HEADER_H  = 36;
@@ -83,7 +84,7 @@ ModulationMatrixPanel::ModulationMatrixPanel(PluginProcessor& p, ModulationMatri
 {
     titleLabel.setText("Modulation Matrix", juce::dontSendNotification);
     titleLabel.setFont(juce::Font(16.0f, juce::Font::bold));
-    titleLabel.setColour(juce::Label::textColourId, MultiverseTheme::textPrimary);
+    titleLabel.setColour(juce::Label::textColourId, CyberpunkTheme::textPrimary);
     addAndMakeVisible(titleLabel);
 
     addButton.onClick = [this]() {
@@ -106,23 +107,23 @@ ModulationMatrixPanel::~ModulationMatrixPanel()
 
 void ModulationMatrixPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseTheme::bgBase);
+    g.fillAll(CyberpunkTheme::bgBase);
 
     // Draw neumorphic cards for each row
     const float cr = 6.0f;
     for (const auto& b : rowBounds)
     {
         if (b.getHeight() <= 0) continue;
-        MultiverseTheme::drawNeumorphicRect(g, b.toFloat().reduced(1.0f), cr, 2.5f);
-        g.setColour(MultiverseTheme::bgRaised);
+        CyberpunkTheme::drawNeumorphicRect(g, b.toFloat().reduced(1.0f), cr, 2.5f);
+        g.setColour(CyberpunkTheme::bgRaised);
         g.fillRoundedRectangle(b.toFloat().reduced(1.0f), cr);
-        g.setColour(MultiverseTheme::shadowLight.withAlpha(0.3f));
+        g.setColour(CyberpunkTheme::shadowLight.withAlpha(0.3f));
         g.drawRoundedRectangle(b.toFloat().reduced(1.5f), cr, 1.0f);
     }
 
     // Column headers — x positions mirror Row::resized() with PADDING offset
     const int rowLeft = PADDING + 2;
-    g.setColour(MultiverseTheme::textSecondary);
+    g.setColour(CyberpunkTheme::textSecondary);
     g.setFont(juce::Font(11.0f));
     g.drawText("SOURCE", rowLeft,                                              HEADER_H, SRC_W,  COL_HDR_H, juce::Justification::centredLeft);
     g.drawText("TARGET", rowLeft + SRC_W + INNER_GAP,                         HEADER_H, TGT_W,  COL_HDR_H, juce::Justification::centredLeft);
@@ -130,7 +131,7 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
 
     if (rows.empty())
     {
-        g.setColour(MultiverseTheme::textMuted);
+        g.setColour(CyberpunkTheme::textMuted);
         g.setFont(13.0f);
         g.drawText("No connections — press + to add one",
                    getLocalBounds().withTrimmedTop(HEADER_H + COL_HDR_H + 16),

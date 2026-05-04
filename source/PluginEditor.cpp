@@ -49,16 +49,16 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::setupTabs()
 {
-    tabs.addTab ("Synth",      MultiverseTheme::bgBase, &synthPanel,            false);
-    tabs.addTab ("Drums",      MultiverseTheme::bgBase, &drumSequencerPanel,    false);
-    tabs.addTab ("Modulation", MultiverseTheme::bgBase, &modulationMatrixPanel, false);
-    tabs.addTab ("Sampler",    MultiverseTheme::bgBase, &samplerPanel,          false);
-    tabs.addTab ("Sequencer",  MultiverseTheme::bgBase, &proSequencerPanel,     false);
-    tabs.addTab ("Arp",        MultiverseTheme::bgBase, &arpeggiatorPanel,      false);
-    tabs.addTab ("Effects",    MultiverseTheme::bgBase, &effectsPanel,          false);
-    tabs.addTab ("Macros",     MultiverseTheme::bgBase, &macroPanel,            false);
-    tabs.addTab ("Granular",   MultiverseTheme::bgBase, &granularPanel,         false);
-    tabs.addTab ("Layers",     MultiverseTheme::bgBase, &layersPanel,           false);
+    tabs.addTab ("Synth",      CyberpunkTheme::bgBase, &synthPanel,            false);
+    tabs.addTab ("Drums",      CyberpunkTheme::bgBase, &drumSequencerPanel,    false);
+    tabs.addTab ("Modulation", CyberpunkTheme::bgBase, &modulationMatrixPanel, false);
+    tabs.addTab ("Sampler",    CyberpunkTheme::bgBase, &samplerPanel,          false);
+    tabs.addTab ("Sequencer",  CyberpunkTheme::bgBase, &proSequencerPanel,     false);
+    tabs.addTab ("Arp",        CyberpunkTheme::bgBase, &arpeggiatorPanel,      false);
+    tabs.addTab ("Effects",    CyberpunkTheme::bgBase, &effectsPanel,          false);
+    tabs.addTab ("Macros",     CyberpunkTheme::bgBase, &macroPanel,            false);
+    tabs.addTab ("Granular",   CyberpunkTheme::bgBase, &granularPanel,         false);
+    tabs.addTab ("Layers",     CyberpunkTheme::bgBase, &layersPanel,           false);
 }
 
 void PluginEditor::setupMidiLearnButton()

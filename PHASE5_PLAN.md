@@ -6,7 +6,7 @@ All 7 remaining UI panels updated to Dark Forge palette.
 - SequencerPanel, DrumSequencerPanel, ArpeggiatorPanel, ProSequencerPanel
 
 ## Phase 6: Section Card System — ✅ COMPLETE
-Neumorphic section cards applied to all panels using `MultiverseTheme::drawNeumorphicRect()`:
+Neumorphic section cards applied to all panels using `CyberpunkTheme::drawNeumorphicRect()`:
 - **EffectsPanel** — 6 cards (Chorus, Distortion, EQ, Compressor, Delay, Reverb)
 - **ModulationMatrixPanel** — each row wrapped in a card
 - **SamplerPanel** — 3 cards (drop zone, zone list, controls)
@@ -16,7 +16,7 @@ Neumorphic section cards applied to all panels using `MultiverseTheme::drawNeumo
 - **DrumSequencerPanel** — 4 cards (transport, swing/quant/chain, patterns, grid)
 
 ## Reference Implementation
-- **MultiverseTheme** — `Source/MultiverseTheme.h/.cpp` with Dark Forge palette
+- **CyberpunkTheme** — `Source/CyberpunkTheme.h/.cpp` with Dark Forge palette
 - **NeuKnob** — `Source/NeuKnob.h/.cpp` for rotary sliders
 - **PresetBrowserPanel** — Neumorphic cards, search bar, category pills (Phase 4)
 
@@ -47,7 +47,7 @@ g.setFont(juce::Font(11.0f, juce::Font::plain));
 g.drawText("SECTION NAME", bounds, juce::Justification::centredLeft);
 ```
 
-## Color Palette (from MultiverseTheme)
+## Color Palette (from CyberpunkTheme)
 - `bgBase` — #171720 (panel background)
 - `bgRaised` — #1e1e2c (cards, raised elements)
 - `bgDeep` — #111119 (inset elements)

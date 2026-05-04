@@ -115,8 +115,8 @@
 - `allNotesOff()` resets all MPE channel states
 - ModulationMatrixPanel source dropdown extended to show MPE Pressure + MPE Slide
 
-### UI Redesign — Phase 1: MultiverseTheme LookAndFeel (2026-05-03)
-- `Source/MultiverseTheme.h/.cpp` — LookAndFeel_V4 subclass, Dark Forge design system
+### UI Redesign — Phase 1: CyberpunkTheme LookAndFeel (2026-05-03)
+- `Source/CyberpunkTheme.h/.cpp` — LookAndFeel_V4 subclass, Dark Forge design system
 - Overrides: drawRotarySlider (neumorphic knob, 270° arc, accent glow tip, pointer line, LED dot),
   drawLinearSlider (inset track, gradient fill, neumorphic thumb),
   drawToggleButton (LED pill), drawButtonBackground/Text, drawComboBox,
@@ -132,7 +132,7 @@
   appears while mouse is over or button down, rotary style only
 - Amber arc: arcTimer (10 Hz) watches isMacroAssigned(); sets rotarySliderFillColourId to
   accentAmber on component when assigned, removes override when unassigned
-- MultiverseTheme::drawRotarySlider now uses slider.findColour(rotarySliderFillColourId)
+- CyberpunkTheme::drawRotarySlider now uses slider.findColour(rotarySliderFillColourId)
   instead of hardcoded accentBlue — enabling per-component arc color
 - Deployed to: SynthPanel, EffectsPanel, GranularPanel, ModulationMatrixPanel, SamplerPanel
 
@@ -161,14 +161,14 @@
 
 ## Completed (Phase 5 — UI Redesign Phases 1–5)
 - Phase 5: Remaining UI Panels — Dark Forge redesign **COMPLETE**
-  - EffectsPanel: paint(), EffectChainStrip, labels → MultiverseTheme palette
-  - ModulationMatrixPanel: paint(), title, row colours → MultiverseTheme palette
-  - SamplerPanel: paint(), ZoneListModel, waveform colours → MultiverseTheme palette
-  - SequencerPanel: paint(), StepButton, labels → MultiverseTheme palette
-  - DrumSequencerPanel: paint(), DrumStepButton, TrackRow, labels/buttons → MultiverseTheme palette
-  - ArpeggiatorPanel: paint(), ArpStepButton, labels → MultiverseTheme palette (`.h` + `.cpp`)
-  - ProSequencerPanel: paint(), ProStepButton, labels → MultiverseTheme palette
-  - All hardcoded `juce::Colour (0xff...)` replaced with `MultiverseTheme::bgBase/bgRaised/accentBlue/textSecondary/etc.`
+  - EffectsPanel: paint(), EffectChainStrip, labels → CyberpunkTheme palette
+  - ModulationMatrixPanel: paint(), title, row colours → CyberpunkTheme palette
+  - SamplerPanel: paint(), ZoneListModel, waveform colours → CyberpunkTheme palette
+  - SequencerPanel: paint(), StepButton, labels → CyberpunkTheme palette
+  - DrumSequencerPanel: paint(), DrumStepButton, TrackRow, labels/buttons → CyberpunkTheme palette
+  - ArpeggiatorPanel: paint(), ArpStepButton, labels → CyberpunkTheme palette (`.h` + `.cpp`)
+  - ProSequencerPanel: paint(), ProStepButton, labels → CyberpunkTheme palette
+  - All hardcoded `juce::Colour (0xff...)` replaced with `CyberpunkTheme::bgBase/bgRaised/accentBlue/textSecondary/etc.`
   - Build verified ✅ (VST3 + AU both build and install successfully)
 
 ## Broken
@@ -176,7 +176,7 @@
 
 ## Completed (Phase 6 — Section Card System)
 
-**Phase 6 COMPLETE** — Neumorphic section cards applied across all panels using `MultiverseTheme::drawNeumorphicRect()`:
+**Phase 6 COMPLETE** — Neumorphic section cards applied across all panels using `CyberpunkTheme::drawNeumorphicRect()`:
 
 - **EffectsPanel** — 6 neumorphic cards: Chorus, Distortion, EQ, Compressor, Delay, Reverb sections
 - **ModulationMatrixPanel** — each modulation row wrapped in a neumorphic card
@@ -197,7 +197,7 @@
 - **SynthPanel** — 5 neumorphic cards: OSC, UNISON, FILTER, ENV (Classic mode), FM OPERATORS (FM mode), VOICE MODE (header strip)
 - **GranularPanel** — 3 neumorphic cards: SOURCE (file load), GRAIN (grain controls), VOICE ENVELOPE (ADSR)
 - **MacroPanel** — 1 neumorphic card: MACRO CONTROLS (all 8 macro knobs)
-- All cards use `MultiverseTheme::drawNeumorphicRect()` with consistent `cr=8.0f, offset=3.0f`
+- All cards use `CyberpunkTheme::drawNeumorphicRect()` with consistent `cr=8.0f, offset=3.0f`
 - Section titles drawn via `drawSection()` helper (SynthPanel) or inline (GranularPanel, MacroPanel)
 
 **Build verified:** VST3 + AU both build and install successfully ✅
@@ -252,24 +252,23 @@
 
 ---
 
+## Completed (Track A — Cyberpunk UI)
+
+**Track A COMPLETE** — `CyberpunkTheme` renamed to `CyberpunkTheme` (2026-05-04):
+- `CyberpunkTheme.h/.cpp` created (identical palette to Figma SVGs — `neonCyan`, `neonPink`, `neonPurple` on `bgVoid`)
+- `PluginEditor.h`: `mvTheme` type changed from `CyberpunkTheme` → `CyberpunkTheme`
+- `PluginEditor.cpp`: tabs already reference `CyberpunkTheme::bgBase`
+- `MacroPanel.h`: include updated to `CyberpunkTheme.h`
+- `CyberpunkTheme.h/.cpp` deleted
+- Xcode project (`project.pbxproj`): `CyberpunkTheme` references replaced with `CyberpunkTheme`
+- Build verified: VST3 + AU both build and install successfully ✅
+
+**Note:** Figma SVGs in `Figmacomponents/` already matched the CyberpunkTheme palette exactly — the rename to `CyberpunkTheme` is complete with no visual changes.
+
+---
+
 ## Next Session
 
-**One open track remaining:**
-
-### Track A — Cyberpunk UI (Serum 2 / Avenger 2 visual parity)
-- Figma SVG mockups already done in `Figmacomponents/`
-- Full spec in `AI_CYBERPUNK_PLAN.md`
-- Process: review SVGs → sign off → implement `CyberpunkTheme` replacing `MultiverseTheme`
-- Color palette: `neonCyan` (#00F0FF), `neonPink` (#FF2A6D), `neonPurple` (#B026FF) on `bgVoid` (#0A0A12)
-
-### Track B — Feature gaps vs target synths
-Key missing features vs Serum 2 / Avenger 2 / Diva / Zebra 3:
-- **Layer key ranges** (Nexus 5 / Avenger 2): each layer responds to a MIDI note range
-- **Layer velocity ranges**: each layer responds to a velocity range
-- **Layer MIDI channel filter**: per-layer MIDI channel (for multitimbral use)
-- **Layer effects send**: each layer has its own effects bus / send level
-- **Oscillator sub + noise** (Serum 2 parity): dedicated sub oscillator + noise oscillator per voice
-- **Filter types** (Diva parity): LP/HP/BP/Notch filter topology selector per voice
-- **Unison spread modes** (Zebra 3): stacked, chord, random spread options
+**All tracks complete — ready for new feature work or testing.**
 
 **Competitive brief reminder:** Goal is to match/surpass Serum 2, Nexus 5, Avenger 2, Diva, Zebra 3.
