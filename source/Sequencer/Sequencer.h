@@ -12,12 +12,14 @@ struct Step
     int noteNumber = 60;
     float velocity = 0.8f;
     float gate = 0.5f;
+    float probability = 1.0f;
 };
 
 struct SeqPattern
 {
     std::array<Step, MAX_STEPS> steps {};
     int numSteps = 16;
+    float stepLengthMultiplier = 1.0f; // 0.5=32nd 1=16th 2=8th 4=quarter
 };
 
 enum class SequencerMode
@@ -61,7 +63,11 @@ public:
     void setStepNote (int step, int noteNumber);
     void setStepVelocity (int step, float velocity);
     void setStepGate (int step, float gate);
+    void setStepProbability (int step, float probability);
     Step getStep (int step) const;
+
+    void setStepLengthMultiplier (float multiplier);
+    float getStepLengthMultiplier() const { return currentPattern.stepLengthMultiplier; }
     int getCurrentStep() const { return currentStep.load(); }
 
     void savePattern (int slot);

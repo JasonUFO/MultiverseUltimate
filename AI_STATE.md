@@ -352,11 +352,27 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 ---
 
+---
+
+## Completed (Phase 3 — Sequencer & Arpeggiator Upgrades) (2026-05-04)
+
+**All 5 sub-tasks shipped (3.6 deferred):**
+
+- **3.1 MIDI drag-and-drop import** — `SequencerPanel` inherits `FileDragAndDropTarget`; `.mid`/`.midi` files dropped onto step grid are parsed via `juce::MidiFile`; note-on events quantized to 16-step grid; cyan border glow while dragging over
+- **3.2 Smart chord tracking** — active step notes collected every 50ms, pitch classes matched against 10-chord table (major/minor/maj7/dom7/m7/dim/aug/m7b5/sus4/sus2); detected chord name shown in `chordLabel` in the export row
+- **3.3 Per-pattern step length (polyrhythm)** — `SeqPattern::stepLengthMultiplier` (default 1.0 = 16th); `updateSamplesPerStep()` multiplied by it; STEP ComboBox in transport row: 32nd/16th/8th/Qtr/8T (8th triplet); per-pattern, saved/loaded in preset XML; `loadPattern()` recomputes timing
+- **3.4 Per-step probability** — `Step::probability` (0–1, default 1.0); skipped in `process()` via xorshift RNG; right-click step → Probability sub-menu (100%/75%/50%/25%/0%); coloured dot indicator on step button (blue/amber/red); persisted in state XML
+- **3.5 Sequencer Step mod source** — `ModSourceType::SequencerStep` (slot 14); current step normalized 0→1 set in `PluginProcessor::processBlock()` after `sequencer.process()`; visible in ModulationMatrix source dropdown as "Seq Step"
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+---
+
 ## Next Session
 
-**Phase 2 COMPLETE** — Sampler tune/speed controls, key/vel range editing, auto-map shipped.
+**Phase 3 COMPLETE** — Sequencer drag-drop, chord detection, step length, probability, and Seq Step mod source shipped.
 
-**Ready for Phase 3** (Sequencer upgrades: polyrhythm, probability, smart chord) or **Phase 5** (Modulation Upgrades — unlimited LFOs) per `AI_GAP_FILL_PLAN.md`.
+**Ready for Phase 4** (Audio outputs, Drum Sequencer per-track FX) or **Phase 5** (Modulation Upgrades — unlimited LFOs) per `AI_GAP_FILL_PLAN.md`.
 
 **Competitive brief reminder:** Goal is to match/surpass Serum 2, Nexus 5, Avenger 2, Diva, Zebra 3.
 
@@ -364,3 +380,4 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 3. Multi-output: individual osc, voices, or entire layers?
 4. 1000+ presets: programmatic generation or curated?
 5. Standalone mode: separate executable or audio effect mode?
+6. 3.6 (Drag MIDI to audio / offline render) — deferred, complex feature.

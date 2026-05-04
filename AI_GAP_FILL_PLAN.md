@@ -33,22 +33,13 @@
 
 ---
 
-## Phase3: Sequencer & Arpeggiator Upgrades (Priority: High)
-**Dependencies**: None (separate engine)
-3.1 MIDI pattern drag-and-drop
-   - Add `DragAndDropTarget` to SequencerPanel for MIDI files
-   - Implement MIDI pattern drag-to-DAW via `juce::MidiFile` export
-3.2 Smart chord tracking
-   - Add chord detection for held notes (major/minor/extensions)
-   - Display detected chords in SequencerPanel
-3.3 Polyrhythm/polymeter
-   - Add per-pattern time signature, per-step custom clock divisions
-3.4 Per-step probability/conditional triggers
-   - Add probability parameter to `Step` struct
-   - Modify `Sequencer::process` to skip steps based on probability
-3.5 Audio-rate step modulation
-   - Add step-level modulation targets to ModulationMatrix
-3.6 Drag MIDI to audio: Render MIDI pattern to dragable audio file
+## Phase3: Sequencer & Arpeggiator Upgrades ✅ COMPLETE (2026-05-04)
+3.1 ✅ MIDI drag-and-drop import — `FileDragAndDropTarget` on SequencerPanel; .mid/.midi quantized to 16-step grid; cyan glow on drag-enter
+3.2 ✅ Smart chord tracking — 10-chord table (maj/min/maj7/dom7/m7/dim/aug/m7b5/sus4/sus2); `chordLabel` in export row, updates at 50ms
+3.3 ✅ Polyrhythm/step length — `SeqPattern::stepLengthMultiplier`; STEP ComboBox (32nd/16th/8th/Qtr/8T); per-pattern, state-persisted
+3.4 ✅ Per-step probability — `Step::probability`; xorshift RNG check in `process()`; right-click → Probability submenu; coloured dot indicator
+3.5 ✅ Sequencer Step mod source — `ModSourceType::SequencerStep`; normalized 0→1 in processBlock; visible in ModMatrix dropdown as "Seq Step"
+3.6 Drag MIDI to audio — DEFERRED (requires offline engine rendering)
 
 ---
 

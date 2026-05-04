@@ -19,7 +19,8 @@ void Sequencer::prepare (double sr, float bpmVal)
 
 void Sequencer::updateSamplesPerStep()
 {
-    samplesPerStep = sampleRate * 60.0 / (static_cast<double> (bpm) * 4.0);
+    samplesPerStep = sampleRate * 60.0 / (static_cast<double> (bpm) * 4.0)
+                     * static_cast<double> (currentPattern.stepLengthMultiplier);
 }
 
 void Sequencer::setBPM (float bpmVal)
@@ -115,7 +116,8 @@ void Sequencer::process (juce::MidiBuffer& midi, int numSamples)
             if (mode == SequencerMode::Sequencer)
             {
                 const auto& st = currentPattern.steps[step];
-                if (st.active)
+                bool prob = st.probability >= 1.0f || (fastRand() < static_cast<uint32_t> (st.probability * 4294967295.0f));
+                if (st.active && prob)
                 {
                     triggerNoteOn (midi, s, st.noteNumber, st.velocity);
                     noteOffCounter = samplesPerStep * static_cast<double> (st.gate);
@@ -188,7 +190,20 @@ void Sequencer::loadPattern (int slot)
     {
         currentPattern = savedPatterns[slot];
         currentPatternSlot = slot;
+        updateSamplesPerStep();
     }
+}
+
+void Sequencer::setStepProbability (int step, float probability)
+{
+    if (step >= 0 && step < MAX_STEPS)
+        currentPattern.steps[step].probability = juce::jlimit (0.0f, 1.0f, probability);
+}
+
+void Sequencer::setStepLengthMultiplier (float multiplier)
+{
+    currentPattern.stepLengthMultiplier = juce::jlimit (0.25f, 8.0f, multiplier);
+    updateSamplesPerStep();
 }
 
 void Sequencer::addArpNote (int noteNumber)
@@ -301,6 +316,7 @@ juce::ValueTree Sequencer::getState() const
     v.setProperty ("playMode", static_cast<int> (playMode), nullptr);
     v.setProperty ("currentPatternSlot", currentPatternSlot, nullptr);
     v.setProperty ("numSteps", currentPattern.numSteps, nullptr);
+    v.setProperty ("stepLengthMultiplier", currentPattern.stepLengthMultiplier, nullptr);
 
     juce::ValueTree pattern ("CurrentPattern");
     for (int i = 0; i < currentPattern.numSteps; ++i)
@@ -312,6 +328,7 @@ juce::ValueTree Sequencer::getState() const
         stepNode.setProperty ("noteNumber", s.noteNumber, nullptr);
         stepNode.setProperty ("velocity", s.velocity, nullptr);
         stepNode.setProperty ("gate", s.gate, nullptr);
+        stepNode.setProperty ("probability", s.probability, nullptr);
         pattern.appendChild (stepNode, nullptr);
     }
     v.appendChild (pattern, nullptr);
@@ -331,6 +348,7 @@ juce::ValueTree Sequencer::getState() const
             stepNode.setProperty ("noteNumber", s.noteNumber, nullptr);
             stepNode.setProperty ("velocity", s.velocity, nullptr);
             stepNode.setProperty ("gate", s.gate, nullptr);
+            stepNode.setProperty ("probability", s.probability, nullptr);
             patNode.appendChild (stepNode, nullptr);
         }
         saved.appendChild (patNode, nullptr);
@@ -355,6 +373,8 @@ void Sequencer::setState (const juce::ValueTree& state)
         currentPatternSlot = static_cast<int> (state.getProperty ("currentPatternSlot"));
     if (state.hasProperty ("numSteps"))
         setNumSteps (static_cast<int> (state.getProperty ("numSteps")));
+    if (state.hasProperty ("stepLengthMultiplier"))
+        currentPattern.stepLengthMultiplier = static_cast<float> (state.getProperty ("stepLengthMultiplier"));
 
     auto patternNode = state.getChildWithName ("CurrentPattern");
     if (patternNode.isValid())
@@ -370,6 +390,8 @@ void Sequencer::setState (const juce::ValueTree& state)
                     currentPattern.steps[idx].noteNumber = static_cast<int> (stepNode.getProperty ("noteNumber"));
                     currentPattern.steps[idx].velocity = static_cast<float> (stepNode.getProperty ("velocity"));
                     currentPattern.steps[idx].gate = static_cast<float> (stepNode.getProperty ("gate"));
+                    if (stepNode.hasProperty ("probability"))
+                        currentPattern.steps[idx].probability = static_cast<float> (stepNode.getProperty ("probability"));
                 }
             }
         }
@@ -405,6 +427,8 @@ void Sequencer::setState (const juce::ValueTree& state)
                                 pat.steps[idx].noteNumber = static_cast<int> (stepNode.getProperty ("noteNumber"));
                                 pat.steps[idx].velocity = static_cast<float> (stepNode.getProperty ("velocity"));
                                 pat.steps[idx].gate = static_cast<float> (stepNode.getProperty ("gate"));
+                                if (stepNode.hasProperty ("probability"))
+                                    pat.steps[idx].probability = static_cast<float> (stepNode.getProperty ("probability"));
                             }
                         }
                     }
@@ -414,4 +438,5 @@ void Sequencer::setState (const juce::ValueTree& state)
     }
 
     clearArpNotes();
+    updateSamplesPerStep();
 }

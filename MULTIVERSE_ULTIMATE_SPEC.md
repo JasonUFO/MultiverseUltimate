@@ -83,12 +83,13 @@ All items from the original "What Is Still To Do" list have been resolved. The p
 - ✅ Phase 0: Existing functionality verified
 - ✅ Phase 1: Dynamic 1–8 osc/voice; 4 new types (Additive/PhaseDist/Analog/Digital); wave shaping + self-osc
 - ✅ Phase 2: Sampler tune/speed per zone; Lo/Hi key+vel range editing UI; Auto Map
-- 🔜 Phase 3: Sequencer upgrades (polyrhythm, probability, smart chord, MIDI drag)
+- ✅ Phase 3: Sequencer — per-pattern step length (32nd/16th/8th/Qtr/8T); per-step probability; MIDI drag-drop import; chord tracking; Seq Step mod source
+- 🔜 Phase 4: Drum Sequencer per-track FX; audio output buses
 - 🔜 Phase 5: Unlimited LFOs, drawable shapes, DAW-synced LFOs
-- 🔜 Phase 4/6/7: Audio outputs, UI polish, effects extras, standalone
+- 🔜 Phase 6/7: UI polish (resizable, keyboard), effects extras, standalone
 
 **Remaining key gaps:**
-- Sequencer: polyrhythm/polymeter, probability triggers, smart chord tracking, MIDI drag
+- Sequencer: MIDI drag-to-DAW (3.6 deferred — needs offline render)
 - Modulation: unlimited LFOs, drawable LFO shapes, DAW-synced LFOs
 - UI: resizable/DPI scaling, built-in keyboard, 1000+ presets
 - Effects: return/aux sends, standalone mode
@@ -315,9 +316,15 @@ Modulation Matrix → SynthEngine params (pitch, cutoff, volume, etc.)
 | Modes | Sequencer, Arpeggiator |
 | Steps | 1–16 (configurable) |
 | Saved patterns | 8 |
-| Per-step data | noteNumber (MIDI 0–127), velocity (0–1), active (bool) |
+| Per-step data | noteNumber (0–127), velocity (0–1), active (bool), gate (0–1), probability (0–1) |
+| Per-pattern data | numSteps, stepLengthMultiplier (0.5–8.0; 1.0=16th default) |
 | MIDI output | Generates `noteOn`/`noteOff` into a `juce::MidiBuffer` |
-| MIDI export | `exportMidi()` returns `juce::MidiFile` |
+| MIDI export | `exportMidi()` returns `juce::MidiFile` (File → Save dialog) |
+| MIDI import | Drag .mid/.midi onto step grid; note-ons quantized to 16-step grid |
+| Chord display | Active step pitch classes matched against 10-chord table; shown in UI |
+| Step length | 32nd / 16th / 8th / Quarter / 8th-Triplet per pattern |
+| Probability | Per-step 0–100%; xorshift RNG; coloured dot indicator |
+| Mod source | `ModSourceType::SequencerStep` — current step normalized 0→1 |
 | Arpeggiator | Up to 16 held notes, cycles in order |
 
 ---

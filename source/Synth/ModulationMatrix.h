@@ -25,7 +25,8 @@ enum class ModSourceType : uint8_t
     Random,
     EnvelopeFollower,
     MPEPressure,
-    MPESlide
+    MPESlide,
+    SequencerStep
 };
 
 enum class ModTargetType : uint8_t
@@ -125,6 +126,7 @@ public:
             case ModSourceType::EnvelopeFollower: return "Env Follower";
             case ModSourceType::MPEPressure: return "MPE Pressure";
             case ModSourceType::MPESlide: return "MPE Slide";
+            case ModSourceType::SequencerStep: return "Seq Step";
         }
         return "";
     }

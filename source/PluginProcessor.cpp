@@ -673,6 +673,11 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     if (activeMelodicSeq == 0)
     {
         sequencer.process (midiMessages, numSamples);
+        {
+            int numSteps = sequencer.getNumSteps();
+            float normStep = numSteps > 1 ? static_cast<float> (sequencer.getCurrentStep()) / static_cast<float> (numSteps - 1) : 0.0f;
+            modulationMatrix.setModulationValue (ModSourceType::SequencerStep, 0, normStep);
+        }
         juce::MidiBuffer proMidi;
         proSequencer.process (proMidi, numSamples);
         midiMessages.addEvents (proMidi, 0, numSamples, 0);
