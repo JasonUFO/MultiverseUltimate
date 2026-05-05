@@ -17,19 +17,24 @@ private:
     // ── LFO bank row ─────────────────────────────────────────────────────────
     struct LFORow : public juce::Component
     {
-        juce::Label      label;
-        juce::Slider     rateSlider;
-        juce::ComboBox   shapeCombo;
+        juce::Label        label;
+        juce::Slider       rateSlider;
+        juce::ComboBox     shapeCombo;
         juce::ToggleButton syncButton { "SYNC" };
-        juce::ComboBox   syncDivCombo;
+        juce::ComboBox     syncDivCombo;
+        juce::TextButton   drawButton { "DRAW" };
 
         std::unique_ptr<juce::SliderParameterAttachment>   rateAttachment;
         std::unique_ptr<juce::ComboBoxParameterAttachment> shapeAttachment;
         std::unique_ptr<juce::ButtonParameterAttachment>   syncAttachment;
         std::unique_ptr<juce::ComboBoxParameterAttachment> syncDivAttachment;
 
-        LFORow(int index, juce::AudioProcessorValueTreeState& apvts);
+        ModulationMatrix& matrixRef;
+        int lfoIdx;
+
+        LFORow(int index, juce::AudioProcessorValueTreeState& apvts, ModulationMatrix& matrix);
         void resized() override;
+        void updateDrawButtonState();
     };
 
     // ── Mod connection row ────────────────────────────────────────────────────

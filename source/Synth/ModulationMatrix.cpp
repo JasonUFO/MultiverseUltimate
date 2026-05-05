@@ -20,6 +20,9 @@ ModulationMatrix::ModulationMatrix()
         lfoRate[i]    = 1.0f;
         lfoShape[i]   = LFOShape::Sine;
         lfoSHValue[i] = 0.0f;
+        // Default custom table: sine
+        for (int j = 0; j < 256; ++j)
+            lfoCustomTable[i][j] = std::sin(2.0f * 3.14159265f * (float)j / 256.0f);
     }
 
     for (int b = 0; b < 2; ++b)
@@ -180,6 +183,18 @@ LFOShape ModulationMatrix::getLFOShape(int lfoIndex) const
     return lfoShape[lfoIndex];
 }
 
+void ModulationMatrix::setCustomTable(int lfoIndex, const std::array<float, 256>& table)
+{
+    if (lfoIndex < 0 || lfoIndex >= 8) return;
+    lfoCustomTable[lfoIndex] = table;
+}
+
+std::array<float, 256> ModulationMatrix::getCustomTable(int lfoIndex) const
+{
+    if (lfoIndex < 0 || lfoIndex >= 8) return lfoCustomTable[0];
+    return lfoCustomTable[lfoIndex];
+}
+
 void ModulationMatrix::advanceLFOs(int numSamples)
 {
     constexpr float pi    = 3.14159265358979f;
@@ -215,6 +230,17 @@ void ModulationMatrix::advanceLFOs(int numSamples)
                     lfoSHValue[i] = juce::Random::getSystemRandom().nextFloat() * 2.0f - 1.0f;
                 value = lfoSHValue[i];
                 break;
+            case LFOShape::Custom:
+            {
+                float normPhase = newP / twoPi;
+                float tablePos  = normPhase * 255.0f;
+                int   idx0      = (int)tablePos & 255;
+                int   idx1      = (idx0 + 1) & 255;
+                float frac      = tablePos - (float)(int)tablePos;
+                value = lfoCustomTable[i][idx0]
+                      + frac * (lfoCustomTable[i][idx1] - lfoCustomTable[i][idx0]);
+                break;
+            }
             default:
                 value = std::sin(newP);
                 break;
@@ -256,8 +282,17 @@ juce::ValueTree ModulationMatrix::getState() const
 
     for (int i = 0; i < 8; ++i)
     {
-        v.setProperty("lfo" + juce::String(i + 1) + "Rate",  lfoRate[i],           nullptr);
-        v.setProperty("lfo" + juce::String(i + 1) + "Shape", (int)lfoShape[i],     nullptr);
+        v.setProperty("lfo" + juce::String(i + 1) + "Rate",  lfoRate[i],       nullptr);
+        v.setProperty("lfo" + juce::String(i + 1) + "Shape", (int)lfoShape[i], nullptr);
+
+        // Custom table: 256 floats as comma-separated string
+        juce::String tableStr;
+        for (int j = 0; j < 256; ++j)
+        {
+            if (j > 0) tableStr += ",";
+            tableStr += juce::String(lfoCustomTable[i][j], 6);
+        }
+        v.setProperty("lfo" + juce::String(i + 1) + "CustomTable", tableStr, nullptr);
     }
 
     auto conns = juce::ValueTree("Connections");
@@ -294,8 +329,16 @@ void ModulationMatrix::setState(const juce::ValueTree& state)
     {
         const juce::String rk = "lfo" + juce::String(i + 1) + "Rate";
         const juce::String sk = "lfo" + juce::String(i + 1) + "Shape";
+        const juce::String tk = "lfo" + juce::String(i + 1) + "CustomTable";
         if (state.hasProperty(rk))  lfoRate[i]  = (float)state.getProperty(rk);
         if (state.hasProperty(sk))  lfoShape[i] = static_cast<LFOShape>((int)state.getProperty(sk));
+        if (state.hasProperty(tk))
+        {
+            juce::StringArray tokens;
+            tokens.addTokens(state.getProperty(tk).toString(), ",", "");
+            for (int j = 0; j < 256 && j < tokens.size(); ++j)
+                lfoCustomTable[i][j] = tokens[j].getFloatValue();
+        }
     }
 
     std::vector<ModConnection> newConnections;

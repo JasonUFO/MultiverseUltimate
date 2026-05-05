@@ -1,4 +1,5 @@
 #include "ModulationMatrixPanel.h"
+#include "LFOShapeEditor.h"
 #include "../CyberpunkTheme.h"
 #include "../PluginProcessor.h"
 
@@ -22,11 +23,13 @@ namespace {
     constexpr int LFO_SHAPE_W   = 84;
     constexpr int LFO_SYNC_W    = 50;
     constexpr int LFO_DIV_W     = 60;
+    constexpr int LFO_DRAW_W    = 42;
 }
 
 // ─── LFORow ──────────────────────────────────────────────────────────────────
 
-ModulationMatrixPanel::LFORow::LFORow(int index, juce::AudioProcessorValueTreeState& apvts)
+ModulationMatrixPanel::LFORow::LFORow(int index, juce::AudioProcessorValueTreeState& apvts, ModulationMatrix& matrix)
+    : matrixRef(matrix), lfoIdx(index)
 {
     const juce::String idx = juce::String(index + 1);
 
@@ -44,6 +47,7 @@ ModulationMatrixPanel::LFORow::LFORow(int index, juce::AudioProcessorValueTreeSt
     shapeCombo.addItem("Saw",      3);
     shapeCombo.addItem("Square",   4);
     shapeCombo.addItem("S&H",      5);
+    shapeCombo.addItem("Custom",   6);
     shapeCombo.setTooltip("LFO " + idx + " waveform shape");
 
     syncButton.setButtonText("SYNC");
@@ -59,11 +63,14 @@ ModulationMatrixPanel::LFORow::LFORow(int index, juce::AudioProcessorValueTreeSt
     syncDivCombo.addItem("4/1",  8);
     syncDivCombo.setTooltip("LFO " + idx + " tempo-sync division");
 
+    drawButton.setTooltip("Draw a custom LFO shape");
+
     addAndMakeVisible(label);
     addAndMakeVisible(rateSlider);
     addAndMakeVisible(shapeCombo);
     addAndMakeVisible(syncButton);
     addAndMakeVisible(syncDivCombo);
+    addAndMakeVisible(drawButton);
 
     if (auto* rateParam = apvts.getParameter("lfo" + idx + "Rate"))
         rateAttachment = std::make_unique<juce::SliderParameterAttachment>(*rateParam, rateSlider, nullptr);
@@ -73,6 +80,22 @@ ModulationMatrixPanel::LFORow::LFORow(int index, juce::AudioProcessorValueTreeSt
         syncAttachment = std::make_unique<juce::ButtonParameterAttachment>(*syncParam, syncButton, nullptr);
     if (auto* divParam = apvts.getParameter("lfo" + idx + "SyncDiv"))
         syncDivAttachment = std::make_unique<juce::ComboBoxParameterAttachment>(*divParam, syncDivCombo, nullptr);
+
+    // Show DRAW button only when Custom is selected
+    shapeCombo.onChange = [this] { updateDrawButtonState(); };
+    updateDrawButtonState();
+
+    // Open LFOShapeEditor in a CallOutBox when DRAW is clicked
+    drawButton.onClick = [this] {
+        auto editor = std::make_unique<LFOShapeEditor>();
+        editor->setTable(matrixRef.getCustomTable(lfoIdx));
+        editor->onTableChanged = [this](const std::array<float, 256>& t) {
+            matrixRef.setCustomTable(lfoIdx, t);
+        };
+        editor->setSize(310, 160);
+        juce::CallOutBox::launchAsynchronously(
+            std::move(editor), drawButton.getScreenBounds(), nullptr);
+    };
 }
 
 void ModulationMatrixPanel::LFORow::resized()
@@ -87,6 +110,16 @@ void ModulationMatrixPanel::LFORow::resized()
     syncButton.setBounds(b.removeFromLeft(LFO_SYNC_W));
     b.removeFromLeft(INNER_GAP);
     syncDivCombo.setBounds(b.removeFromLeft(LFO_DIV_W));
+    b.removeFromLeft(INNER_GAP);
+    drawButton.setBounds(b.removeFromLeft(LFO_DRAW_W));
+}
+
+void ModulationMatrixPanel::LFORow::updateDrawButtonState()
+{
+    // selectedId 6 = "Custom" (1-based)
+    const bool isCustom = (shapeCombo.getSelectedId() == 6);
+    drawButton.setEnabled(isCustom);
+    drawButton.setAlpha(isCustom ? 1.0f : 0.35f);
 }
 
 // ─── Row ─────────────────────────────────────────────────────────────────────
@@ -182,7 +215,7 @@ ModulationMatrixPanel::ModulationMatrixPanel(PluginProcessor& p, ModulationMatri
     // Build LFO rows
     for (int i = 0; i < 8; ++i)
     {
-        lfoRows[i] = std::make_unique<LFORow>(i, processorRef.apvts);
+        lfoRows[i] = std::make_unique<LFORow>(i, processorRef.apvts, matrix);
         addAndMakeVisible(*lfoRows[i]);
     }
 

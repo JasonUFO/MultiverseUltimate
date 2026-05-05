@@ -155,7 +155,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         layout.add(std::make_unique<juce::AudioParameterChoice>(
             juce::ParameterID{"lfo" + juce::String(i) + "Shape", 1},
             "LFO " + juce::String(i) + " Shape",
-            juce::StringArray{"Sine", "Triangle", "Saw", "Square", "S&H"}, 0));
+            juce::StringArray{"Sine", "Triangle", "Saw", "Square", "S&H", "Custom"}, 0));
         layout.add(std::make_unique<juce::AudioParameterBool>(
             juce::ParameterID{"lfo" + juce::String(i) + "Sync", 1},
             "LFO " + juce::String(i) + " Sync", false));

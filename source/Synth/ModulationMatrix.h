@@ -71,7 +71,8 @@ enum class LFOShape : uint8_t
     Triangle,
     Saw,
     Square,
-    SampleAndHold
+    SampleAndHold,
+    Custom
 };
 
 struct ModConnection
@@ -107,6 +108,9 @@ public:
     float getLFORate(int lfoIndex) const;
     void setLFOShape(int lfoIndex, LFOShape shape);
     LFOShape getLFOShape(int lfoIndex) const;
+
+    void setCustomTable(int lfoIndex, const std::array<float, 256>& table);
+    std::array<float, 256> getCustomTable(int lfoIndex) const;
 
     // Advance all LFOs by given number of samples and update sourceValues
     void advanceLFOs(int numSamples = 1);
@@ -210,6 +214,7 @@ private:
     std::array<float, 8> lfoRate;
     std::array<LFOShape, 8> lfoShape;
     std::array<float, 8> lfoSHValue;
+    std::array<std::array<float, 256>, 8> lfoCustomTable;
 
     int nextConnectionId = 0;
 
