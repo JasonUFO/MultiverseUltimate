@@ -550,6 +550,43 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         c.releaseSlider.setTooltip (pfx + "Operator envelope Release (1ms–10s)");
     }
 
+    // Chord/Strum mode
+    chordEnableButton.setButtonText("CHORD");
+    chordEnableButton.setTooltip("Chord mode: each note triggers a full chord voicing");
+    addAndMakeVisible(chordEnableButton);
+    chordEnableAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+        apvts, "chordModeEnabled", chordEnableButton);
+
+    chordShapeSelector.addItem("Root Only", 1);
+    chordShapeSelector.addItem("Major",     2);
+    chordShapeSelector.addItem("Minor",     3);
+    chordShapeSelector.addItem("Maj7",      4);
+    chordShapeSelector.addItem("Min7",      5);
+    chordShapeSelector.addItem("Dom7",      6);
+    chordShapeSelector.addItem("Dim",       7);
+    chordShapeSelector.addItem("Aug",       8);
+    chordShapeSelector.addItem("Sus2",      9);
+    chordShapeSelector.addItem("Sus4",      10);
+    chordShapeSelector.addItem("Power",     11);
+    chordShapeSelector.addItem("Octave",    12);
+    chordShapeSelector.setSelectedId(2, juce::dontSendNotification);
+    chordShapeSelector.setTooltip("Chord voicing: interval set triggered above root note");
+    addAndMakeVisible(chordShapeSelector);
+    chordShapeAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        apvts, "chordShape", chordShapeSelector);
+
+    setupSlider(chordStrumSlider, 0.0, 200.0, 0.0, 1.0);
+    chordStrumSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 56, 16);
+    chordStrumSlider.setTooltip("Strum delay: time between successive chord notes (0–200 ms)");
+    addAndMakeVisible(chordStrumSlider);
+    chordStrumSlider.init(processorRef, "chordStrumDelay");
+    chordStrumAttach = std::make_unique<SliderAttachment>(apvts, "chordStrumDelay", chordStrumSlider);
+
+    setupLabel(chordShapeLabel, "SHAPE");
+    addAndMakeVisible(chordShapeLabel);
+    setupLabel(chordStrumLabel, "STRUM");
+    addAndMakeVisible(chordStrumLabel);
+
     updateVisibility();
 }
 
@@ -660,6 +697,13 @@ void SynthPanel::updateVisibility()
         c.sustainLabel.setVisible(isFM);  c.sustainSlider.setVisible(isFM);
         c.releaseLabel.setVisible(isFM);  c.releaseSlider.setVisible(isFM);
     }
+
+    // Chord/Strum — only in Classic mode
+    chordEnableButton.setVisible(!isFM);
+    chordShapeLabel.setVisible(!isFM);
+    chordShapeSelector.setVisible(!isFM);
+    chordStrumLabel.setVisible(!isFM);
+    chordStrumSlider.setVisible(!isFM);
 }
 
 //==============================================================================
@@ -676,6 +720,7 @@ void SynthPanel::paint(juce::Graphics& g)
         drawSection(g, unisonSectionRect,   "UNISON");
         drawSection(g, filterSectionRect,   "FILTER");
         drawSection(g, envSectionRect,      "ENV");
+        drawSection(g, chordSectionRect,    "CHORD / STRUM");
     }
     else
     {
@@ -970,6 +1015,29 @@ void SynthPanel::resized()
             placeKnob(decaySlider,   decayLabel);
             placeKnob(sustainSlider, sustainLabel);
             placeKnob(releaseSlider, releaseLabel);
+        }
+        area.removeFromTop(8);
+
+        // CHORD / STRUM section
+        chordSectionRect = area.removeFromTop(100);
+        {
+            auto inner = chordSectionRect.reduced(8).withTrimmedTop(18);
+
+            // Row 1: enable toggle + shape label + shape combo
+            auto row1 = inner.removeFromTop(26);
+            chordEnableButton.setBounds(row1.removeFromLeft(72));
+            row1.removeFromLeft(8);
+            chordShapeLabel.setBounds(row1.removeFromLeft(44));
+            row1.removeFromLeft(4);
+            chordShapeSelector.setBounds(row1.removeFromLeft(120));
+
+            inner.removeFromTop(6);
+
+            // Row 2: strum knob + label
+            auto row2 = inner;
+            auto strumCol = row2.removeFromLeft(knobSz);
+            chordStrumSlider.setBounds(strumCol.removeFromTop(knobSz));
+            chordStrumLabel.setBounds(strumCol.removeFromTop(labelH));
         }
         area.removeFromTop(8);
 

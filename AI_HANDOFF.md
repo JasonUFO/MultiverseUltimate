@@ -107,6 +107,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Phase 7 (partial) | CPU voice limit: setVoiceLimit(int) in SynthEngine, maxVoices APVTS Choice, findFreeVoice limited to voiceLimit slots; Metronome: PPQ beat detection, 25ms decaying sine click at 1200/900Hz into buffer |
 | Phase 7 (more) | Aux sends (7.1): `auxSendDelay`/`auxSendReverb` APVTS params; `auxDelay`/`auxReverb` parallel effect instances; dry mix captured pre-chain; sends mixed post-pan; SENDS card in EffectsPanel. Tuner (7.7 UI): FFT peak detection with parabolic interpolation; MIDI note + cents readout; green/amber cents bar; drawn in SynthDisplay scope area. |
 | Drawable LFO | LFOShape::Custom (index 5); LFOShapeEditor component (pencil+line+fill+norm); DRAW button per LFO row; 256-pt table lookup in advanceLFOs(); per-LFO tables persist in preset XML |
+| Chord/Strum | chordModeEnabled/chordShape/chordStrumDelay APVTS params; 12 shapes (Major/Minor/Maj7/Min7/Dom7/Dim/Aug/Sus2/Sus4/Power/Octave/Root); PendingNote[64]+ActiveChord[32] pre-alloc queue; chord tones fire at block start, strum delay = ni×strumSamples; CHORD/STRUM card in SynthPanel (Classic mode only); MPE bypasses chord mode |
 
 ## Next Steps
 
@@ -114,8 +115,8 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 All gap-fill phases (0–7) complete. Now in competitive feature expansion.
 **Priority order:**
 1. ~~Drawable LFO Shapes~~ ✅ (2026-05-05)
-2. **Chord/Strum Mode** — single note → chord voicing with optional strum delay (next)
-3. Performance View — full-screen macro panel for live use
+2. ~~Chord/Strum Mode~~ ✅ (2026-05-05)
+3. **Performance View** — full-screen macro panel for live use (next)
 4. Programmatic preset generation — 100+ named presets across categories
 
 **Deferred (need decisions or Projucer GUI action):**

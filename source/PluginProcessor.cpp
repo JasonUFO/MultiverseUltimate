@@ -380,6 +380,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         juce::ParameterID{"granularRelease", 1}, "Gran Release",
         juce::NormalisableRange<float>(0.001f, 10.0f, 0.0f, 0.4f), 0.5f));
 
+    // Chord/Strum mode
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"chordModeEnabled", 1}, "Chord Mode", false));
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"chordShape", 1}, "Chord Shape",
+        juce::StringArray{"Root Only", "Major", "Minor", "Maj7", "Min7", "Dom7",
+                          "Dim", "Aug", "Sus2", "Sus4", "Power", "Octave"}, 1));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"chordStrumDelay", 1}, "Strum Delay",
+        juce::NormalisableRange<float>(0.0f, 200.0f), 0.0f));
+
     return layout;
 }
 
@@ -543,6 +554,42 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     buffer.clear();
     keyboardState.processNextMidiBuffer(midiMessages, 0, buffer.getNumSamples(), true);
+
+    // Chord/Strum: fire pending notes that are due this block
+    {
+        const bool chordOn = *apvts.getRawParameterValue("chordModeEnabled") > 0.5f;
+        if (chordOn)
+        {
+            const int numSamplesLocal = buffer.getNumSamples();
+            for (int i = 0; i < MAX_PENDING_NOTES; ++i)
+            {
+                auto& pn = pendingNotes[i];
+                if (!pn.active) continue;
+                pn.samplesRemaining -= numSamplesLocal;
+                if (pn.samplesRemaining <= 0)
+                {
+                    const int   n = pn.note;
+                    const float v = pn.velocity;
+                    synthEngine.noteOn(n, v);
+                    samplerEngine.noteOn(n, v);
+                    granularEngine.noteOn(n, v);
+                    layerManager.noteOn(n, v, 1);
+                    // Mark note as fired in the owning ActiveChord
+                    for (int ci = 0; ci < MAX_ACTIVE_CHORDS; ++ci)
+                    {
+                        auto& ac = activeChords[ci];
+                        if (!ac.active || ac.rootNote != pn.rootNote) continue;
+                        for (int ni = 0; ni < ac.noteCount; ++ni)
+                        {
+                            if (ac.chordNotes[ni] == n)
+                                ac.noteFired[ni] = true;
+                        }
+                    }
+                    pn.active = false;
+                }
+            }
+        }
+    }
 
     // CPU voice limiting — apply once per block before notes are processed
     {
@@ -858,10 +905,110 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             layerManager.noteOn(note, vel, ch);
             modEnv2.noteOn();
             modEnv3.noteOn();
+
+            // Chord/Strum: schedule additional chord tones
+            {
+                const bool chordOn = *apvts.getRawParameterValue("chordModeEnabled") > 0.5f;
+                if (chordOn && !mpeOn)
+                {
+                    static const int chordIntervals[12][8] = {
+                        { 0, -1, -1, -1, -1, -1, -1, -1 },  // Root Only
+                        { 0,  4,  7, -1, -1, -1, -1, -1 },  // Major
+                        { 0,  3,  7, -1, -1, -1, -1, -1 },  // Minor
+                        { 0,  4,  7, 11, -1, -1, -1, -1 },  // Maj7
+                        { 0,  3,  7, 10, -1, -1, -1, -1 },  // Min7
+                        { 0,  4,  7, 10, -1, -1, -1, -1 },  // Dom7
+                        { 0,  3,  6, -1, -1, -1, -1, -1 },  // Dim
+                        { 0,  4,  8, -1, -1, -1, -1, -1 },  // Aug
+                        { 0,  2,  7, -1, -1, -1, -1, -1 },  // Sus2
+                        { 0,  5,  7, -1, -1, -1, -1, -1 },  // Sus4
+                        { 0,  7, 12, -1, -1, -1, -1, -1 },  // Power
+                        { 0, 12, -1, -1, -1, -1, -1, -1 },  // Octave
+                    };
+                    const int shapeIdx = juce::jlimit(0, 11, (int)*apvts.getRawParameterValue("chordShape"));
+                    const float strumMs = *apvts.getRawParameterValue("chordStrumDelay");
+                    const float strumSamples = strumMs * 0.001f * (float)getSampleRate();
+
+                    // Find a free ActiveChord slot
+                    int ci = -1;
+                    for (int k = 0; k < MAX_ACTIVE_CHORDS; ++k)
+                        if (!activeChords[k].active) { ci = k; break; }
+
+                    if (ci >= 0)
+                    {
+                        auto& ac = activeChords[ci];
+                        ac.rootNote  = note;
+                        ac.noteCount = 0;
+                        ac.active    = true;
+
+                        for (int ni = 0; ni < 8 && chordIntervals[shapeIdx][ni] >= 0; ++ni)
+                        {
+                            const int chordNote = juce::jlimit(0, 127, note + chordIntervals[shapeIdx][ni]);
+                            ac.chordNotes[ac.noteCount] = chordNote;
+                            if (ni == 0)
+                            {
+                                // Root already fired via normal path above
+                                ac.noteFired[ac.noteCount] = true;
+                            }
+                            else
+                            {
+                                ac.noteFired[ac.noteCount] = false;
+                                // Queue chord tone with strum delay
+                                for (int pi = 0; pi < MAX_PENDING_NOTES; ++pi)
+                                {
+                                    if (!pendingNotes[pi].active)
+                                    {
+                                        pendingNotes[pi].note             = chordNote;
+                                        pendingNotes[pi].velocity         = vel;
+                                        pendingNotes[pi].rootNote         = note;
+                                        pendingNotes[pi].samplesRemaining = juce::roundToInt((float)ni * strumSamples);
+                                        pendingNotes[pi].active           = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            ac.noteCount++;
+                        }
+                    }
+                }
+            }
         }
         else if (message.isNoteOff())
         {
             int note = message.getNoteNumber();
+
+            // Chord/Strum: cancel pending tones and release fired chord tones
+            {
+                const bool chordOn = *apvts.getRawParameterValue("chordModeEnabled") > 0.5f;
+                if (chordOn && !mpeOn)
+                {
+                    // Cancel any still-pending strum notes for this root
+                    for (int i = 0; i < MAX_PENDING_NOTES; ++i)
+                        if (pendingNotes[i].active && pendingNotes[i].rootNote == note)
+                            pendingNotes[i].active = false;
+
+                    // Fire noteOff for chord tones that have already been triggered (skip index 0 = root, handled below)
+                    for (int ci = 0; ci < MAX_ACTIVE_CHORDS; ++ci)
+                    {
+                        auto& ac = activeChords[ci];
+                        if (!ac.active || ac.rootNote != note) continue;
+                        for (int ni = 1; ni < ac.noteCount; ++ni)
+                        {
+                            if (ac.noteFired[ni])
+                            {
+                                const int cn = ac.chordNotes[ni];
+                                synthEngine.noteOff(cn);
+                                samplerEngine.noteOff(cn);
+                                granularEngine.noteOff(cn);
+                                layerManager.noteOff(cn);
+                            }
+                        }
+                        ac.active = false;
+                        break;
+                    }
+                }
+            }
+
             if (sustainPedalDown)
             {
                 sustainedNoteHeld[note] = true;

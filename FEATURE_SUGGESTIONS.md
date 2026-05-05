@@ -78,4 +78,4 @@
 - Sampler: round-robin, key switching
 - Sidechain input
 - Multi-out routing
-- Chord mode: user-selectable chord type (minor, dom7, etc.)
+- ✅ Chord/Strum mode: 12 chord shapes (Major/Minor/Maj7/Min7/Dom7/Dim/Aug/Sus2/Sus4/Power/Octave) + 0–200ms strum delay (shipped 2026-05-05)

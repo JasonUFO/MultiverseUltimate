@@ -324,5 +324,15 @@ private:
     // Wavetable editors (one per osc strip, shown as overlays)
     std::array<std::unique_ptr<WavetableEditor>, 8> wavetableEditors;
 
+    // Chord/Strum mode
+    juce::Rectangle<int> chordSectionRect;
+    juce::ToggleButton    chordEnableButton;
+    juce::ComboBox        chordShapeSelector;
+    NeuKnob               chordStrumSlider;
+    juce::Label           chordShapeLabel, chordStrumLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>   chordEnableAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> chordShapeAttach;
+    std::unique_ptr<SliderAttachment>                                        chordStrumAttach;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SynthPanel)
 };

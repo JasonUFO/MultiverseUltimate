@@ -98,17 +98,16 @@
 - `DRAW` button in each LFO row (enabled only when Custom selected)
 - State persistence: comma-separated float string per LFO in preset XML
 
-### 9.2 Chord/Strum Mode (Next)
-**Goal:** Single MIDI note triggers a full chord voicing, with optional strum delay between notes.
-**Architecture (proposed):**
-- `ChordMode` enum {Off, Major, Minor, Dom7, Maj7, Min7, Sus4, Sus2, Custom} — APVTS Choice param
-- `strumDelayMs` APVTS Float param (0–80ms)
-- `chordIntervals[8]` lookup table per mode (semitone offsets from root)
-- In `SynthEngine::noteOn()`: if chordMode != Off, fire additional voices at root+interval with staggered timing using `strumDelayMs` converted to samples
-- UI: CHORD section in SynthPanel header row — mode ComboBox + strum delay slider
-- No new MIDI generation; chord notes fired directly as additional voice noteOns
+### 9.2 Chord/Strum Mode ✅ COMPLETE (2026-05-05)
+- 3 APVTS params: `chordModeEnabled` (Bool), `chordShape` (Choice, 12 shapes), `chordStrumDelay` (Float 0–200ms)
+- 12 shapes: Root Only, Major, Minor, Maj7, Min7, Dom7, Dim, Aug, Sus2, Sus4, Power, Octave
+- `PendingNote[64]` + `ActiveChord[32]` pre-allocated in PluginProcessor (no heap alloc in processBlock)
+- Root fires via normal noteOn path; chord tones 1..n queued with `ni × strumSamples` delay
+- noteOff cancels pending tones + fires noteOff for already-triggered chord notes
+- CHORD/STRUM neumorphic section card in SynthPanel (Classic mode only, hidden in FM)
+- MPE-aware: chord mode bypassed when MPE enabled
 
-### 9.3 Performance View (Future)
+### 9.3 Performance View (Next)
 **Goal:** Full-screen overlay showing 8 large macro knobs + optional XY pad.
 **Architecture (proposed):**
 - New `PerformancePanel` component; "PERF" toggle button in header shows/hides as full overlay

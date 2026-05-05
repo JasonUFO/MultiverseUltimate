@@ -460,12 +460,22 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 - **APVTS**: lfoShape StringArray extended to include "Custom" (index 5 = enum Custom)
 - Build verified: VST3 builds and installs successfully ✅
 
+## Completed (Chord/Strum Mode — 2026-05-05)
+
+- **3 APVTS params**: `chordModeEnabled` (Bool), `chordShape` (Choice: 12 shapes), `chordStrumDelay` (Float 0–200ms)
+- **12 chord shapes**: Root Only, Major, Minor, Maj7, Min7, Dom7, Dim, Aug, Sus2, Sus4, Power, Octave
+- **PendingNote queue** (64 slots, pre-allocated, no heap): chord tones with strum delay fired at block start
+- **ActiveChord tracker** (32 slots, pre-allocated): per-root chord state for accurate noteOff cleanup
+- **processBlock integration**: pending queue advanced at top of block; root fires normally via existing path; chord tones 1..n scheduled with `ni × strumSamples` delay; noteOff cancels pending + fires noteOff for fired tones
+- **CHORD / STRUM section card** in SynthPanel (Classic mode only, hidden in FM mode): CHORD toggle, Shape ComboBox (12 items), STRUM rotary knob (0–200ms)
+- Real-time safe: no heap alloc, no locks; MPE-aware (chord mode bypassed when MPE enabled)
+- Build verified: VST3 + AU both build and install successfully ✅
+
 ## Next Session
 
 **Next features (in order):**
-1. Chord/Strum Mode — single note triggers full chord shapes (next session)
-2. Performance View — full-screen macro panel
-3. Preset generation — programmatic 100+ presets
+1. Performance View — full-screen macro panel for live use
+2. Preset generation — programmatic 100+ presets
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only), 7.5 (global oversampling), 7.6 (audio effect input bus).
 

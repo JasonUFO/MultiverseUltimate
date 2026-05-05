@@ -79,21 +79,21 @@ All items from the original "What Is Still To Do" list have been resolved. The p
 **Full spec:** `AI_GAP_FILL_PLAN.md` (created 2026-05-04)
 **Brief comparison:** Compared against `MULTIVERSE SYNTH BREIF.txt` — 30+ feature gaps identified
 
-**Gap-fill progress (as of 2026-05-04):**
+**Gap-fill progress (as of 2026-05-05):**
 - ✅ Phase 0: Existing functionality verified
 - ✅ Phase 1: Dynamic 1–8 osc/voice; 4 new types (Additive/PhaseDist/Analog/Digital); wave shaping + self-osc
 - ✅ Phase 2: Sampler tune/speed per zone; Lo/Hi key+vel range editing UI; Auto Map
-- ✅ Phase 3: Sequencer — per-pattern step length (32nd/16th/8th/Qtr/8T); per-step probability; MIDI drag-drop import; chord tracking; Seq Step mod source
-- ✅ Phase 4: 17-bus multi-output (Bus 0=main, 1–8=Layer outs, 9–16=Drum outs); per-drum-track LayerEffectChain FX; per-track output bus routing; "BUS"+"FX" controls in LayersPanel + DrumSequencerPanel
-- 🔜 Phase 5: Unlimited LFOs, drawable shapes, DAW-synced LFOs
-- 🔜 Phase 6/7: UI polish (resizable, keyboard), effects extras, standalone
+- ✅ Phase 3: Sequencer — per-pattern step length; per-step probability; MIDI drag-drop import; chord tracking; Seq Step mod source
+- ✅ Phase 4: 17-bus multi-output; per-drum-track LayerEffectChain FX; per-track output bus routing
+- ✅ Phase 5: 8 LFOs; LFO shapes (Sine/Tri/Saw/Square/S&H/Custom drawable); DAW-synced LFOs; Env2/Env3 mod envelopes
+- ✅ Phase 6/7: Resizable UI; built-in keyboard; RAND button; metronome; voice limiting; aux sends; tuner UI
+- ✅ Competitive expansion: Drawable LFO shapes; Chord/Strum Mode (12 shapes, 0–200ms strum delay)
 
-**Remaining key gaps:**
-- Sequencer: MIDI drag-to-DAW (3.6 deferred — needs offline render)
-- Modulation: unlimited LFOs, drawable LFO shapes, DAW-synced LFOs
-- UI: resizable/DPI scaling, built-in keyboard, 1000+ presets
-- Effects: return/aux sends, standalone mode
-- Misc: quick randomization, CPU limiting, zero-latency, audio effect mode, tuner/metronome
+**Remaining key gaps (deferred):**
+- Sequencer: MIDI drag-to-DAW (3.6 — needs offline render)
+- UI: 1000+ preset library
+- Effects: standalone mode (enable via Projucer GUI)
+- Competitive expansion: Performance View (full-screen macro panel); programmatic preset generation
 
 ### 2.6 Modulation Matrix — ✅ Functional
 

@@ -164,6 +164,29 @@ public:
     // Built-in keyboard — UI writes MIDI into this state, processBlock injects it into the buffer
     juce::MidiKeyboardState keyboardState;
 
+    // Chord/Strum mode — pre-allocated, no heap alloc in processBlock
+    static constexpr int MAX_PENDING_NOTES = 64;
+    static constexpr int MAX_ACTIVE_CHORDS = 32;
+
+    struct PendingNote {
+        int   note             = -1;
+        float velocity         = 0.0f;
+        int   samplesRemaining = 0;
+        int   rootNote         = -1;
+        bool  active           = false;
+    };
+
+    struct ActiveChord {
+        int  rootNote       = -1;
+        int  chordNotes[8]  = {};
+        bool noteFired[8]   = {};
+        int  noteCount      = 0;
+        bool active         = false;
+    };
+
+    PendingNote pendingNotes[MAX_PENDING_NOTES];
+    ActiveChord activeChords[MAX_ACTIVE_CHORDS];
+
     // Display FIFO — audio thread writes, UI thread reads (30 Hz)
     static constexpr int DISPLAY_FIFO_SIZE = 4096;
     juce::AbstractFifo displayFifo { DISPLAY_FIFO_SIZE };
