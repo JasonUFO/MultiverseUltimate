@@ -1,0 +1,510 @@
+{
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/NeuKnob.h": {
+    "mtime": 1777850198.9231129,
+    "hash": "da57e704de76f46c67ea1dabbf90db94"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/PluginEditor.h": {
+    "mtime": 1777965013.211127,
+    "hash": "20d604c85189c78c9da47a3b39d2e8aa"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/PluginProcessor.h": {
+    "mtime": 1777963521.88217,
+    "hash": "e4b805b3255a3fbdc9722d9a1ad42817"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/NeuKnob.cpp": {
+    "mtime": 1777850229.1547794,
+    "hash": "780fe2f30bc8479934014c5c17a283ad"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/MidiLearnSlider.cpp": {
+    "mtime": 1777850096.4358406,
+    "hash": "4c51ff8a761db8d268256947d1428846"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/CyberpunkTheme.h": {
+    "mtime": 1777854017.9250185,
+    "hash": "03d6e3201328c3ee4b6663923960d404"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/PluginProcessor.cpp": {
+    "mtime": 1777963587.4412644,
+    "hash": "564f679bb991399ab37db773f4c6d752"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/CyberpunkTheme.cpp": {
+    "mtime": 1777854129.093393,
+    "hash": "1a0565c1bb1d8d37c74a5c627c277cec"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/PluginEditor.cpp": {
+    "mtime": 1777965027.8469555,
+    "hash": "9544da21e45ff91b0c992a4f52e2e76a"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/MidiLearnSlider.h": {
+    "mtime": 1777850096.4595053,
+    "hash": "a9da73cf1c938143ad76141b098e2f3e"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Granular/GranularVoice.cpp": {
+    "mtime": 1777850096.4785872,
+    "hash": "a51fcd77a462ec84246d76902164258e"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Granular/GranularVoice.h": {
+    "mtime": 1777850096.4890902,
+    "hash": "d16d66a3804ad771536bc6a201c709f0"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Granular/GranularEngine.h": {
+    "mtime": 1777850096.4838517,
+    "hash": "a44c792b3ca62bcb0a4fdb4e678df76a"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Granular/GranularPanel.h": {
+    "mtime": 1777850096.4864879,
+    "hash": "b098495af0e6d76dc1242ab148a6591c"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Granular/GranularPanel.cpp": {
+    "mtime": 1777850198.9352012,
+    "hash": "647abcc06ec77619099d403b89373b93"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Granular/GrainState.h": {
+    "mtime": 1777850096.4813244,
+    "hash": "df8b40e3119bfba91ec4ef5d93b66dc2"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Granular/GranularEngine.cpp": {
+    "mtime": 1777850096.4733167,
+    "hash": "f38b5800f9f0738665fbb28a2e2850e8"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Layers/LayerManager.cpp": {
+    "mtime": 1777903080.626642,
+    "hash": "f0b21b3c00fd224a958ce1a22be05b32"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Layers/LayersPanel.h": {
+    "mtime": 1777903084.744474,
+    "hash": "870a9c3888db70e10a68a1c366581b23"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Layers/LayerEngine.h": {
+    "mtime": 1777903067.2619874,
+    "hash": "390c952259eb36738019e237173764cd"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Layers/LayerEffectChain.cpp": {
+    "mtime": 1777850096.4916275,
+    "hash": "0081f6544bd4f8aa7193536e586879e9"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Layers/LayerEngine.cpp": {
+    "mtime": 1777903075.8100345,
+    "hash": "52cbebdd1ac9635ac25da601c2c3b71c"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Layers/LayerManager.h": {
+    "mtime": 1777850096.508332,
+    "hash": "5a41711a18fc553b179dad9c10b5c4bf"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Layers/LayerEffectChain.h": {
+    "mtime": 1777850096.50294,
+    "hash": "ac3658236f9316f2189593fa29e5fe48"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Layers/LayersPanel.cpp": {
+    "mtime": 1777903100.4992275,
+    "hash": "e05b788d3846c9cc83a25963b4dc6179"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Macros/MacroManager.h": {
+    "mtime": 1777850096.5202749,
+    "hash": "2cc7942fad9bbe5215bb7e89736a166f"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Macros/MacroPanel.cpp": {
+    "mtime": 1777850130.2523828,
+    "hash": "5673eb344be595bff818246e3cc91a59"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Macros/MacroPanel.h": {
+    "mtime": 1777854701.4581814,
+    "hash": "7924381c4c8c24d86d80ea51d7047d94"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Macros/MacroManager.cpp": {
+    "mtime": 1777850096.5138361,
+    "hash": "bee3a8e62001e99abf873a8e18cd4f19"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/Voice.cpp": {
+    "mtime": 1777884033.7716744,
+    "hash": "8b6d0e063234e1b74bbb27579b2f73cb"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/WavetableOscillator.h": {
+    "mtime": 1777850096.7126327,
+    "hash": "4c2ac96107e5b4b9fe022c0417bad43c"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/SynthPanel.h": {
+    "mtime": 1777963597.2711902,
+    "hash": "795d44c7aa0f54a40cce62c25260d784"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/ModulationMatrix.cpp": {
+    "mtime": 1777940012.1530812,
+    "hash": "eaba2bd277773cf6ce858f3f67a94e22"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/Oscillator.h": {
+    "mtime": 1777883963.6645815,
+    "hash": "a46d392145f195978fb6632c2bf20ecc"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/SynthDisplay.h": {
+    "mtime": 1777935086.9737666,
+    "hash": "e7f25e060cff35b5ee544ec6103f5c34"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/SynthEngine.h": {
+    "mtime": 1777934048.8920057,
+    "hash": "ab5f765954d932d80731ba4aabf1e9e9"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/SynthDisplay.cpp": {
+    "mtime": 1777935115.6697364,
+    "hash": "1dce4fc2b40a4ec2d5496fa6791a8f4a"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/WavetableEditor.cpp": {
+    "mtime": 1777850096.6720831,
+    "hash": "a25584c15c127d8783fae632527776db"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/FMAlgorithm.h": {
+    "mtime": 1777850096.6830904,
+    "hash": "e9a13f88ef8009a9239bcfc3286d7cc9"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/FMVoice.cpp": {
+    "mtime": 1777850096.6478438,
+    "hash": "005aafbf6d619e889a76eeb5452511ed"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/FMVoice.h": {
+    "mtime": 1777850096.6882832,
+    "hash": "ffa83a9c011d769f2f23604bfc9c32de"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/Filter.cpp": {
+    "mtime": 1777850096.6424901,
+    "hash": "e3d576b6bd2fd2a6ad6eba1e28196d47"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/LFOShapeEditor.h": {
+    "mtime": 1777936816.8501558,
+    "hash": "36a91a2f7b83fc96b257599779d69a54"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/SynthEngine.cpp": {
+    "mtime": 1777934060.6390727,
+    "hash": "f137b013b462a6dd0c63b417ad2db21f"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/ModulationMatrix.h": {
+    "mtime": 1777939964.069792,
+    "hash": "2d7ea2400bcffcb7ebe234b2b4524625"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/SynthPanel.cpp": {
+    "mtime": 1777963653.819173,
+    "hash": "e2279ee6a84fe2ea8b2ab814983f233f"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/Voice.h": {
+    "mtime": 1777883986.100755,
+    "hash": "ff462925e5bf6f67081c89d89e757949"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/Envelope.h": {
+    "mtime": 1777850096.6777074,
+    "hash": "141d1a3811260979952c406870ee39a5"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/FMOperator.cpp": {
+    "mtime": 1777850096.645259,
+    "hash": "a85cb933abd2b17023305e74c2e02577"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/ModulationMatrixPanel.h": {
+    "mtime": 1777940029.8046196,
+    "hash": "a099314f77e925cbd35efd718277214c"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/ModulationMatrixPanel.cpp": {
+    "mtime": 1777940086.4719288,
+    "hash": "e23a7edb46d140770299267420e3b1ad"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/WavetableOscillator.cpp": {
+    "mtime": 1777850096.674911,
+    "hash": "8537ed253c9533023508bb0f37825afb"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/Filter.h": {
+    "mtime": 1777850096.6803179,
+    "hash": "1aadd65c2f48914c014fbf59d9e09e59"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/LFOShapeEditor.cpp": {
+    "mtime": 1777936842.0602927,
+    "hash": "0bae1caef90846c45cfcc0a4d664151f"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/Oscillator.cpp": {
+    "mtime": 1777850096.6572714,
+    "hash": "826e91d5ed99b15570ffe5b93f3883ed"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/Envelope.cpp": {
+    "mtime": 1777850096.6397061,
+    "hash": "cce3eb1a60f562f435d5faa185bf015c"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/WavetableEditor.h": {
+    "mtime": 1777850096.7098448,
+    "hash": "91d9945da86b46a40d0985c539ac5abd"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Synth/FMOperator.h": {
+    "mtime": 1777850096.6856546,
+    "hash": "58ba635d5c7679cf2d03a29f32795e2b"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sampler/SamplerEngine.h": {
+    "mtime": 1777850096.535343,
+    "hash": "1306a3f78a7dcd814eadf309ed003690"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sampler/SamplerPanel.h": {
+    "mtime": 1777886154.8222694,
+    "hash": "4990e862c4ce84db8cfd4075697b6b69"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sampler/SamplerVoice.cpp": {
+    "mtime": 1777886138.0817673,
+    "hash": "631b1c0b6146d3e484288d069c9bcb45"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sampler/SamplerPanel.cpp": {
+    "mtime": 1777886213.513994,
+    "hash": "e9e8485551844bf84352fbdf9e7f109a"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sampler/SamplerVoice.h": {
+    "mtime": 1777850096.5410438,
+    "hash": "08579372c68dfca48f5ffd117ffdc3e0"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sampler/SamplerZone.h": {
+    "mtime": 1777886133.4965122,
+    "hash": "cf09ac51605a009f132b14949f81b923"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sampler/SamplerEngine.cpp": {
+    "mtime": 1777886147.286305,
+    "hash": "743379d3b40a7751eb6e08ef205bb28b"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/PatternEngine.cpp": {
+    "mtime": 1777850096.5529792,
+    "hash": "f32616eb342df683999b063e125a5abe"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/Sequencer.cpp": {
+    "mtime": 1777886736.9911463,
+    "hash": "7e054c2a28d5aba13d32347c21769299"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/SequencerPanel.cpp": {
+    "mtime": 1777886833.7553177,
+    "hash": "001617883aea366ab725c0a079255b83"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/SequencerPanel.h": {
+    "mtime": 1777886763.4524562,
+    "hash": "7e70ed3066953998c9c92ea6c5c30122"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/ProSequencer.cpp": {
+    "mtime": 1777850096.5558197,
+    "hash": "7905e79ad83601847a0f7c36be8bd0a2"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/ArpeggiatorPanel.h": {
+    "mtime": 1777850198.9578485,
+    "hash": "14d815c75a6d197c8562f97954996af4"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/ProSequencerPanel.cpp": {
+    "mtime": 1777850198.9608989,
+    "hash": "94911c518b2bbf6e1d8a947f17800dd4"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/ProSequencer.h": {
+    "mtime": 1777850096.575191,
+    "hash": "ef0a74d36023c48209bd387befc91ff5"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/Arpeggiator.h": {
+    "mtime": 1777850096.5670934,
+    "hash": "2eb721db2863d157d0834391ff0c771f"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/ProSequencerPanel.h": {
+    "mtime": 1777850096.5777636,
+    "hash": "9d7009f414e1c06375fce03da3e63121"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/Sequencer.h": {
+    "mtime": 1777886695.247438,
+    "hash": "a1dd1359696dde85880a237dd96bda42"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/PatternEngine.h": {
+    "mtime": 1777850096.5723786,
+    "hash": "7fd54fc635a7f3fb7ac5775a3423e69f"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/ArpeggiatorPanel.cpp": {
+    "mtime": 1777850198.9642081,
+    "hash": "57994d1e8ba63a5a588c2d46452d2620"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Sequencer/Arpeggiator.cpp": {
+    "mtime": 1777850096.5473056,
+    "hash": "aee6ab58a7b543317c6775a8dde8704c"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Presets/PresetBrowserPanel.cpp": {
+    "mtime": 1777850198.967523,
+    "hash": "2f031558a71ea7e6d52fb064358d9b0a"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Presets/PresetBrowserPanel.h": {
+    "mtime": 1777850096.7262259,
+    "hash": "4e972497bf7288b5e68c7c96334390d2"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Presets/PresetManager.h": {
+    "mtime": 1777850096.7287471,
+    "hash": "3534dbd048f7e00b7b3a3e23d8296198"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Presets/FactoryPresets.h": {
+    "mtime": 1777983545.7947865,
+    "hash": "fe9362b46762ea711341e87ca73b4b3a"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Presets/Preset.cpp": {
+    "mtime": 1777850096.7152092,
+    "hash": "fbda230eb9dd99cd49ddb8523e71b2f3"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Presets/Preset.h": {
+    "mtime": 1777850096.7236576,
+    "hash": "22179ce9ac01930db7142fea61369bf6"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Presets/FactoryPresets.cpp": {
+    "mtime": 1777983839.1649103,
+    "hash": "fdd0863bd11d1716aa1ffc7a8bfb0013"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Presets/PresetManager.cpp": {
+    "mtime": 1777983888.528381,
+    "hash": "7408b22b69d9af874daee89207a214db"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Performance/PerformancePanel.h": {
+    "mtime": 1777964952.5208063,
+    "hash": "c23a5052f5c677d755df696e84fffcbc"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Performance/PerformancePanel.cpp": {
+    "mtime": 1777964995.4579983,
+    "hash": "61e81f154a8236b45781d69f065a77c2"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/EffectsPanel.h": {
+    "mtime": 1777934631.9557784,
+    "hash": "b3da8ec27ab1b19834e856fff16a5812"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Reverb.h": {
+    "mtime": 1777850096.623738,
+    "hash": "5b49f5b20a87237c5be04b8775324064"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Distortion.cpp": {
+    "mtime": 1777850096.5932698,
+    "hash": "c735afb1ac2b5f1854ce2ad5d48866a6"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/EffectsPanel.cpp": {
+    "mtime": 1777934696.451443,
+    "hash": "033f7d26c84d1c689eef852f8d967d97"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/EQ.cpp": {
+    "mtime": 1777850096.598853,
+    "hash": "aad1fa7c878f1d1b724c5766c6c98028"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Compressor.cpp": {
+    "mtime": 1777850096.5881128,
+    "hash": "a7ec453361a2b681cde806f8aa4020ef"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/EQ.h": {
+    "mtime": 1777850096.6208067,
+    "hash": "af9333eed37e2a3336311b57fb5195fa"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Delay.cpp": {
+    "mtime": 1777850096.5906985,
+    "hash": "4a2cbc777b317dcfbaf35f40d54a1030"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Reverb.cpp": {
+    "mtime": 1777850096.6013954,
+    "hash": "3f0dd737a11ac567c46e7d185b2b36c9"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Chorus.cpp": {
+    "mtime": 1777850096.5854685,
+    "hash": "9fdb90f8c99d17c19632218e2a883d0b"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Delay.h": {
+    "mtime": 1777850096.6090987,
+    "hash": "3a54fdfdfac761f304f023533e0ca1f7"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Effect.h": {
+    "mtime": 1777850096.6141782,
+    "hash": "2c571796b4d62abde7bd2e34faae2035"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Chorus.h": {
+    "mtime": 1777850096.604076,
+    "hash": "faefb259cae705adf518039a923b5166"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Compressor.h": {
+    "mtime": 1777850096.6066551,
+    "hash": "fb11b1a0c9a668ff947d61390245eb6f"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/Effects/Distortion.h": {
+    "mtime": 1777850096.6115832,
+    "hash": "c1284d8b1dd562e4bc5b86ec912d3f6d"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/DrumSequencer/DrumSequencerPanel.h": {
+    "mtime": 1777903024.8792136,
+    "hash": "6ac224ba5c1cd4a861cada6a36403365"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/DrumSequencer/DrumSequencer.cpp": {
+    "mtime": 1777903012.31664,
+    "hash": "62d97888eebb84e2d955a96c3f714951"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/DrumSequencer/DrumSequencerPanel.cpp": {
+    "mtime": 1777903057.5978143,
+    "hash": "8279aa16853f2476135b0218105e4266"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/source/DrumSequencer/DrumSequencer.h": {
+    "mtime": 1777902959.738135,
+    "hash": "04451b3f77b999bac52be52b8dae2768"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/PHASE5_NEXT_SESSION.md": {
+    "mtime": 1777903781.021296,
+    "hash": "e1191f48b207abf5783076928483d1f1"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/FEATURE_SUGGESTIONS.md": {
+    "mtime": 1777964470.8109524,
+    "hash": "76768b7edf138c3f4a2f87e8761c9396"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/Multiverse_Synth_Development_Guide copy.md": {
+    "mtime": 1777064991.9596431,
+    "hash": "378711fcacfcb2c056ca0f9c7f04c041"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/AI_CYBERPUNK_PLAN.md": {
+    "mtime": 1777856451.4122188,
+    "hash": "4a83f5be94263674faf148cb4a894f45"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/AI_RULES.md": {
+    "mtime": 1777501033.6464615,
+    "hash": "5b3272ab460c1ad98df2e43ce8af690a"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/BUILD_PLAN.md": {
+    "mtime": 1777829965.9066334,
+    "hash": "651cc3ff51f1fa46ab144b51f0315876"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/FIGMA_DESIGN_BRIEF.md": {
+    "mtime": 1777855312.7230957,
+    "hash": "c988a0ffc46622ca1b5e6b6cbc529132"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/FIGMA_BUILD_GUIDE.md": {
+    "mtime": 1777835242.4909241,
+    "hash": "2393d17adb2d26a1f1fcf8acf0402b93"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/Multiverse_Synth_Development_Guide.md": {
+    "mtime": 1777065627.8839087,
+    "hash": "39e7c74a6b0f0615db33cf28c6261b5c"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/PHASE9_NEXT_SESSION.md": {
+    "mtime": 1777964494.9010932,
+    "hash": "b62ddc1899825c3d433ba19e6d9fa256"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/MULTIVERSE_ULTIMATE_SPEC.md": {
+    "mtime": 1777964442.2093933,
+    "hash": "1df190b93b76f0ea844a262c5dca168f"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/claude_code_prompt_pack.md": {
+    "mtime": 1777326107.979394,
+    "hash": "b23a7f012f9fb44ed0c9a9643acd1bec"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/PHASE5_PLAN.md": {
+    "mtime": 1777856451.4163527,
+    "hash": "0131b73824b57775e97452435b267431"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/AI_STATE.md": {
+    "mtime": 1778020802.3162878,
+    "hash": "784aa39acdd4fd5ccea28945459359b8"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/AI_GAP_FILL_PLAN.md": {
+    "mtime": 1777964464.446457,
+    "hash": "9cb323f4ec94f1ff3645171ba83d6cec"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/CLAUDE.md": {
+    "mtime": 1777501033.646883,
+    "hash": "e0d8ec8d9fa2f154fdd0699f4834c1bc"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/AI_HANDOFF.md": {
+    "mtime": 1778020823.4916942,
+    "hash": "b09c6d04f38f0f93ba99d417364a9cfc"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/FIGMA_SIGN_OFF.md": {
+    "mtime": 1777836078.108851,
+    "hash": "b3fa587acac09d6c62a06c372f5f5501"
+  },
+  "/Users/jason/MultiphaseAudio/MultiverseUltimate/AI_USAGE.md": {
+    "mtime": 1777501537.5324514,
+    "hash": "2608359c3360b4af59397d8c76487f3f"
+  }
+}

@@ -234,6 +234,15 @@ void PresetManager::exportPreset(int index, const juce::File& destFile)
     presetFiles[index].copyFileTo(destFile);
 }
 
+juce::String PresetManager::getPresetCategory(int index) const
+{
+    if (index < 0 || index >= presetFiles.size())
+        return "Init";
+    auto parentName = presetFiles[index].getParentDirectory().getFileName();
+    static const juce::StringArray valid { "Init", "Bass", "Lead", "Pad", "Drums", "FX" };
+    return valid.contains(parentName) ? parentName : "Init";
+}
+
 void PresetManager::exportBank(const juce::File& destDirectory)
 {
     destDirectory.createDirectory();

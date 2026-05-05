@@ -67,6 +67,9 @@ private:
     // Preset list
     juce::ListBox    presetList  { "presets", this };
 
+    // Count label
+    juce::Label       countLabel;
+
     // Filtered preset indices
     juce::Array<int> filteredPresetIndices;
 

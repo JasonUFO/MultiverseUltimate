@@ -490,11 +490,16 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 - Files added to Multiverse.jucer (Dd0007/Dd0008); Projucer --resave run
 - Build verified: VST3 + AU both build and install successfully ✅
 
+## Completed (Preset Browser Polish — 2026-05-06)
+
+- **Category filtering fixed**: `PresetManager::getPresetCategory(int)` returns the parent directory name of each preset file (e.g. `Factory/Bass/*.mvpreset` → "Bass"); `rebuildFilter()` now compares actual file location instead of matching category name against preset name
+- **Preset count label**: `countLabel` added to `PresetBrowserPanel`, right-aligned in the search bar row; shows "N presets" when unfiltered, "N / Total presets" when a category or search is active
+- Build verified: VST3 builds and installs successfully ✅
+
 ## Next Session
 
 **Next features (in order):**
-1. Preset browser polish — show preset count, category filtering that works with factory presets
-2. MIDI export from Sequencer to DAW (drag MIDI clip out)
-3. Global oversampling (Phase 7.5)
+1. MIDI export from Sequencer to DAW (drag MIDI clip out)
+2. Global oversampling (Phase 7.5)
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only), 7.5 (global oversampling), 7.6 (audio effect input bus).

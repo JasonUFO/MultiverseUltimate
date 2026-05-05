@@ -37,3 +37,11 @@
 - **Modify only relevant files** (per AI_RULES.md Task Execution)
 
 **Never jump straight into coding. Always complete project analysis and planning before implementation.**
+
+---
+
+## Context Navigation
+When you need to understand the codebase, docs, or any files in this project:
+1. ALWAYS query the knowledge graph first: `/graphify query "your question"`
+2. Only read raw files if I explicitly say "read the file" or "look at the raw file"
+3. Use `graphify-out/wiki/index.md` as your navigation entrypoint for browsing structure

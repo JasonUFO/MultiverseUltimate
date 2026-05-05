@@ -460,12 +460,12 @@ void CyberpunkTheme::drawComboBox (juce::Graphics& g, int width, int height,
 void CyberpunkTheme::drawTabAreaBehindFrontButton (juce::TabbedButtonBar& /*bar*/,
                                                    juce::Graphics& g, int w, int h)
 {
-    // Dark tray behind all tabs
-    g.setColour (bgBase.darker (0.08f));
+    // Visible tray so tabs sit on a distinct surface
+    g.setColour (bgRaised);
     g.fillRect (0, 0, w, h);
-    // Bottom edge line
-    g.setColour (shadowLight.withAlpha (0.4f));
-    g.drawLine (0.0f, (float)h - 1.0f, (float)w, (float)h - 1.0f, 1.0f);
+    // Bottom separator line
+    g.setColour (neonCyan.withAlpha (0.25f));
+    g.drawLine (0.0f, (float)h - 1.0f, (float)w, (float)h - 1.0f, 1.5f);
 }
 
 void CyberpunkTheme::drawTabButton (juce::TabBarButton& button, juce::Graphics& g,
@@ -477,22 +477,30 @@ void CyberpunkTheme::drawTabButton (juce::TabBarButton& button, juce::Graphics& 
 
     if (front)
     {
-        // Active tab: accent tint + underline
-        g.setColour (neonCyan.withAlpha (0.13f));
+        // Active tab: brighter fill + cyan underline
+        g.setColour (bgDeep);
         g.fillRoundedRectangle (bounds, corner);
+        g.setColour (neonCyan.withAlpha (0.18f));
+        g.fillRoundedRectangle (bounds, corner);
+        g.setColour (neonCyan.withAlpha (0.55f));
+        g.drawRoundedRectangle (bounds.reduced (0.5f), corner, 1.0f);
         g.setColour (neonCyan);
-        g.fillRect (bounds.getX() + 4.0f, bounds.getBottom() - 2.0f,
-                    bounds.getWidth() - 8.0f, 2.0f);
+        g.fillRect (bounds.getX() + 4.0f, bounds.getBottom() - 2.5f,
+                    bounds.getWidth() - 8.0f, 2.5f);
     }
-    else if (mouseOver)
+    else
     {
-        g.setColour (shadowLight.withAlpha (0.2f));
+        // Inactive tab: subtle raised background so it's always visible
+        g.setColour (bgBase);
         g.fillRoundedRectangle (bounds, corner);
+        g.setColour (mouseOver ? shadowLight.withAlpha (0.35f) : shadowLight.withAlpha (0.18f));
+        g.drawRoundedRectangle (bounds.reduced (0.5f), corner, 1.0f);
     }
 
-    g.setFont (juce::Font (11.0f, juce::Font::plain));
-    g.setColour (front ? neonCyan
-                       : (mouseOver ? textSecondary.brighter (0.15f) : textSecondary));
+    g.setFont (juce::Font (12.0f, juce::Font::plain));
+    g.setColour (front  ? neonCyan
+               : mouseOver ? textPrimary.withAlpha (0.85f)
+                           : textPrimary.withAlpha (0.60f));
     g.drawFittedText (button.getButtonText(), bounds.toNearestInt(),
                       juce::Justification::centred, 1);
 }

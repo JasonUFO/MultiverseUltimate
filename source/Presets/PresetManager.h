@@ -27,6 +27,7 @@ public:
     juce::StringArray getPresetNames() const { return presetNames; }
     int getPresetCount() const              { return presetFiles.size(); }
     std::vector<Preset> getPresets() const  { return presets; }
+    juce::String getPresetCategory(int index) const;
 
     // Bank support
     juce::StringArray getBankNames() const;

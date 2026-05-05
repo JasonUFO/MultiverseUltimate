@@ -1,0 +1,218 @@
+{
+  "main": {
+    "id": "eca8f42ed748f3aa",
+    "type": "split",
+    "children": [
+      {
+        "id": "90c07b5ca9fb58f1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3acab4ffd2d8f3a3",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "CLAUDE.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "CLAUDE"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "22298f6d9e3bb655",
+    "type": "split",
+    "children": [
+      {
+        "id": "1e55bc1c3d5ac277",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b45e13ccd92ebe02",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "675497cbe973f42e",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "79b9068e99ce44e0",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "0dfb6d4616aa7b68",
+    "type": "split",
+    "children": [
+      {
+        "id": "4b5779b5cf53897b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "56f5601b7ee77464",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "CLAUDE.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for CLAUDE"
+            }
+          },
+          {
+            "id": "881346cbffd032c2",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "CLAUDE.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from CLAUDE"
+            }
+          },
+          {
+            "id": "2bfa7b908af05b8f",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "07aa4ed803834624",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "f213902b2ff5291d",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "CLAUDE.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of CLAUDE"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "3acab4ffd2d8f3a3",
+  "lastOpenFiles": [
+    "Builds/MacOSX/build/Debug/MultiverseUltimate.vst3/Contents/MacOS/MultiverseUltimate.cstemp",
+    "Builds/MacOSX/build/Debug/libMultiverseUltimate.a-dXNxq9",
+    "graphify-out/obsidian/graph.canvas",
+    "graphify-out/obsidian/XY Pad (Macro1 X-axis  Macro2 Y-axis).md",
+    "graphify-out/obsidian/OscillatorType Enum (ClassicWavetableAdditivePhaseDistAnalogDigital).md",
+    "graphify-out/obsidian/APVTS (AudioProcessorValueTreeState) Parameter System.md",
+    "graphify-out/obsidian/JUCE 8 Framework.md",
+    "graphify-out/obsidian/LayerEffectChain (Per-Layer Independent FX).md",
+    "graphify-out/obsidian/Multiverse Synth Development Guide (Copy).md",
+    "graphify-out/obsidian/Multiverse Synth Development Guide.md",
+    "graphify-out/obsidian/Claude Code Prompt Pack (Token-Optimised Dev Workflow).md",
+    "graphify-out/obsidian/Lightweight Mode (Single-file trivial tasks).md",
+    "graphify-out/obsidian/AI Usage Guide.md",
+    "graphify-out/obsidian/Deep Trilogy Workflow (Deep Project → Deep Plan → Deep Implement).md",
+    "graphify-out/obsidian/CLAUDE.md Project Instructions.md",
+    "graphify-out/obsidian/Build System Fix (Projucer + jucer corrections).md",
+    "graphify-out/obsidian/14 Core Bug Fixes (EnvelopeFilterprocessBlockDelay).md",
+    "graphify-out/obsidian/Multiverse Ultimate Technical Specification.md",
+    "graphify-out/obsidian/Figma SVG Component Files (Figmacomponents).md",
+    "graphify-out/obsidian/Figma Sign-Off Checklist.md",
+    "graphify-out/obsidian/Figma Component Naming Convention.md",
+    "graphify-out/obsidian/Figma Build Guide.md",
+    "graphify-out/obsidian/NeuKnob Rotary Slider Design Spec.md",
+    "graphify-out/obsidian/Figma Color Palette Spec.md",
+    "graphify-out/obsidian/Figma Design Brief (Complete UI Replacement).md",
+    "graphify-out/obsidian/Neumorphic Card Component Spec.md",
+    "graphify-out/obsidian/Dark Forge Color Palette (bgVoidneonCyanneonPinkneonPurple).md",
+    "graphify-out/obsidian/Neumorphic Cyberpunk UI Plan.md",
+    "graphify-out/obsidian"
+  ]
+}

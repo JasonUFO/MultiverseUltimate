@@ -88,6 +88,11 @@ PresetBrowserPanel::PresetBrowserPanel(PluginProcessor& p)
     presetList.setColour (juce::ListBox::outlineColourId, juce::Colours::transparentBlack);
     addAndMakeVisible (presetList);
 
+    countLabel.setFont (juce::Font (10.0f, juce::Font::plain));
+    countLabel.setColour (juce::Label::textColourId, textSecondary);
+    countLabel.setJustificationType (juce::Justification::centredRight);
+    addAndMakeVisible (countLabel);
+
     rebuildFilter();
 }
 
@@ -102,8 +107,9 @@ void PresetBrowserPanel::resized()
 {
     auto area = getLocalBounds().reduced (6, 6);
 
-    // Search bar at top
+    // Search bar at top (count label right-aligned inside it)
     auto searchBar = area.removeFromTop (28);
+    countLabel.setBounds (searchBar.removeFromRight (72).reduced (0, 6));
     searchEditor.setBounds (searchBar);
     area.removeFromTop (6);
 
@@ -154,33 +160,41 @@ void PresetBrowserPanel::resized()
 void PresetBrowserPanel::rebuildFilter()
 {
     filteredPresetIndices.clear();
-    auto allNames = processorRef.getPresetManager().getPresetNames();
+    auto& pm = processorRef.getPresetManager();
+    int total = pm.getPresetCount();
+    auto allNames = pm.getPresetNames();
     auto searchText = searchEditor.getText().toLowerCase();
 
-    for (int i = 0; i < allNames.size(); ++i)
+    // Determine active category from toggle state
+    juce::String activeCat = "All";
+    if (!catAll.getToggleState())
     {
-        juce::String name = allNames[i];
-        bool matchCategory = true;
-        bool matchSearch = true;
+        if      (catInit.getToggleState())  activeCat = "Init";
+        else if (catBass.getToggleState())  activeCat = "Bass";
+        else if (catLead.getToggleState())  activeCat = "Lead";
+        else if (catPad.getToggleState())   activeCat = "Pad";
+        else if (catDrums.getToggleState()) activeCat = "Drums";
+        else if (catFX.getToggleState())    activeCat = "FX";
+    }
 
-        // Category filter
-        auto* activeCat = &catAll;
-        for (auto* btn : categoryButtons)
-            if (btn->getToggleState()) { activeCat = btn; break; }
+    for (int i = 0; i < total; ++i)
+    {
+        juce::String cat  = pm.getPresetCategory(i);
+        juce::String name = (i < allNames.size()) ? allNames[i] : juce::String{};
 
-        if (activeCat != &catAll)
-        {
-            juce::String catStr = activeCat->getButtonText().toLowerCase();
-            matchCategory = name.toLowerCase().contains (catStr);
-        }
-
-        // Search filter
-        if (searchText.isNotEmpty())
-            matchSearch = name.toLowerCase().contains (searchText);
+        bool matchCategory = (activeCat == "All") || (cat == activeCat);
+        bool matchSearch   = searchText.isEmpty() || name.toLowerCase().contains(searchText);
 
         if (matchCategory && matchSearch)
-            filteredPresetIndices.add (i);
+            filteredPresetIndices.add(i);
     }
+
+    // Show filtered count (and total when filtered)
+    juce::String countText = juce::String(filteredPresetIndices.size());
+    if (activeCat != "All" || searchText.isNotEmpty())
+        countText += " / " + juce::String(total);
+    countText += " presets";
+    countLabel.setText(countText, juce::dontSendNotification);
 
     presetList.updateContent();
     presetList.repaint();
