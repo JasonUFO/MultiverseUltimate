@@ -471,11 +471,18 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 - Real-time safe: no heap alloc, no locks; MPE-aware (chord mode bypassed when MPE enabled)
 - Build verified: VST3 + AU both build and install successfully ✅
 
+## Completed (Performance View — 2026-05-05)
+
+- **"Perf" tab** added to PluginEditor (11th tab)
+- **PerformancePanel** (`Source/Performance/PerformancePanel.h/.cpp`): 4×2 grid of large RotaryVerticalDrag knobs (macro1-8, APVTS SliderAttachment); editable name labels (double-click to rename, synced from MacroManager at 30 Hz); BPM readout from DAW playhead
+- **XYPad inner class**: neumorphic card; maps macro1 (X-axis) and macro2 (Y-axis); mouse drag/down calls `setValueNotifyingHost`; 30 Hz timer syncs dot position from APVTS when external changes occur; grid + crosshair + glow dot drawn in paint()
+- **Neumorphic section cards**: info strip card, macro area card (via `drawNeumorphicRect`); XY Pad draws its own card inline
+- Build verified: VST3 builds and installs successfully ✅
+
 ## Next Session
 
 **Next features (in order):**
-1. Performance View — full-screen macro panel for live use
-2. Preset generation — programmatic 100+ presets
+1. Preset generation — programmatic 100+ presets
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only), 7.5 (global oversampling), 7.6 (audio effect input bus).
 

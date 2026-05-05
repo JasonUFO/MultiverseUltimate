@@ -130,6 +130,10 @@
         <FILE id="Ly0007" name="LayerEffectChain.h"    compile="0" resource="0" file="source/Layers/LayerEffectChain.h"/>
         <FILE id="Ly0008" name="LayerEffectChain.cpp"  compile="1" resource="0" file="source/Layers/LayerEffectChain.cpp"/>
       </GROUP>
+      <GROUP id="GrpPrf" name="Performance">
+        <FILE id="Pf0001" name="PerformancePanel.h"   compile="0" resource="0" file="source/Performance/PerformancePanel.h"/>
+        <FILE id="Pf0002" name="PerformancePanel.cpp" compile="1" resource="0" file="source/Performance/PerformancePanel.cpp"/>
+      </GROUP>
     </GROUP>
   </MAINGROUP>
   <MODULES>

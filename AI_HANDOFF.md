@@ -108,6 +108,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Phase 7 (more) | Aux sends (7.1): `auxSendDelay`/`auxSendReverb` APVTS params; `auxDelay`/`auxReverb` parallel effect instances; dry mix captured pre-chain; sends mixed post-pan; SENDS card in EffectsPanel. Tuner (7.7 UI): FFT peak detection with parabolic interpolation; MIDI note + cents readout; green/amber cents bar; drawn in SynthDisplay scope area. |
 | Drawable LFO | LFOShape::Custom (index 5); LFOShapeEditor component (pencil+line+fill+norm); DRAW button per LFO row; 256-pt table lookup in advanceLFOs(); per-LFO tables persist in preset XML |
 | Chord/Strum | chordModeEnabled/chordShape/chordStrumDelay APVTS params; 12 shapes (Major/Minor/Maj7/Min7/Dom7/Dim/Aug/Sus2/Sus4/Power/Octave/Root); PendingNote[64]+ActiveChord[32] pre-alloc queue; chord tones fire at block start, strum delay = ni×strumSamples; CHORD/STRUM card in SynthPanel (Classic mode only); MPE bypasses chord mode |
+| Performance View | `Source/Performance/PerformancePanel.h/.cpp` — "Perf" tab; 4×2 grid of large macro rotary knobs (SliderAttachment to macro1-8) with editable name labels; XYPad inner class (maps macro1=X, macro2=Y, mouse drag calls setValueNotifyingHost, timer updates dot from APVTS at 30 Hz); BPM readout from getPlayHead(); neumorphic section cards; macro names sync from MacroManager at 30 Hz |
 
 ## Next Steps
 
@@ -116,8 +117,8 @@ All gap-fill phases (0–7) complete. Now in competitive feature expansion.
 **Priority order:**
 1. ~~Drawable LFO Shapes~~ ✅ (2026-05-05)
 2. ~~Chord/Strum Mode~~ ✅ (2026-05-05)
-3. **Performance View** — full-screen macro panel for live use (next)
-4. Programmatic preset generation — 100+ named presets across categories
+3. ~~Performance View~~ ✅ (2026-05-05)
+4. **Programmatic preset generation** — 100+ named presets across categories (next)
 
 **Deferred (need decisions or Projucer GUI action):**
 - 7.2 Standalone mode — enable in Projucer GUI (File Formats → Standalone Plugin)

@@ -12,6 +12,7 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       macroPanel (p),
       granularPanel (p),
       layersPanel (p, p.getLayerManager()),
+      performancePanel (p),
       tabs (juce::TabbedButtonBar::TabsAtTop),
       midiLearnButton ("MIDI Learn"),
       midiLearnLabel ("", ""),
@@ -89,6 +90,7 @@ void PluginEditor::setupTabs()
     tabs.addTab ("Macros",     CyberpunkTheme::bgBase, &macroPanel,            false);
     tabs.addTab ("Granular",   CyberpunkTheme::bgBase, &granularPanel,         false);
     tabs.addTab ("Layers",     CyberpunkTheme::bgBase, &layersPanel,           false);
+    tabs.addTab ("Perf",       CyberpunkTheme::bgBase, &performancePanel,      false);
 }
 
 void PluginEditor::setupMidiLearnButton()

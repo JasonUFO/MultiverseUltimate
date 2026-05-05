@@ -14,6 +14,7 @@
 #include "Macros/MacroPanel.h"
 #include "Granular/GranularPanel.h"
 #include "Layers/LayersPanel.h"
+#include "Performance/PerformancePanel.h"
 
 class PluginEditor : public juce::AudioProcessorEditor,
                      public juce::Button::Listener,
@@ -43,6 +44,7 @@ private:
     MacroPanel            macroPanel;
     GranularPanel         granularPanel;
     LayersPanel           layersPanel;
+    PerformancePanel      performancePanel;
     juce::TabbedComponent tabs;
 
     // Preset browser
