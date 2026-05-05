@@ -62,6 +62,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - NeuKnob (`Source/NeuKnob.h/.cpp`) — value pill on hover/drag, amber arc when macro-assigned ✅
 - SynthDisplay (`Source/Synth/SynthDisplay.h/.cpp`) — real-time oscilloscope (left) + FFT spectrum (right), 30 Hz, lock-free FIFO ✅
 - WavetableEditor (`Source/Synth/WavetableEditor.h/.cpp`) — draw/edit wavetable frames, formula gen, import ✅
+- LFOShapeEditor (`Source/Synth/LFOShapeEditor.h/.cpp`) — drawable custom LFO shapes; pencil/line tools, fill buttons, normalize; launched as CallOutBox from DRAW button in each LFO row ✅
 - LayerManager (`Source/Layers/`) — 8 independent layers (Synth/Granular/Sampler), MIDI + audio + state ✅
 
 ## What Is Broken / Unconnected
@@ -105,27 +106,26 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Phase 6 | Resizable UI (setResizable + setResizeLimits 800-1920); Scale combo 75-150% in header; built-in keyboard (keyboardState in processor, MidiKeyboardComponent 64px in editor); RAND button with randomizeParams() |
 | Phase 7 (partial) | CPU voice limit: setVoiceLimit(int) in SynthEngine, maxVoices APVTS Choice, findFreeVoice limited to voiceLimit slots; Metronome: PPQ beat detection, 25ms decaying sine click at 1200/900Hz into buffer |
 | Phase 7 (more) | Aux sends (7.1): `auxSendDelay`/`auxSendReverb` APVTS params; `auxDelay`/`auxReverb` parallel effect instances; dry mix captured pre-chain; sends mixed post-pan; SENDS card in EffectsPanel. Tuner (7.7 UI): FFT peak detection with parabolic interpolation; MIDI note + cents readout; green/amber cents bar; drawn in SynthDisplay scope area. |
+| Drawable LFO | LFOShape::Custom (index 5); LFOShapeEditor component (pencil+line+fill+norm); DRAW button per LFO row; 256-pt table lookup in advanceLFOs(); per-LFO tables persist in preset XML |
 
 ## Next Steps
 
-### Gap-Fill Implementation (Current Focus)
-**Plan:** `AI_GAP_FILL_PLAN.md`
-**Phases 0–6 complete.** Next: Phase 7 (Effects & Additional Features).
-**Priority order (remaining):**
-1. ~~Phase 0: Verify ModulationMatrix/SamplerEngine wiring~~ ✅
-2. ~~Phase 1: Core synthesis & oscillator upgrades~~ ✅
-3. ~~Phase 2: Sampler enhancements (tune/speed/key-vel ranges/auto-map)~~ ✅
-4. ~~Phase 3: Sequencer upgrades (step length, probability, chord detect, MIDI drop, Seq Step mod source)~~ ✅
-5. ~~Phase 4: Multi-output buses + per-drum-track FX~~ ✅
-6. ~~Phase 5: Modulation upgrades (8 LFOs, shapes, DAW sync, Env2/3)~~ ✅
-7. Phase 6–7: UI polish (resizable, built-in keyboard), effects extras, standalone
+### Post-Gap Feature Roadmap (Current Focus)
+All gap-fill phases (0–7) complete. Now in competitive feature expansion.
+**Priority order:**
+1. ~~Drawable LFO Shapes~~ ✅ (2026-05-05)
+2. **Chord/Strum Mode** — single note → chord voicing with optional strum delay (next)
+3. Performance View — full-screen macro panel for live use
+4. Programmatic preset generation — 100+ named presets across categories
 
-**Remaining clarifications (for later phases):**
-4. 1000+ presets: programmatic or curated?
-5. Standalone mode: separate executable or audio effect?
+**Deferred (need decisions or Projucer GUI action):**
+- 7.2 Standalone mode — enable in Projucer GUI (File Formats → Standalone Plugin)
+- 7.5 Global oversampling
+- 7.6 Audio effect input bus
+- 6.3 1000+ preset library
 
 ### Cyberpunk UI
-Complete — `CyberpunkTheme` renamed to `CyberpunkTheme`, all panels updated, neumorphic section cards applied.
+Complete — `CyberpunkTheme` is the global LookAndFeel, all panels updated, neumorphic section cards applied.
 
 ---
 
@@ -178,6 +178,7 @@ Complete — `CyberpunkTheme` renamed to `CyberpunkTheme`, all panels updated, n
 - `SynthDisplay`: lives at `Source/Synth/SynthDisplay.h/.cpp`. Ring buffer: `RING_SIZE=2048`, `ringWritePos` (masked with `& (RING_SIZE-1)`). FFT: `juce::dsp::FFT fft{FFT_ORDER}` (order 10, 1024-point). Audio data arrives via `PluginProcessor::pullDisplaySamples(float*, int)` (public, message-thread safe). `pushDisplaySamples` is private, called at end of processBlock after pan.
 - `PresetBrowserPanel` (`Source/Presets/PresetBrowserPanel.h/.cpp`): inherits `juce::ListBoxModel` + `Button::Listener` + `ComboBox::Listener`. Uses `juce::ListBox presetList`. Shown as 160px collapsible panel above tabs in `PluginEditor` (toggled by "Presets" button in header). `refresh()` calls `presetList.updateContent()`. Phase 4 redesign: keep all logic, only change `paint()`, `resized()`, `paintListBoxItem()`, and visual styling.
 - `WavetableEditor` (`Source/Synth/WavetableEditor.h/.cpp`): takes `WavetableOscillator&` (voice 0 master). `onWavetableChanged` callback must be set by caller to `synthEngine.distributeWavetable(oscIndex)`. Shown as full-panel overlay inside SynthPanel; toggled by "EDIT WT" button per osc strip. FFT button is a placeholder (calls normalizeFrame).
+- `LFOShapeEditor` (`Source/Synth/LFOShapeEditor.h/.cpp`): standalone component, no external dependencies. `setTable(array<float,256>)` to pre-populate; `onTableChanged` callback fires after every edit. Fixed ±1 canvas with center-line grid; pencil (freehand drag), line (mouseDown→mouseUp), SIN/SAW/SQR/TRI fill, NORM. Launched via `CallOutBox::launchAsynchronously` from `LFORow::drawButton`. Size 310×160. `LFOShape::Custom` in advanceLFOs uses linear interpolation: `idx0=(int)(phase/2π*255)&255`, frac blend with `idx1=(idx0+1)&255`. Tables persisted as `lfo1CustomTable`–`lfo8CustomTable` comma-separated float properties in ModulationMatrix XML state.
 - `WavetableOscillator` new public API: `setSample(frame,i,v)`, `getSample(frame,i)`, `clearFrame`, `normalizeFrame`, `fadeFrame`, `reverseFrame`, `generateFormula(frame, fn)`, `loadMultiCycleWavetable`, `processFFT` (placeholder), `getTableCount()`, `getTableSize()`.
 - `SamplerZone` has `tuning` (float, ±24 semitones) and `speed` (float, 0.25–4.0) fields. Both are persisted in getState/setState XML with defaults 0.0/1.0. `MvSamplerVoice::noteOn` folds them in: `playbackRate = exp2((midiNote-rootNote+tuning)/12) * (fileSR/sr) * speed`.
 - `SynthEngine::getWavetableOscillator(oscIndex)` returns `voices[0].voice.getWavetableOsc(oscIndex)` — voice 0 is the edit master. `distributeWavetable(oscIndex)` copies frame data from voice 0 to voices 1–15 via `setSample`.

@@ -89,6 +89,42 @@
 
 ---
 
+## Phase9: Competitive Feature Expansion (Post-Gap, 2026-05-05+)
+
+### 9.1 Drawable LFO Shapes ✅ COMPLETE (2026-05-05)
+- `LFOShape::Custom` (index 5) added to enum
+- `LFOShapeEditor` component: pencil+line draw, SIN/SAW/SQR/TRI fill, NORM
+- `lfoCustomTable[8][256]` in ModulationMatrix; linear interpolation in `advanceLFOs()`
+- `DRAW` button in each LFO row (enabled only when Custom selected)
+- State persistence: comma-separated float string per LFO in preset XML
+
+### 9.2 Chord/Strum Mode (Next)
+**Goal:** Single MIDI note triggers a full chord voicing, with optional strum delay between notes.
+**Architecture (proposed):**
+- `ChordMode` enum {Off, Major, Minor, Dom7, Maj7, Min7, Sus4, Sus2, Custom} — APVTS Choice param
+- `strumDelayMs` APVTS Float param (0–80ms)
+- `chordIntervals[8]` lookup table per mode (semitone offsets from root)
+- In `SynthEngine::noteOn()`: if chordMode != Off, fire additional voices at root+interval with staggered timing using `strumDelayMs` converted to samples
+- UI: CHORD section in SynthPanel header row — mode ComboBox + strum delay slider
+- No new MIDI generation; chord notes fired directly as additional voice noteOns
+
+### 9.3 Performance View (Future)
+**Goal:** Full-screen overlay showing 8 large macro knobs + optional XY pad.
+**Architecture (proposed):**
+- New `PerformancePanel` component; "PERF" toggle button in header shows/hides as full overlay
+- 8 NeuKnobs wired to macro1–macro8 APVTS params (same as MacroPanel)
+- Optional XY pad: X→macro1, Y→macro2 (or user-assignable)
+- No new DSP; purely UI
+
+### 9.4 Programmatic Preset Generation (Future)
+**Goal:** Ship 100+ named factory presets across Bass/Lead/Pad/Drums/FX categories.
+**Architecture (proposed):**
+- Standalone C++ tool or in-plugin "Generate Presets" dev button
+- Randomize within musical parameter ranges per category (e.g. Bass: low cutoff, high sustain)
+- Save as `.mvpreset` files to `~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/`
+
+---
+
 ## Implementation Rules (Per `AI_RULES.md`)
 - Reuse existing JUCE 8 APIs, no new external libraries
 - Follow existing code conventions: angle-bracket JUCE includes, C++17, JUCE 8 deprecation workarounds
