@@ -479,13 +479,22 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 - **Neumorphic section cards**: info strip card, macro area card (via `drawNeumorphicRect`); XY Pad draws its own card inline
 - Build verified: VST3 builds and installs successfully ✅
 
+## Completed (Factory Preset Library — 2026-05-05)
+
+- **`Source/Presets/FactoryPresets.h/.cpp`** — programmatic factory preset generator
+- **100 presets** across 6 categories: Init (5), Bass (20), Lead (20), Pad (25), Drums (15), FX (15)
+- Each preset is a complete XML state (all 220+ APVTS params + SynthParams osc nodes) ensuring clean load from any prior state
+- Normalization helpers (`nLin`, `nSkw`, `nCh`, `nB`) + shorthand (`A/D/R`, `FC`, `FR`, `LR`, `PT`, `DT`) for readable preset definitions
+- `PresetData` struct with convenience setters: `setAdsr`, `setFilter`, `setReverb`, `setChorus`, `setDelay`, `setUnison`, `setMono`, `setOscApvts`, `applyOscs`
+- `PresetManager::createFactoryPresetsIfNeeded()` updated: recursive scan (< 10 files triggers generation); calls `FactoryPresets::writeToDirectory()`
+- Files added to Multiverse.jucer (Dd0007/Dd0008); Projucer --resave run
+- Build verified: VST3 + AU both build and install successfully ✅
+
 ## Next Session
 
 **Next features (in order):**
-1. Preset generation — programmatic 100+ presets
+1. Preset browser polish — show preset count, category filtering that works with factory presets
+2. MIDI export from Sequencer to DAW (drag MIDI clip out)
+3. Global oversampling (Phase 7.5)
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only), 7.5 (global oversampling), 7.6 (audio effect input bus).
-
-**Remaining questions:**
-4. 1000+ presets: programmatic generation or curated?
-5. Standalone mode: separate executable or audio effect mode?

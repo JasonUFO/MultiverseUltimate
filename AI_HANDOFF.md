@@ -109,6 +109,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Drawable LFO | LFOShape::Custom (index 5); LFOShapeEditor component (pencil+line+fill+norm); DRAW button per LFO row; 256-pt table lookup in advanceLFOs(); per-LFO tables persist in preset XML |
 | Chord/Strum | chordModeEnabled/chordShape/chordStrumDelay APVTS params; 12 shapes (Major/Minor/Maj7/Min7/Dom7/Dim/Aug/Sus2/Sus4/Power/Octave/Root); PendingNote[64]+ActiveChord[32] pre-alloc queue; chord tones fire at block start, strum delay = ni×strumSamples; CHORD/STRUM card in SynthPanel (Classic mode only); MPE bypasses chord mode |
 | Performance View | `Source/Performance/PerformancePanel.h/.cpp` — "Perf" tab; 4×2 grid of large macro rotary knobs (SliderAttachment to macro1-8) with editable name labels; XYPad inner class (maps macro1=X, macro2=Y, mouse drag calls setValueNotifyingHost, timer updates dot from APVTS at 30 Hz); BPM readout from getPlayHead(); neumorphic section cards; macro names sync from MacroManager at 30 Hz |
+| Factory Presets | `Source/Presets/FactoryPresets.h/.cpp` — 100 presets (Init×5, Bass×20, Lead×20, Pad×25, Drums×15, FX×15); `PresetData` struct with helpers (`setAdsr/setFilter/setReverb/setChorus/setDelay/setUnison/setMono/applyOscs`); full APVTS XML (all 220+ params) per preset for clean load; normalization helpers `nLin/nSkw/nCh` + shorthands `A/D/R/FC/FR/LR/PT/DT`; `PresetManager::createFactoryPresetsIfNeeded` calls `FactoryPresets::writeToDirectory` when < 10 presets found (recursive scan) |
 
 ## Next Steps
 
@@ -118,7 +119,8 @@ All gap-fill phases (0–7) complete. Now in competitive feature expansion.
 1. ~~Drawable LFO Shapes~~ ✅ (2026-05-05)
 2. ~~Chord/Strum Mode~~ ✅ (2026-05-05)
 3. ~~Performance View~~ ✅ (2026-05-05)
-4. **Programmatic preset generation** — 100+ named presets across categories (next)
+4. ~~Programmatic preset generation~~ ✅ (2026-05-05) — 100 factory presets, 6 categories
+5. **Preset browser polish / MIDI export / Global oversampling** (next)
 
 **Deferred (need decisions or Projucer GUI action):**
 - 7.2 Standalone mode — enable in Projucer GUI (File Formats → Standalone Plugin)

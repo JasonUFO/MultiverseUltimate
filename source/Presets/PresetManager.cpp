@@ -1,4 +1,5 @@
 #include "PresetManager.h"
+#include "FactoryPresets.h"
 
 PresetManager::PresetManager()
 {
@@ -44,17 +45,11 @@ void PresetManager::createFactoryPresetsIfNeeded()
             dir.createDirectory();
     }
 
-    // Create Init preset if none exist
-    if (factoryDir.findChildFiles(juce::File::findFiles, false, "*.mvpreset").isEmpty())
-    {
-        // Create basic init preset file
-        juce::XmlElement xml("PRESET");
-        xml.setAttribute("name", "Init");
-        xml.setAttribute("category", "Init");
-        xml.setAttribute("author", "MultiphaseAudio");
-        auto initFile = factoryDir.getChildFile("Init").getChildFile("Init.mvpreset");
-        initFile.replaceWithText(xml.toString());
-    }
+    // Generate all factory presets if none exist yet (recursive search)
+    juce::Array<juce::File> existing;
+    factoryDir.findChildFiles(existing, juce::File::findFiles, true, "*.mvpreset");
+    if (existing.size() < 10)
+        FactoryPresets::writeToDirectory(factoryDir);
 }
 
 void PresetManager::loadPreset(const juce::String& path)
