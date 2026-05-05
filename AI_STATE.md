@@ -450,13 +450,25 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
   - `tunerHz/tunerNote/tunerCents` state in SynthDisplay; updated at 30 Hz in timerCallback
   - Build verified ✅
 
+## Completed (Drawable LFO Shapes — 2026-05-05)
+
+- **LFOShape::Custom** added as 6th shape value
+- **LFOShapeEditor** (`Source/Synth/LFOShapeEditor.h/.cpp`): pencil + line draw tools, SIN/SAW/SQR/TRI fill buttons, NORM button; 310×160 CallOutBox
+- **DRAW button** in each LFO row (ModulationMatrixPanel), enabled only when Custom shape selected, dimmed otherwise
+- **Custom table lookup** in `advanceLFOs()`: 256-pt linear interpolation, wrapping
+- **State persistence**: 256 floats saved/restored as comma-separated string per LFO in preset XML
+- **APVTS**: lfoShape StringArray extended to include "Custom" (index 5 = enum Custom)
+- Build verified: VST3 builds and installs successfully ✅
+
 ## Next Session
 
-**Remaining Phase 7:** 7.2 (standalone via Projucer GUI — user action only), 7.5 (global oversampling — DEFERRED), 7.6 (audio effect input bus — DEFERRED).
+**Next features (in order):**
+1. Chord/Strum Mode — single note triggers full chord shapes (next session)
+2. Performance View — full-screen macro panel
+3. Preset generation — programmatic 100+ presets
 
-**Competitive brief reminder:** Goal is to match/surpass Serum 2, Nexus 5, Avenger 2, Diva, Zebra 3.
+**Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only), 7.5 (global oversampling), 7.6 (audio effect input bus).
 
-**Remaining questions (for later phases):**
+**Remaining questions:**
 4. 1000+ presets: programmatic generation or curated?
 5. Standalone mode: separate executable or audio effect mode?
-6. 3.6 (Drag MIDI to audio / offline render) — deferred, complex feature.
