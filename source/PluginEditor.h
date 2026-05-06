@@ -73,6 +73,14 @@ private:
     // UI scale
     juce::ComboBox scaleCombo;
 
+    // Global quality (oversampling)
+    juce::ComboBox qualCombo;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> qualAttachment;
+
+    // FX Mode (audio input passthrough)
+    juce::TextButton fxModeButton { "FX" };
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> fxModeAttachment;
+
     void setupTabs();
     void setupMidiLearnButton();
     void updateMidiLearnUI();

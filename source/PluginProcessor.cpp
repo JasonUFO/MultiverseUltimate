@@ -391,12 +391,22 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         juce::ParameterID{"chordStrumDelay", 1}, "Strum Delay",
         juce::NormalisableRange<float>(0.0f, 200.0f), 0.0f));
 
+    // Global quality (oversampling)
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"globalQuality", 1}, "Global Quality",
+        juce::StringArray{"Off", "2x High", "4x Ultra"}, 0));
+
+    // FX Mode (audio input passthrough)
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"fxModeEnabled", 1}, "FX Mode", false));
+
     return layout;
 }
 
 //==============================================================================
 PluginProcessor::PluginProcessor()
      : AudioProcessor (BusesProperties()
+                      .withInput  ("Audio In", juce::AudioChannelSet::stereo(), false)
                       .withOutput ("Output",  juce::AudioChannelSet::stereo(), true)
                       // Individual layer buses (1-8)
                       .withOutput ("Layer 1", juce::AudioChannelSet::stereo(), false)
@@ -487,6 +497,7 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     if (samplesPerBlock <= 0)
         samplesPerBlock = 512;
 
+    // Engines always run at native sample rate
     synthEngine.prepare (sampleRate, samplesPerBlock);
     granularEngine.prepare (sampleRate, samplesPerBlock);
     samplerEngine.prepare (sampleRate, samplesPerBlock);
@@ -496,26 +507,48 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     proSequencer.prepare (sampleRate, 120.0f);
     arpeggiator.prepare  (sampleRate, 120.0f);
     patternEngine.prepare (sampleRate, 120.0f);
-    delay.prepare (sampleRate, samplesPerBlock);
-    delay.reset();
-    reverb.prepare (sampleRate, samplesPerBlock);
-    reverb.reset();
-    auxDelay.prepare (sampleRate, samplesPerBlock);
-    auxDelay.reset();
-    auxReverb.prepare (sampleRate, samplesPerBlock);
-    auxReverb.reset();
-    auxSendBuffer.setSize (2, samplesPerBlock, false, true, false);
-    auxWorkBuffer.setSize (2, samplesPerBlock, false, true, false);
-    for (int ch = 0; ch < 2; ++ch)
-    {
-        chorus[ch].prepare    (sampleRate, samplesPerBlock); chorus[ch].reset();
-        distortion[ch].prepare(sampleRate, samplesPerBlock); distortion[ch].reset();
-        eq[ch].prepare        (sampleRate, samplesPerBlock); eq[ch].reset();
-        compressor[ch].prepare(sampleRate, samplesPerBlock); compressor[ch].reset();
-    }
     modulationMatrix.prepare (sampleRate, samplesPerBlock);
     modEnv2.setSampleRate(sampleRate);
     modEnv3.setSampleRate(sampleRate);
+
+    // Global quality: set up oversampler and prepare effects at oversampled rate
+    const int qualIdx = juce::jlimit(0, 2,
+        (int)*apvts.getRawParameterValue("globalQuality"));
+    oversamplingFactor = (qualIdx == 0) ? 1 : (qualIdx == 1) ? 2 : 4;
+
+    if (qualIdx > 0)
+    {
+        activeOversampler = std::make_unique<juce::dsp::Oversampling<float>>(
+            2, qualIdx,
+            juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true);
+        activeOversampler->initProcessing ((size_t)samplesPerBlock);
+        setLatencySamples ((int)std::round (activeOversampler->getLatencyInSamples()));
+    }
+    else
+    {
+        activeOversampler.reset();
+        setLatencySamples (0);
+    }
+
+    // Effects chain prepared at oversampled rate
+    const double osSR    = sampleRate * oversamplingFactor;
+    const int    osBlock = samplesPerBlock * oversamplingFactor;
+
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        chorus[ch].prepare    (osSR, osBlock); chorus[ch].reset();
+        distortion[ch].prepare(osSR, osBlock); distortion[ch].reset();
+        eq[ch].prepare        (osSR, osBlock); eq[ch].reset();
+        compressor[ch].prepare(osSR, osBlock); compressor[ch].reset();
+    }
+    delay.prepare (osSR, osBlock);  delay.reset();
+    reverb.prepare(osSR, osBlock);  reverb.reset();
+
+    // Aux sends always at native rate (they process the pre-effects dry signal)
+    auxDelay.prepare (sampleRate, samplesPerBlock); auxDelay.reset();
+    auxReverb.prepare(sampleRate, samplesPerBlock); auxReverb.reset();
+    auxSendBuffer.setSize (2, samplesPerBlock, false, true, false);
+    auxWorkBuffer.setSize (2, samplesPerBlock, false, true, false);
 }
 
 void PluginProcessor::releaseResources()
@@ -528,6 +561,14 @@ bool PluginProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
     juce::ignoreUnused (layouts);
     return true;
   #else
+    // Main input bus must be stereo or disabled
+    if (layouts.inputBuses.size() > 0)
+    {
+        const auto& inBus = layouts.inputBuses.getReference (0);
+        if (!inBus.isDisabled() && inBus != juce::AudioChannelSet::stereo())
+            return false;
+    }
+
     // Main output bus must be stereo
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
@@ -552,7 +593,19 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     if (buffer.getNumSamples() <= 0 || buffer.getNumChannels() <= 0)
         return;
 
-    buffer.clear();
+    // FX Mode: preserve input audio on channels 0-1; clear everything else.
+    // Synth mode: clear all channels (normal instrument behavior).
+    const bool fxMode = *apvts.getRawParameterValue("fxModeEnabled") > 0.5f;
+    if (fxMode && getTotalNumInputChannels() >= 2)
+    {
+        for (int ch = 2; ch < buffer.getNumChannels(); ++ch)
+            buffer.clear (ch, 0, buffer.getNumSamples());
+    }
+    else
+    {
+        buffer.clear();
+    }
+
     keyboardState.processNextMidiBuffer(midiMessages, 0, buffer.getNumSamples(), true);
 
     // Chord/Strum: fire pending notes that are due this block
@@ -1372,45 +1425,90 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     for (int s = 0; s < 6; ++s)
         if (chain[s] == static_cast<int>(EffectID::Reverb)) { reverbPos = s; break; }
 
-    // Mix sources + apply all chain effects that come before Reverb
-    for (int i = 0; i < numSamples; ++i)
+    // Step 1: Mix all synth engine outputs into the main stereo pair of buffer
+    // (drums are already in buffer from drumSequencer.process above)
     {
-        for (int ch = 0; ch < numChannels; ++ch)
-        {
-            float s = buffer.getReadPointer(ch)[i]
-                    + synthBuffer   .getReadPointer(ch)[i]
+        const int mixCh = juce::jmin(numChannels, 2);
+        for (int i = 0; i < numSamples; ++i)
+            for (int ch = 0; ch < mixCh; ++ch)
+                buffer.getWritePointer(ch)[i] +=
+                    synthBuffer   .getReadPointer(ch)[i]
                     + samplerBuffer .getReadPointer(ch)[i]
                     + granularBuffer.getReadPointer(ch)[i]
                     + layerBuffer   .getReadPointer(ch)[i];
-            for (int slot = 0; slot < reverbPos; ++slot)
-                s = applyChainEffect(chain[slot], s, ch);
-            buffer.getWritePointer(ch)[i] = s;
-        }
     }
 
-    // Reverb: stereo block-level (pre-delay, LF damp, width, freeze all inside)
-    if (numChannels >= 2)
-        reverb.processBlock(buffer.getWritePointer(0), buffer.getWritePointer(1), numSamples);
-    else if (numChannels == 1)
-        for (int i = 0; i < numSamples; ++i)
-            buffer.getWritePointer(0)[i] = reverb.process(buffer.getReadPointer(0)[i]);
-
-    // Apply chain effects that come after Reverb
-    if (reverbPos < 5)
+    // Step 2: Apply effects chain — oversampled if quality > 1x, else native rate
     {
-        for (int i = 0; i < numSamples; ++i)
+        const int mixCh = juce::jmin(numChannels, 2);
+
+        if (oversamplingFactor > 1 && activeOversampler)
         {
-            for (int ch = 0; ch < numChannels; ++ch)
-            {
-                float s = buffer.getReadPointer(ch)[i];
-                for (int slot = reverbPos + 1; slot < 6; ++slot)
-                    s = applyChainEffect(chain[slot], s, ch);
-                buffer.getWritePointer(ch)[i] = s;
-            }
+            juce::dsp::AudioBlock<float> mainBlock (
+                buffer.getArrayOfWritePointers(), (size_t)mixCh, (size_t)numSamples);
+            auto upBlock  = activeOversampler->processSamplesUp (mainBlock);
+            const int upN = (int)upBlock.getNumSamples();
+            const int upC = (int)upBlock.getNumChannels();
+
+            // Pre-reverb effects
+            for (int i = 0; i < upN; ++i)
+                for (int ch = 0; ch < upC; ++ch)
+                {
+                    float s = upBlock.getSample (ch, i);
+                    for (int slot = 0; slot < reverbPos; ++slot)
+                        s = applyChainEffect (chain[slot], s, ch);
+                    upBlock.setSample (ch, i, s);
+                }
+
+            // Reverb (stereo block-level)
+            reverb.processBlock (upBlock.getChannelPointer (0),
+                                 upBlock.getChannelPointer (1), upN);
+
+            // Post-reverb effects
+            if (reverbPos < 5)
+                for (int i = 0; i < upN; ++i)
+                    for (int ch = 0; ch < upC; ++ch)
+                    {
+                        float s = upBlock.getSample (ch, i);
+                        for (int slot = reverbPos + 1; slot < 6; ++slot)
+                            s = applyChainEffect (chain[slot], s, ch);
+                        upBlock.setSample (ch, i, s);
+                    }
+
+            activeOversampler->processSamplesDown (mainBlock);
+        }
+        else
+        {
+            // Native-rate path (no oversampling)
+            for (int i = 0; i < numSamples; ++i)
+                for (int ch = 0; ch < mixCh; ++ch)
+                {
+                    float s = buffer.getReadPointer(ch)[i];
+                    for (int slot = 0; slot < reverbPos; ++slot)
+                        s = applyChainEffect (chain[slot], s, ch);
+                    buffer.getWritePointer(ch)[i] = s;
+                }
+
+            if (mixCh >= 2)
+                reverb.processBlock (buffer.getWritePointer(0),
+                                     buffer.getWritePointer(1), numSamples);
+            else if (mixCh == 1)
+                for (int i = 0; i < numSamples; ++i)
+                    buffer.getWritePointer(0)[i] = reverb.process (buffer.getReadPointer(0)[i]);
+
+            if (reverbPos < 5)
+                for (int i = 0; i < numSamples; ++i)
+                    for (int ch = 0; ch < mixCh; ++ch)
+                    {
+                        float s = buffer.getReadPointer(ch)[i];
+                        for (int slot = reverbPos + 1; slot < 6; ++slot)
+                            s = applyChainEffect (chain[slot], s, ch);
+                        buffer.getWritePointer(ch)[i] = s;
+                    }
         }
     }
 
-    // Pan
+    // Pan (always at native rate, after any downsampling)
     const float panGainL = 1.0f - juce::jmax(0.0f, pan);
     const float panGainR = 1.0f + juce::jmin(0.0f, pan);
     for (int i = 0; i < numSamples; ++i)

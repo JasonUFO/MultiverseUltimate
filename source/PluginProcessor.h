@@ -187,6 +187,10 @@ public:
     PendingNote pendingNotes[MAX_PENDING_NOTES];
     ActiveChord activeChords[MAX_ACTIVE_CHORDS];
 
+    // Global quality / oversampling
+    std::unique_ptr<juce::dsp::Oversampling<float>> activeOversampler;
+    int oversamplingFactor { 1 }; // 1, 2, or 4
+
     // Display FIFO — audio thread writes, UI thread reads (30 Hz)
     static constexpr int DISPLAY_FIFO_SIZE = 4096;
     juce::AbstractFifo displayFifo { DISPLAY_FIFO_SIZE };

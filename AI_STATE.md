@@ -505,10 +505,15 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 - Existing "Export MIDI" file-chooser button retained alongside it
 - Build verified: VST3 builds and installs successfully ✅
 
+## Completed (Phase 7.5 + 7.6 — Global Quality & FX Mode) (2026-05-06)
+
+- **7.5 Global Quality (Oversampling)**: `globalQuality` APVTS Choice param (Off/2x High/4x Ultra); `activeOversampler` (unique_ptr, rebuilt in prepareToPlay); effects chain (Chorus/Distortion/EQ/Compressor/Delay/Reverb) prepared at oversampled SR; processBlock upsamps mixed signal via JUCE dsp::Oversampling, applies effects on upsampled AudioBlock, downsamples back; reports latency via `setLatencySamples()`; `QUAL` ComboBox in header bar with APVTS attachment; settings take effect on next play
+- **7.6 FX Mode (Audio Input Bus)**: Audio input bus declared (`withInput("Audio In", stereo, false)`) in plugin constructor; `fxModeEnabled` Bool APVTS param; `isBusesLayoutSupported` accepts disabled or stereo input; processBlock skips `buffer.clear()` on channels 0-1 when FX mode is ON (input audio preserved); synth engines still add on top (can still play MIDI); `FX` ToggleButton in header with APVTS attachment
+
+**Build verified:** VST3 builds and installs successfully ✅
+
 ## Next Session
 
-**Next features (in order):**
-1. Global oversampling (Phase 7.5)
-2. Phase 7.6 — audio effect input bus
+**Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).
 
-**Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only), 7.5 (global oversampling), 7.6 (audio effect input bus).
+**Suggested next features:** See `project_next_suggestions.md`

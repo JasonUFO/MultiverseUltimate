@@ -57,6 +57,22 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     };
     addAndMakeVisible (scaleCombo);
 
+    // Global quality combo
+    qualCombo.addItem ("Off",      1);
+    qualCombo.addItem ("2x High",  2);
+    qualCombo.addItem ("4x Ultra", 3);
+    qualCombo.setTooltip ("Global oversampling quality — higher quality reduces aliasing, increases CPU (takes effect on next play)");
+    qualAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        p.apvts, "globalQuality", qualCombo);
+    addAndMakeVisible (qualCombo);
+
+    // FX Mode button
+    fxModeButton.setClickingTogglesState (true);
+    fxModeButton.setTooltip ("FX Mode — route audio input through the effects chain (connect audio track to this plugin)");
+    fxModeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+        p.apvts, "fxModeEnabled", fxModeButton);
+    addAndMakeVisible (fxModeButton);
+
     // Built-in keyboard
     keyboard.setOctaveForMiddleC (5);
     keyboard.setAvailableRange (24, 108);
@@ -135,6 +151,8 @@ void PluginEditor::resized()
     helpButton.setBounds      (header.removeFromRight (28).reduced (2, 4));
     randomizeButton.setBounds (header.removeFromRight (52).reduced (4, 4));
     scaleCombo.setBounds      (header.removeFromRight (70).reduced (4, 4));
+    qualCombo.setBounds       (header.removeFromRight (80).reduced (4, 4));
+    fxModeButton.setBounds    (header.removeFromRight (36).reduced (4, 4));
     midiLearnLabel.setBounds  (header.reduced (4, 4));
 
     // Preset browser (collapsible, 220px)
