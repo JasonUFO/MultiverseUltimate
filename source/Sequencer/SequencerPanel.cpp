@@ -118,6 +118,38 @@ static juce::String detectChordFromClasses (const std::vector<int>& pcs)
     return {};
 }
 
+// ===== DragMidiButton =====
+
+void DragMidiButton::paint (juce::Graphics& g)
+{
+    auto b = getLocalBounds().toFloat().reduced (1.0f);
+    bool hovered = isMouseOver();
+
+    g.setColour (hovered ? CyberpunkTheme::bgRaised.brighter (0.15f) : CyberpunkTheme::bgRaised);
+    g.fillRoundedRectangle (b, 4.0f);
+    g.setColour (CyberpunkTheme::accentBlue.withAlpha (hovered ? 0.9f : 0.5f));
+    g.drawRoundedRectangle (b.reduced (0.5f), 4.0f, 1.0f);
+
+    g.setColour (CyberpunkTheme::accentBlue.withAlpha (hovered ? 1.0f : 0.7f));
+    g.setFont (juce::Font (9.5f, juce::Font::bold));
+    g.drawText ("^ DRAG", getLocalBounds(), juce::Justification::centred);
+}
+
+void DragMidiButton::mouseDrag (const juce::MouseEvent& e)
+{
+    if (dragStarted || e.getDistanceFromDragStart() < 6 || !getMidiFile)
+        return;
+
+    dragStarted = true;
+    auto file = getMidiFile();
+    if (file != juce::File{})
+        juce::DragAndDropContainer::performExternalDragDropOfFiles (
+            { file.getFullPathName() }, false, this,
+            [this]() { dragStarted = false; });
+    else
+        dragStarted = false;
+}
+
 // ===== SequencerPanel =====
 
 SequencerPanel::SequencerPanel (Sequencer& seq) : sequencer (seq)
@@ -233,6 +265,19 @@ SequencerPanel::SequencerPanel (Sequencer& seq) : sequencer (seq)
 
     exportButton.onClick = [this]() { exportMidi(); };
     addAndMakeVisible (exportButton);
+
+    dragMidiButton.getMidiFile = [this]() -> juce::File
+    {
+        auto temp = juce::File::getSpecialLocation (juce::File::tempDirectory)
+                        .getChildFile ("multiverse_seq_drag.mid");
+        auto midiFile = sequencer.exportMidi();
+        auto stream = temp.createOutputStream();
+        if (stream != nullptr && midiFile.writeTo (*stream))
+            return temp;
+        return {};
+    };
+    dragMidiButton.setTooltip ("Drag to drop the current pattern as a MIDI clip into your DAW");
+    addAndMakeVisible (dragMidiButton);
 
     // Chord label
     chordLabel.setJustificationType (juce::Justification::centred);
@@ -581,7 +626,9 @@ void SequencerPanel::resized()
     // Export/info row
     exportBounds = area.withHeight (26);
     auto exportRow = area.removeFromTop (26);
-    exportButton.setBounds (exportRow.removeFromLeft (120).withSizeKeepingCentre (110, 22));
-    exportRow.removeFromLeft (8);
+    exportButton.setBounds (exportRow.removeFromLeft (110).withSizeKeepingCentre (100, 22));
+    exportRow.removeFromLeft (6);
+    dragMidiButton.setBounds (exportRow.removeFromLeft (90).withSizeKeepingCentre (84, 22));
+    exportRow.removeFromLeft (6);
     chordLabel.setBounds (exportRow);
 }

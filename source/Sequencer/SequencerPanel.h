@@ -4,6 +4,23 @@
 
 class SequencerPanel;
 
+class DragMidiButton : public juce::Component,
+                       public juce::SettableTooltipClient
+{
+public:
+    std::function<juce::File()> getMidiFile;
+
+    void paint (juce::Graphics& g) override;
+    void mouseDown (const juce::MouseEvent&) override { dragStarted = false; }
+    void mouseDrag (const juce::MouseEvent& e) override;
+    void mouseUp   (const juce::MouseEvent&) override { dragStarted = false; }
+    void mouseEnter (const juce::MouseEvent&) override { repaint(); }
+    void mouseExit  (const juce::MouseEvent&) override { repaint(); }
+
+private:
+    bool dragStarted = false;
+};
+
 class StepButton : public juce::Component
 {
 public:
@@ -61,6 +78,7 @@ private:
     juce::Label stepLengthLabel;
     std::array<juce::TextButton, MAX_PATTERNS> patternButtons;
     juce::TextButton exportButton { "Export MIDI" };
+    DragMidiButton dragMidiButton;
 
     juce::Label chordLabel;
 

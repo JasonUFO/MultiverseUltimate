@@ -496,10 +496,19 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 - **Preset count label**: `countLabel` added to `PresetBrowserPanel`, right-aligned in the search bar row; shows "N presets" when unfiltered, "N / Total presets" when a category or search is active
 - Build verified: VST3 builds and installs successfully ✅
 
+## Completed (MIDI Drag-Out — 2026-05-06)
+
+- **`DragMidiButton`** inner class in `SequencerPanel.h/.cpp`: inherits `juce::Component` + `juce::SettableTooltipClient`
+- Mouse drag beyond 6px threshold writes current pattern to `$TMPDIR/multiverse_seq_drag.mid` (via `sequencer.exportMidi()`) then calls `juce::DragAndDropContainer::performExternalDragDropOfFiles()` — OS-native file drag accepted by all major DAWs
+- `isDragStarted` flag prevents double-firing; reset on `mouseUp` and `mouseDown`
+- **"^ DRAG" button** added to export row in `SequencerPanel`, left of chord label; cyan border, hover highlight
+- Existing "Export MIDI" file-chooser button retained alongside it
+- Build verified: VST3 builds and installs successfully ✅
+
 ## Next Session
 
 **Next features (in order):**
-1. MIDI export from Sequencer to DAW (drag MIDI clip out)
-2. Global oversampling (Phase 7.5)
+1. Global oversampling (Phase 7.5)
+2. Phase 7.6 — audio effect input bus
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only), 7.5 (global oversampling), 7.6 (audio effect input bus).
