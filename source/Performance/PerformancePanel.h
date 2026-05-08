@@ -1,7 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "../Macros/MacroManager.h"
-#include "../CyberpunkTheme.h"
+#include "../MultiverseFlatTheme.h"
 
 class PluginProcessor;
 

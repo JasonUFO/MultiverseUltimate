@@ -1,9 +1,8 @@
 #include "LayersPanel.h"
-#include "../CyberpunkTheme.h"
+#include "../MultiverseFlatTheme.h"
 #include "LayerEngine.h"
 #include "LayerEffectChain.h"
 #include "../PluginProcessor.h"
-#include "../CyberpunkTheme.h"
 
 LayersPanel::LayersPanel(PluginProcessor& p, LayerManager& mgr)
     : processorRef(p), layerManager(mgr)
@@ -140,7 +139,7 @@ void LayersPanel::createRow(int index)
 
 void LayersPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(CyberpunkTheme::bgBase);
+    g.fillAll(MultiverseFlatTheme::bgBase);
 
     drawSection(g, getLocalBounds().reduced(8), "LAYERS");
 }
@@ -148,12 +147,12 @@ void LayersPanel::paint(juce::Graphics& g)
 void LayersPanel::drawSection(juce::Graphics& g, juce::Rectangle<int> r, const juce::String& title) const
 {
     const float cr = 8.0f;
-    CyberpunkTheme::drawNeumorphicRect(g, r.toFloat(), cr, 3.0f);
-    g.setColour(CyberpunkTheme::bgRaised);
+    MultiverseFlatTheme::drawCard(g, r.toFloat(), cr);
+    g.setColour(MultiverseFlatTheme::bgRaised);
     g.fillRoundedRectangle(r.toFloat(), cr);
-    g.setColour(CyberpunkTheme::shadowLight.withAlpha(0.3f));
+    g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
     g.drawRoundedRectangle(r.toFloat().reduced(0.5f), cr, 1.0f);
-    g.setColour(CyberpunkTheme::textLabel);
+    g.setColour(MultiverseFlatTheme::textLabel);
     g.setFont(juce::Font(10.0f, juce::Font::bold));
     g.drawText(title, r.getX() + 8, r.getY() + 5, 100, 14, juce::Justification::centredLeft);
 }

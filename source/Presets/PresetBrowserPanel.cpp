@@ -1,35 +1,19 @@
 #include "PresetBrowserPanel.h"
 #include "../PluginProcessor.h"
-#include "../CyberpunkTheme.h"
+#include "../MultiverseFlatTheme.h"
 
 namespace
 {
-    const juce::Colour bgBase   { 0xff171720 };
-    const juce::Colour bgRaised { 0xff1e1e2c };
-    const juce::Colour bgDeep   { 0xff111119 };
-    const juce::Colour shadowDark  { 0xff0b0b12 };
-    const juce::Colour shadowLight { 0xff252535 };
-    const juce::Colour accentBlue  { 0xff5b8def };
-    const juce::Colour accentPurple{ 0xffc084fc };
-    const juce::Colour textPrimary  { 0xffe4e8f0 };
-    const juce::Colour textSecondary{ 0xff7a8499 };
-    const juce::Colour textMuted    { 0xff3d4358 };
-
-    void drawNeumorphicRect (juce::Graphics& g, juce::Rectangle<float> b,
-                             float cornerRadius, float offset)
-    {
-        juce::Path p;
-        p.addRoundedRectangle (b, cornerRadius);
-        const int blur = juce::roundToInt (offset * 2.0f);
-        {
-            juce::DropShadow ds { shadowDark.withAlpha (0.65f), blur, { (int)offset, (int)offset } };
-            ds.drawForPath (g, p);
-        }
-        {
-            juce::DropShadow ds { shadowLight.withAlpha (0.45f), blur, { -(int)offset, -(int)offset } };
-            ds.drawForPath (g, p);
-        }
-    }
+    // Use global theme colors via aliases for readability
+    const auto& bgBase      = MultiverseFlatTheme::bgBase;
+    const auto& bgRaised    = MultiverseFlatTheme::bgRaised;
+    const auto& bgDeep      = MultiverseFlatTheme::bgDeep;
+    const auto& accentBlue  = MultiverseFlatTheme::accentCyan;
+    const auto& accentPurple= MultiverseFlatTheme::accentPurple;
+    const auto& textPrimary = MultiverseFlatTheme::textPrimary;
+    const auto& textSecondary=MultiverseFlatTheme::textSecondary;
+    const auto& textMuted   = MultiverseFlatTheme::textMuted;
+    const auto& borderLight = MultiverseFlatTheme::borderLight;
 }
 
 const juce::Colour PresetBrowserPanel::favColors[8] = {
@@ -134,14 +118,14 @@ void PresetBrowserPanel::paint (juce::Graphics& g)
     if (activeTagFilters.size() > 0)
     {
         auto ta = tagFilterArea.getBounds().toFloat().reduced (2, 2);
-        drawNeumorphicRect (g, ta, 6.0f, 2.0f);
+        MultiverseFlatTheme::drawCard (g, ta, 6.0f);
         g.setColour (bgDeep);
         g.fillRoundedRectangle (ta, 6.0f);
     }
 
     // Metadata strip background
     auto metaArea = getLocalBounds().removeFromBottom (48).toFloat().reduced (6, 4);
-    drawNeumorphicRect (g, metaArea, 8.0f, 3.0f);
+    MultiverseFlatTheme::drawCard (g, metaArea, 8.0f);
     g.setColour (bgRaised);
     g.fillRoundedRectangle (metaArea, 8.0f);
 }
@@ -325,7 +309,7 @@ void PresetBrowserPanel::paintListBoxItem (int row, juce::Graphics& g, int w, in
     }
     else
     {
-        drawNeumorphicRect (g, bounds, corner, 2.0f);
+        MultiverseFlatTheme::drawCard(g, bounds, corner);
         g.setColour (bgRaised);
         g.fillRoundedRectangle (bounds, corner);
     }

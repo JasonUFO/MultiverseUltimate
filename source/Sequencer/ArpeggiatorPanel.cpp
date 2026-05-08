@@ -1,6 +1,5 @@
 #include "ArpeggiatorPanel.h"
-#include "../CyberpunkTheme.h"
-#include "../CyberpunkTheme.h"
+#include "../MultiverseFlatTheme.h"
 
 // =============================================================================
 // ArpeggiatorPanel
@@ -9,7 +8,7 @@
 ArpeggiatorPanel::ArpeggiatorPanel (Arpeggiator& arp) : arpeggiator (arp)
 {
     titleLabel.setText ("ARPEGGIATOR", juce::dontSendNotification);
-    titleLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
+    titleLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
     addAndMakeVisible (titleLabel);
 
     enableBtn.setClickingTogglesState (true);
@@ -18,7 +17,7 @@ ArpeggiatorPanel::ArpeggiatorPanel (Arpeggiator& arp) : arpeggiator (arp)
     addAndMakeVisible (enableBtn);
 
     modeLabel.setText ("Mode:", juce::dontSendNotification);
-    modeLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
+    modeLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
     addAndMakeVisible (modeLabel);
 
     modeBox.addItem ("Up",      1);
@@ -43,7 +42,7 @@ ArpeggiatorPanel::ArpeggiatorPanel (Arpeggiator& arp) : arpeggiator (arp)
     addAndMakeVisible (modeBox);
 
     numStepsLabel.setText ("Steps:", juce::dontSendNotification);
-    numStepsLabel.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
+    numStepsLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
     addAndMakeVisible (numStepsLabel);
 
     numStepsBox.addItem ("8",  1);
@@ -65,14 +64,14 @@ ArpeggiatorPanel::ArpeggiatorPanel (Arpeggiator& arp) : arpeggiator (arp)
     addAndMakeVisible (numStepsBox);
 
     stepEditorTitle.setText ("Click a step to edit", juce::dontSendNotification);
-    stepEditorTitle.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
+    stepEditorTitle.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
     addAndMakeVisible (stepEditorTitle);
 
     auto setupSlider = [this](juce::Slider& sl, juce::Label& lbl, const juce::String& name,
                            double min, double max, double intervals)
     {
         lbl.setText (name, juce::dontSendNotification);
-        lbl.setColour (juce::Label::textColourId, CyberpunkTheme::textSecondary);
+        lbl.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
         sl.setSliderStyle (juce::Slider::LinearHorizontal);
         sl.setTextBoxStyle (juce::Slider::TextBoxLeft, false, 50, 18);
         sl.setRange (min, max, intervals);
@@ -151,32 +150,32 @@ ArpeggiatorPanel::~ArpeggiatorPanel()
 
 void ArpeggiatorPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (CyberpunkTheme::bgBase);
+    g.fillAll (MultiverseFlatTheme::bgBase);
 
     // Draw neumorphic section cards
     const float cr = 8.0f;
     if (controlsBounds.getHeight() > 0)
     {
-        CyberpunkTheme::drawNeumorphicRect (g, controlsBounds.toFloat(), cr, 3.0f);
-        g.setColour (CyberpunkTheme::bgRaised);
+        MultiverseFlatTheme::drawCard (g, controlsBounds.toFloat(), cr);
+        g.setColour (MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle (controlsBounds.toFloat(), cr);
-        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
         g.drawRoundedRectangle (controlsBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (stepGridBounds.getHeight() > 0)
     {
-        CyberpunkTheme::drawNeumorphicRect (g, stepGridBounds.toFloat(), cr, 3.0f);
-        g.setColour (CyberpunkTheme::bgRaised);
+        MultiverseFlatTheme::drawCard (g, stepGridBounds.toFloat(), cr);
+        g.setColour (MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle (stepGridBounds.toFloat(), cr);
-        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
         g.drawRoundedRectangle (stepGridBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (editorBounds.getHeight() > 0)
     {
-        CyberpunkTheme::drawNeumorphicRect (g, editorBounds.toFloat(), cr, 3.0f);
-        g.setColour (CyberpunkTheme::bgRaised);
+        MultiverseFlatTheme::drawCard (g, editorBounds.toFloat(), cr);
+        g.setColour (MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle (editorBounds.toFloat(), cr);
-        g.setColour (CyberpunkTheme::shadowLight.withAlpha (0.3f));
+        g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
         g.drawRoundedRectangle (editorBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
 }

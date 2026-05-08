@@ -1,5 +1,5 @@
 #include "LFOShapeEditor.h"
-#include "../CyberpunkTheme.h"
+#include "../MultiverseFlatTheme.h"
 #include <cmath>
 #include <algorithm>
 
@@ -45,16 +45,16 @@ void LFOShapeEditor::setTable(const std::array<float, 256>& t)
 
 void LFOShapeEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(CyberpunkTheme::bgDeep);
+    g.fillAll(MultiverseFlatTheme::bgDeep);
 
     auto ca = canvasArea.toFloat();
 
-    g.setColour(CyberpunkTheme::bgVoid);
+    g.setColour(MultiverseFlatTheme::bgVoid);
     g.fillRect(ca);
 
     // Center line (zero crossing)
     float midY = ca.getY() + ca.getHeight() * 0.5f;
-    g.setColour(CyberpunkTheme::textMuted.withAlpha(0.35f));
+    g.setColour(MultiverseFlatTheme::textMuted.withAlpha(0.35f));
     g.drawHorizontalLine(juce::roundToInt(midY), ca.getX(), ca.getRight());
     g.drawVerticalLine(juce::roundToInt(ca.getCentreX()), ca.getY(), ca.getBottom());
 
@@ -74,15 +74,15 @@ void LFOShapeEditor::paint(juce::Graphics& g)
     fill.lineTo(ca.getRight(), midY);
     fill.lineTo(ca.getX(),     midY);
     fill.closeSubPath();
-    g.setColour(CyberpunkTheme::accentBlue.withAlpha(0.15f));
+    g.setColour(MultiverseFlatTheme::accentBlue.withAlpha(0.15f));
     g.fillPath(fill);
 
     // Stroke
-    g.setColour(CyberpunkTheme::accentBlue);
+    g.setColour(MultiverseFlatTheme::accentBlue);
     g.strokePath(path, juce::PathStrokeType(1.5f));
 
     // Border
-    g.setColour(CyberpunkTheme::bgRaised);
+    g.setColour(MultiverseFlatTheme::bgRaised);
     g.drawRect(canvasArea, 1);
 }
 

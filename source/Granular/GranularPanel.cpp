@@ -1,7 +1,6 @@
 #include "GranularPanel.h"
-#include "../CyberpunkTheme.h"
+#include "../MultiverseFlatTheme.h"
 #include "../PluginProcessor.h"
-#include "../CyberpunkTheme.h"
 
 GranularPanel::GranularPanel (PluginProcessor& p) : proc(p)
 {
@@ -107,45 +106,45 @@ void GranularPanel::setupLabel (juce::Label& l)
 
 void GranularPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (CyberpunkTheme::bgBase);
+    g.fillAll (MultiverseFlatTheme::bgBase);
 
     const float cr = 8.0f;
 
     if (sourceSectionRect.getHeight() > 0)
     {
-        CyberpunkTheme::drawNeumorphicRect(g, sourceSectionRect.toFloat(), cr, 3.0f);
-        g.setColour(CyberpunkTheme::bgRaised);
+        MultiverseFlatTheme::drawCard(g, sourceSectionRect.toFloat(), cr);
+        g.setColour(MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle(sourceSectionRect.toFloat(), cr);
-        g.setColour(CyberpunkTheme::shadowLight.withAlpha(0.3f));
+        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
         g.drawRoundedRectangle(sourceSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
         // Section title
-        g.setColour(CyberpunkTheme::textLabel);
+        g.setColour(MultiverseFlatTheme::textLabel);
         g.setFont(juce::Font(10.0f, juce::Font::bold));
         g.drawText("SOURCE", sourceSectionRect.getX() + 8, sourceSectionRect.getY() + 5, 100, 14, juce::Justification::centredLeft);
     }
 
     if (grainSectionRect.getHeight() > 0)
     {
-        CyberpunkTheme::drawNeumorphicRect(g, grainSectionRect.toFloat(), cr, 3.0f);
-        g.setColour(CyberpunkTheme::bgRaised);
+        MultiverseFlatTheme::drawCard(g, grainSectionRect.toFloat(), cr);
+        g.setColour(MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle(grainSectionRect.toFloat(), cr);
-        g.setColour(CyberpunkTheme::shadowLight.withAlpha(0.3f));
+        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
         g.drawRoundedRectangle(grainSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
         // Section title
-        g.setColour(CyberpunkTheme::textLabel);
+        g.setColour(MultiverseFlatTheme::textLabel);
         g.setFont(juce::Font(10.0f, juce::Font::bold));
         g.drawText("GRAIN", grainSectionRect.getX() + 8, grainSectionRect.getY() + 5, 100, 14, juce::Justification::centredLeft);
     }
 
     if (envelopeSectionRect.getHeight() > 0)
     {
-        CyberpunkTheme::drawNeumorphicRect(g, envelopeSectionRect.toFloat(), cr, 3.0f);
-        g.setColour(CyberpunkTheme::bgRaised);
+        MultiverseFlatTheme::drawCard(g, envelopeSectionRect.toFloat(), cr);
+        g.setColour(MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle(envelopeSectionRect.toFloat(), cr);
-        g.setColour(CyberpunkTheme::shadowLight.withAlpha(0.3f));
+        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
         g.drawRoundedRectangle(envelopeSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
         // Section title
-        g.setColour(CyberpunkTheme::textLabel);
+        g.setColour(MultiverseFlatTheme::textLabel);
         g.setFont(juce::Font(10.0f, juce::Font::bold));
         g.drawText("VOICE ENVELOPE", envelopeSectionRect.getX() + 8, envelopeSectionRect.getY() + 5, 140, 14, juce::Justification::centredLeft);
     }

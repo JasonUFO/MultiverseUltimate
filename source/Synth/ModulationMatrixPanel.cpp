@@ -1,6 +1,6 @@
 #include "ModulationMatrixPanel.h"
 #include "LFOShapeEditor.h"
-#include "../CyberpunkTheme.h"
+#include "../MultiverseFlatTheme.h"
 #include "../PluginProcessor.h"
 
 namespace {
@@ -35,7 +35,7 @@ ModulationMatrixPanel::LFORow::LFORow(int index, juce::AudioProcessorValueTreeSt
 
     label.setText("LFO " + idx, juce::dontSendNotification);
     label.setFont(juce::Font(11.0f, juce::Font::bold));
-    label.setColour(juce::Label::textColourId, CyberpunkTheme::accentBlue);
+    label.setColour(juce::Label::textColourId, MultiverseFlatTheme::accentBlue);
     label.setJustificationType(juce::Justification::centredLeft);
 
     rateSlider.setSliderStyle(juce::Slider::LinearHorizontal);
@@ -200,7 +200,7 @@ ModulationMatrixPanel::ModulationMatrixPanel(PluginProcessor& p, ModulationMatri
 {
     titleLabel.setText("Modulation Matrix", juce::dontSendNotification);
     titleLabel.setFont(juce::Font(16.0f, juce::Font::bold));
-    titleLabel.setColour(juce::Label::textColourId, CyberpunkTheme::textPrimary);
+    titleLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textPrimary);
     addAndMakeVisible(titleLabel);
 
     addButton.onClick = [this]() {
@@ -230,17 +230,17 @@ ModulationMatrixPanel::~ModulationMatrixPanel()
 
 void ModulationMatrixPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(CyberpunkTheme::bgBase);
+    g.fillAll(MultiverseFlatTheme::bgBase);
 
     // LFO section header
     const int lfoSectionTop = HEADER_H;
-    g.setColour(CyberpunkTheme::textSecondary);
+    g.setColour(MultiverseFlatTheme::textSecondary);
     g.setFont(juce::Font(10.5f, juce::Font::bold));
     g.drawText("LFO BANKS", PADDING, lfoSectionTop, 80, LFO_HDR_H, juce::Justification::centredLeft);
 
     // Thin separator line under LFO section
     const int lfoSectionBottom = HEADER_H + LFO_HDR_H + 8 * (LFO_ROW_H + LFO_GAP) + 4;
-    g.setColour(CyberpunkTheme::shadowDark.withAlpha(0.6f));
+    g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.6f));
     g.drawHorizontalLine(lfoSectionBottom, PADDING, (float)(getWidth() - PADDING));
 
     // Draw neumorphic cards for each LFO row
@@ -249,8 +249,8 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
         if (row)
         {
             auto b = row->getBounds().expanded(1, 0);
-            CyberpunkTheme::drawNeumorphicRect(g, b.toFloat(), 5.0f, 2.0f);
-            g.setColour(CyberpunkTheme::bgRaised.withAlpha(0.7f));
+            MultiverseFlatTheme::drawCard (g, b.toFloat(), 5.0f);
+            g.setColour(MultiverseFlatTheme::bgRaised.withAlpha(0.7f));
             g.fillRoundedRectangle(b.toFloat(), 5.0f);
         }
     }
@@ -258,7 +258,7 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
     // Column headers for connections section
     const int connHeaderY = lfoSectionBottom + 4;
     const int rowLeft = PADDING + 2;
-    g.setColour(CyberpunkTheme::textSecondary);
+    g.setColour(MultiverseFlatTheme::textSecondary);
     g.setFont(juce::Font(11.0f));
     g.drawText("SOURCE", rowLeft,                                           connHeaderY, SRC_W, COL_HDR_H, juce::Justification::centredLeft);
     g.drawText("TARGET", rowLeft + SRC_W + INNER_GAP,                      connHeaderY, TGT_W, COL_HDR_H, juce::Justification::centredLeft);
@@ -269,16 +269,16 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
     for (const auto& b : rowBounds)
     {
         if (b.getHeight() <= 0) continue;
-        CyberpunkTheme::drawNeumorphicRect(g, b.toFloat().reduced(1.0f), cr, 2.5f);
-        g.setColour(CyberpunkTheme::bgRaised);
+        MultiverseFlatTheme::drawCard(g, b.toFloat().reduced(1.0f), cr);
+        g.setColour(MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle(b.toFloat().reduced(1.0f), cr);
-        g.setColour(CyberpunkTheme::shadowLight.withAlpha(0.3f));
+        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
         g.drawRoundedRectangle(b.toFloat().reduced(1.5f), cr, 1.0f);
     }
 
     if (rows.empty())
     {
-        g.setColour(CyberpunkTheme::textMuted);
+        g.setColour(MultiverseFlatTheme::textMuted);
         g.setFont(13.0f);
         g.drawText("No connections — press + to add one",
                    getLocalBounds().withTop(lfoSectionBottom + COL_HDR_H + 24),

@@ -1,6 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
-#include "../CyberpunkTheme.h"
+#include "../MultiverseFlatTheme.h"
 #include "Arpeggiator.h"
 
 class ArpStepButton : public juce::Component
@@ -15,8 +15,8 @@ public:
     {
         auto bounds = getLocalBounds().toFloat().reduced (1.5f);
 
-        juce::Colour bg = active ? CyberpunkTheme::accentBlue.darker (0.2f) : CyberpunkTheme::bgRaised;
-        juce::Colour border = active ? CyberpunkTheme::accentBlue : CyberpunkTheme::shadowLight;
+        juce::Colour bg = active ? MultiverseFlatTheme::accentBlue.darker (0.2f) : MultiverseFlatTheme::bgRaised;
+        juce::Colour border = active ? MultiverseFlatTheme::accentBlue : MultiverseFlatTheme::borderLight;
 
         g.setColour (bg);
         g.fillRoundedRectangle (bounds, 4.0f);

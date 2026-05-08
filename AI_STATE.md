@@ -552,6 +552,28 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 ## Next Session
 
+**Phase 2 — Layout Restructure:** Permanent left sidebar (280px), right FX strip (200px), bottom bar (88px, 8 macros + keyboard), compact Nexus 5 header, 3-letter tab abbreviations (SYN/DRM/MOD/SMP/SEQ/ARP/FX/MAC/GRN/LAY/PRF/ROU).
+
+**Full plan:** `/Users/jason/.claude/plans/kind-popping-nygaard.md`
+
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).
 
-**Suggested next features:** See `project_next_suggestions.md`
+## Completed (UI Overhaul Phase 1 — Flat Theme) (2026-05-08)
+
+- **MultiverseFlatTheme** (`Source/MultiverseFlatTheme.h/.cpp`) — new LookAndFeel replacing CyberpunkTheme
+  - Flat, clean design inspired by Nexus 5 (no neumorphic shadows, no gradients, no glow effects)
+  - New color palette: `bgVoid` (#0F1014), `bgBase` (#15171C), `bgRaised` (#1E2028), `bgDeep` (#111318), `bgHover` (#262830)
+  - Accents: `accentCyan` (#00D4FF), `accentPink` (#FF2A6D), `accentPurple` (#9B6DFF), `accentGreen` (#00FF87), `accentAmber` (#FFB800)
+  - Borders: `borderLight` (#2A2D38), `borderActive` (#00D4FF)
+  - Flat knob: outline disc, thin arc, indicator line, small tip dot (no gradient, no LED glow)
+  - Flat toggle: pill with simple dot indicator (no shadow)
+  - Flat buttons: solid fill + 1px border (no shadow)
+  - Flat tabs: text-only with bottom accent line (no glow)
+  - `drawCard()` static method replaces `drawNeumorphicRect()` — flat bgRaised fill + borderLight stroke
+- **All panels updated** to use MultiverseFlatTheme colors and `drawCard()` instead of neumorphic shadows
+- **PresetBrowserPanel** unified to global theme colors (removed local anonymous-namespace color constants)
+- **Backward-compatible aliases**: `accentBlue`, `neonCyan`, `neonPink`, `neonPurple`, `neonGreen` map to new accent colors
+- CyberpunkTheme.h/.cpp still exist in project (not compiled by any panel anymore)
+- **Plan**: 5 phases total — Phase 1 (theme) ✅, Phase 2 (layout), Phase 3 (librarian), Phase 4 (quick FX), Phase 5 (routing)
+
+**Build verified:** VST3 + AU both build and install successfully ✅

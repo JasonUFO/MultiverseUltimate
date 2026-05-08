@@ -59,7 +59,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - Filter oversampling (Off/2x/4x/Auto) ✅
 - Preset system (XML) with Factory/User banks ✅
 - State-of-the-art preset browser: 8-color favorites, #hashtags, auto-preview, metadata detail strip, back/forward history, save dialog, right-click context menu ✅
-- Dark Forge UI theme (`CyberpunkTheme`) — neumorphic knobs, sliders, buttons, tabs, menus ✅
+- Flat UI theme (`MultiverseFlatTheme`) — clean Nexus 5-inspired design, no neumorphic shadows ✅
 - NeuKnob (`Source/NeuKnob.h/.cpp`) — value pill on hover/drag, amber arc when macro-assigned ✅
 - SynthDisplay (`Source/Synth/SynthDisplay.h/.cpp`) — real-time oscilloscope (left) + FFT spectrum (right), 30 Hz, lock-free FIFO ✅
 - WavetableEditor (`Source/Synth/WavetableEditor.h/.cpp`) — draw/edit wavetable frames, formula gen, import ✅
@@ -89,13 +89,14 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Granular | Granular engine — 16 voices × 32 grains, file loading, 4 env shapes, full ADSR, new "Granular" tab |
 | 2+5 | Velocity/NoteNumber/Random/EnvelopeFollower sources wired; 5 granular mod targets added; MAX_MOD_TARGETS=24 |
 | MPE | Per-note pitch bend (±48 st), pressure, slide; MPE Pressure + MPE Slide mod sources; "MPE" toggle in SynthPanel |
-| UI-1 | CyberpunkTheme LookAndFeel — Dark Forge design system; neumorphic knobs, sliders, buttons, tabs, menus |
+| UI-1 | MultiverseFlatTheme LookAndFeel — Nexus 5-inspired flat design system; clean knobs, sliders, buttons, tabs, menus, `drawCard()` flat cards |
 | UI-2 | NeuKnob — extends MidiLearnSlider; value pill on hover/drag; amber arc when macro-assigned |
 | UI-3 | SynthDisplay — real-time oscilloscope + FFT spectrum; lock-free FIFO in PluginProcessor |
-| UI-4 | PresetBrowserPanel — Dark Forge redesign, 220px, search bar, category pills, neumorphic cards |
-| UI-5 | **COMPLETE** — EffectsPanel, ModulationMatrixPanel, SamplerPanel, SequencerPanel, DrumSequencerPanel, ArpeggiatorPanel, ProSequencerPanel all updated to Dark Forge palette |
-| UI-6 | **COMPLETE** — Section card system: neumorphic cards via `drawNeumorphicRect()` applied to all 7 panels (Effects, ModMatrix, Sampler, Seq, Arp, ProSeq, DrumSeq) |
-| UI-7 | **COMPLETE** — SynthPanel, GranularPanel, MacroPanel neumorphic section cards |
+| UI-4 | PresetBrowserPanel — 280px, search bar, category pills, tag filter, metadata strip, flat cards |
+| UI-5 | **COMPLETE** — All panels updated to MultiverseFlatTheme flat palette |
+| UI-6 | **COMPLETE** — Flat card system: `MultiverseFlatTheme::drawCard()` applied to all panels (replaces neumorphic `drawNeumorphicRect()`) |
+| UI-7 | **COMPLETE** — SynthPanel, GranularPanel, MacroPanel flat section cards |
+| UI-8 | **COMPLETE** — Phase 1 of Nexus 5 UI overhaul: MultiverseFlatTheme replaces CyberpunkTheme; 5-phase plan (Phase 1 done, Phases 2–5 next) |
 | WavetableEditor | Visual wavetable editor: draw tools, formula generators, normalize/fade/reverse/import, per-osc "EDIT WT" button in SynthPanel |
 | Layers | 8-layer engine: Synth/Granular/Sampler per layer, level/pan/mute/solo, full MIDI + audio + state wiring, "Layers" tab |
 | Track B | Filter LP/HP/BP/Notch; Sub+Noise osc; Unison Chord/Random spread; Layer key/vel/MIDI-ch ranges; Per-layer independent effect chain (LayerEffectChain) |
@@ -125,13 +126,19 @@ All gap-fill phases (0–7) complete. Now in competitive feature expansion.
 4. ~~Programmatic preset generation~~ ✅ (2026-05-05) — 100 factory presets, 6 categories
 5. ~~Preset browser 2.0~~ ✅ (2026-05-08) — metadata, favorites, tags, auto-preview, history, save dialog
 
-**Next:** Expand competitive feature set (see `project_next_suggestions.md`)
+**Next:** UI Overhaul Phase 2 — Layout Restructure (see Nexus 5 plan)
 
 **Deferred (need decisions or Projucer GUI action):**
 - 7.2 Standalone mode — enable in Projucer GUI (File Formats → Standalone Plugin)
 
-### Cyberpunk UI
-Complete — `CyberpunkTheme` is the global LookAndFeel, all panels updated, neumorphic section cards applied.
+### Nexus 5 UI Overhaul
+**Phase 1 (Flat Theme) COMPLETE** — `MultiverseFlatTheme` replaces `CyberpunkTheme`. All panels render with flat cards via `drawCard()`. No neumorphic shadows anywhere.
+
+**Remaining phases** (see plan at `/Users/jason/.claude/plans/kind-popping-nygaard.md`):
+- Phase 2: Layout Restructure (permanent left sidebar 280px, right FX strip 200px, bottom bar 88px with 8 macros + keyboard, compact header)
+- Phase 3: Librarian (replace preset browser overlay with permanent sidebar: category tree, character tags, bookmarks, search)
+- Phase 4: Quick FX Strip (right-side panel: Filter/Amp Modifier, Delay, Reverb, Main Filter — bipolar offset controls)
+- Phase 5: Visual Routing (ROU tab with signal flow graph: generator→layer→FX blocks, draggable connections)
 
 ---
 
@@ -160,8 +167,9 @@ Complete — `CyberpunkTheme` is the global LookAndFeel, all panels updated, neu
 - Font: `juce::Font(size, style)` still compiles in JUCE 8 but is deprecated — use `juce::Font(juce::FontOptions{}.withHeight(size))` for new code. Old form raises `-Wdeprecated-declarations` but does not break the build.
 - `juce::TextEditor::caretColourId` does not exist in JUCE 8 — do not use it.
 - `juce::TableHeaderComponent::separatorColourId` does not exist in JUCE 8 — do not use it.
-- `CyberpunkTheme` (`Source/CyberpunkTheme.h/.cpp`) is the global LookAndFeel installed in `PluginEditor`. Dark Forge palette constants (`bgBase`, `bgRaised`, `bgDeep`, `accentBlue`, etc.) are `static const` members — include `CyberpunkTheme.h` to access them from panels.
-- `CyberpunkTheme::drawNeumorphicRect()` is `public static` — callable from panel paint() for section card borders without subclassing.
+- `MultiverseFlatTheme` (`Source/MultiverseFlatTheme.h/.cpp`) is the global LookAndFeel installed in `PluginEditor`. Flat palette constants (`bgBase`, `bgRaised`, `bgDeep`, `accentCyan`, `accentPink`, etc.) are `static const` members — include `MultiverseFlatTheme.h` to access them from panels. Backward-compat aliases: `accentBlue`→`accentCyan`, `neonCyan`→`accentCyan`, `neonPink`→`accentPink`, `neonPurple`→`accentPurple`, `neonGreen`→`accentGreen`.
+- `MultiverseFlatTheme::drawCard()` is `public static` — callable from panel paint() for flat section card borders (bgRaised fill + borderLight/borderActive stroke). Replaces old `drawNeumorphicRect()`.
+- `CyberpunkTheme.h/.cpp` still exist in the project but are NO LONGER used by any panel. They can be safely deleted when convenient.
 - `ModulationMatrix::getActiveConnectionsForTarget()` returns by value (thread-safety fix — do not change to ref/pointer).
 - Effect chain order is packed as 6 nibbles in `std::atomic<uint32_t> effectChainOrder` — `getChainSlot(pos)` / `swapChainSlots(a,b)` are the only API.
 - New effects (Chorus/Distortion/EQ/Compressor) have stereo L/R instances (`chorus[2]`, etc.); Delay is shared mono.

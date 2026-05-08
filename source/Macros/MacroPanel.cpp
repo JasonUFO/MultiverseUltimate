@@ -1,5 +1,5 @@
 #include "MacroPanel.h"
-#include "../CyberpunkTheme.h"
+#include "../MultiverseFlatTheme.h"
 #include "../PluginProcessor.h"
 
 MacroPanel::MacroPanel(PluginProcessor& p) : proc(p)
@@ -51,19 +51,19 @@ MacroPanel::~MacroPanel()
 
 void MacroPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(CyberpunkTheme::bgBase);
+    g.fillAll(MultiverseFlatTheme::bgBase);
 
     const float cr = 8.0f;
     if (macroSectionRect.getHeight() > 0)
     {
-        CyberpunkTheme::drawNeumorphicRect(g, macroSectionRect.toFloat(), cr, 3.0f);
-        g.setColour(CyberpunkTheme::bgRaised);
+        MultiverseFlatTheme::drawCard(g, macroSectionRect.toFloat(), cr);
+        g.setColour(MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle(macroSectionRect.toFloat(), cr);
-        g.setColour(CyberpunkTheme::shadowLight.withAlpha(0.3f));
+        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
         g.drawRoundedRectangle(macroSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
 
         // Section title
-        g.setColour(CyberpunkTheme::textLabel);
+        g.setColour(MultiverseFlatTheme::textLabel);
         g.setFont(juce::Font(10.0f, juce::Font::bold));
         g.drawText("MACRO CONTROLS", macroSectionRect.getX() + 8, macroSectionRect.getY() + 5, 200, 14, juce::Justification::centredLeft);
     }

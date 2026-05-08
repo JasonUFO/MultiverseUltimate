@@ -1,5 +1,5 @@
 #include "NeuKnob.h"
-#include "CyberpunkTheme.h"
+#include "MultiverseFlatTheme.h"
 
 NeuKnob::NeuKnob()
 {
@@ -18,7 +18,7 @@ void NeuKnob::arcTimerTick()
 
     lastMacroState = assigned;
     if (assigned)
-        setColour (juce::Slider::rotarySliderFillColourId, CyberpunkTheme::accentAmber);
+        setColour (juce::Slider::rotarySliderFillColourId, MultiverseFlatTheme::accentAmber);
     else
         removeColour (juce::Slider::rotarySliderFillColourId);
 }
@@ -44,10 +44,10 @@ void NeuKnob::paint (juce::Graphics& g)
     const float pillY = 2.0f;
 
     auto pill = juce::Rectangle<float> (pillX, pillY, pillW, pillH);
-    g.setColour (CyberpunkTheme::bgDeep);
+    g.setColour (MultiverseFlatTheme::bgDeep);
     g.fillRoundedRectangle (pill, pillH * 0.5f);
-    g.setColour (CyberpunkTheme::accentBlue.withAlpha (0.5f));
+    g.setColour (MultiverseFlatTheme::accentBlue.withAlpha (0.5f));
     g.drawRoundedRectangle (pill, pillH * 0.5f, 1.0f);
-    g.setColour (CyberpunkTheme::textPrimary);
+    g.setColour (MultiverseFlatTheme::textPrimary);
     g.drawText (text, pill.toNearestInt(), juce::Justification::centred, false);
 }

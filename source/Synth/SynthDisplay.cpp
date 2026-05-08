@@ -1,7 +1,6 @@
 #include "SynthDisplay.h"
-#include "../CyberpunkTheme.h"
+#include "../MultiverseFlatTheme.h"
 #include "../PluginProcessor.h"
-#include "../CyberpunkTheme.h"
 
 SynthDisplay::SynthDisplay() : fft(FFT_ORDER)
 {
@@ -142,25 +141,25 @@ void SynthDisplay::paint(juce::Graphics& g)
             // Cents fill
             const float centOff = juce::jlimit(-50.0f, 50.0f, tunerCents);
             const float indicW  = barW * 0.5f * std::abs(centOff) / 50.0f;
-            g.setColour(inTune ? CyberpunkTheme::neonGreen : CyberpunkTheme::accentAmber);
+            g.setColour(inTune ? MultiverseFlatTheme::neonGreen : MultiverseFlatTheme::accentAmber);
             if (centOff < 0.0f)
                 g.fillRect(barMid - indicW, barY, indicW, 5.0f);
             else
                 g.fillRect(barMid, barY, indicW, 5.0f);
 
             // Centre tick
-            g.setColour(CyberpunkTheme::textSecondary);
+            g.setColour(MultiverseFlatTheme::textSecondary);
             g.fillRect(barMid - 0.5f, barY - 1.0f, 1.0f, 7.0f);
 
             // Note label
-            g.setColour(inTune ? CyberpunkTheme::neonGreen : CyberpunkTheme::textPrimary);
+            g.setColour(inTune ? MultiverseFlatTheme::neonGreen : MultiverseFlatTheme::textPrimary);
             g.setFont(juce::FontOptions(9.0f).withStyle("Bold"));
             g.drawText(juce::String(noteName) + juce::String(octave),
                        (int)tunerRect.getX(), (int)tunerRect.getY(), 26, (int)tunerH,
                        juce::Justification::centredLeft, false);
 
             // Hz readout
-            g.setColour(CyberpunkTheme::textMuted);
+            g.setColour(MultiverseFlatTheme::textMuted);
             g.setFont(juce::FontOptions(7.5f));
             g.drawText(juce::String((int)tunerHz) + "Hz",
                        (int)(barX + barW + 2.0f), (int)tunerRect.getY(), 36, (int)tunerH,
@@ -169,7 +168,7 @@ void SynthDisplay::paint(juce::Graphics& g)
         else
         {
             // No signal
-            g.setColour(CyberpunkTheme::textMuted.withAlpha(0.35f));
+            g.setColour(MultiverseFlatTheme::textMuted.withAlpha(0.35f));
             g.setFont(juce::FontOptions(7.5f));
             g.drawText("---", (int)tunerRect.getX(), (int)tunerRect.getY(),
                        (int)tunerRect.getWidth(), (int)tunerH,
@@ -197,14 +196,14 @@ void SynthDisplay::paint(juce::Graphics& g)
         }
 
         // Glow layer then crisp stroke
-        g.setColour(CyberpunkTheme::accentBlue.withAlpha(0.18f));
+        g.setColour(MultiverseFlatTheme::accentBlue.withAlpha(0.18f));
         g.strokePath(wave, juce::PathStrokeType(4.5f, juce::PathStrokeType::curved,
                                                 juce::PathStrokeType::rounded));
-        g.setColour(CyberpunkTheme::accentBlue);
+        g.setColour(MultiverseFlatTheme::accentBlue);
         g.strokePath(wave, juce::PathStrokeType(1.5f, juce::PathStrokeType::curved,
                                                 juce::PathStrokeType::rounded));
 
-        g.setColour(CyberpunkTheme::textMuted);
+        g.setColour(MultiverseFlatTheme::textMuted);
         g.setFont(juce::Font(8.0f));
         g.drawText("OSC", (int)scopeArea.getX(), (int)scopeArea.getY(), 24, 10,
                    juce::Justification::centredLeft, false);
@@ -231,14 +230,14 @@ void SynthDisplay::paint(juce::Graphics& g)
                 bars.addRectangle(sox + float(x), sbot - barH, 1.5f, barH);
         }
 
-        juce::ColourGradient grad(CyberpunkTheme::accentPurple, sox, sbot,
-                                  CyberpunkTheme::accentBlue.brighter(0.4f), sox, specArea.getY(),
+        juce::ColourGradient grad(MultiverseFlatTheme::accentPurple, sox, sbot,
+                                  MultiverseFlatTheme::accentBlue.brighter(0.4f), sox, specArea.getY(),
                                   false);
         g.setGradientFill(grad);
         g.fillPath(bars);
 
         // Peak hold — 1px per column
-        g.setColour(CyberpunkTheme::accentBlue.brighter(0.6f));
+        g.setColour(MultiverseFlatTheme::accentBlue.brighter(0.6f));
         for (int x = 0; x < dispW; ++x)
         {
             if (fftPeak[(int)(float(x) / float(dispW - 1) * float(numBins - 1))] < 0.01f) continue;
@@ -248,7 +247,7 @@ void SynthDisplay::paint(juce::Graphics& g)
             g.fillRect(sox + float(x), sbot - fftPeak[bin] * sh, 1.5f, 1.5f);
         }
 
-        g.setColour(CyberpunkTheme::textMuted);
+        g.setColour(MultiverseFlatTheme::textMuted);
         g.setFont(juce::Font(8.0f));
         g.drawText("FFT", (int)specArea.getX(), (int)specArea.getY(), 22, 10,
                    juce::Justification::centredLeft, false);

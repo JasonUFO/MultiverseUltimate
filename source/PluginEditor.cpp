@@ -38,14 +38,14 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     presetNameLabel.setJustificationType (juce::Justification::centred);
     presetNameLabel.setFont (juce::Font (12.0f, juce::Font::bold));
     presetNameLabel.setColour (juce::Label::textColourId, juce::Colours::white);
-    presetNameLabel.setColour (juce::Label::backgroundColourId, CyberpunkTheme::bgDeep);
-    presetNameLabel.setColour (juce::Label::outlineColourId, CyberpunkTheme::accentBlue.withAlpha (0.3f));
+    presetNameLabel.setColour (juce::Label::backgroundColourId, MultiverseFlatTheme::bgDeep);
+    presetNameLabel.setColour (juce::Label::outlineColourId, MultiverseFlatTheme::accentBlue.withAlpha (0.3f));
     presetNameLabel.setMinimumHorizontalScale (0.8f);
 
     for (auto* btn : { &prevPresetButton, &nextPresetButton, &favoriteButton, &backButton, &forwardButton })
     {
-        btn->setColour (juce::TextButton::buttonColourId, CyberpunkTheme::bgDeep);
-        btn->setColour (juce::TextButton::textColourOffId, CyberpunkTheme::textSecondary);
+        btn->setColour (juce::TextButton::buttonColourId, MultiverseFlatTheme::bgDeep);
+        btn->setColour (juce::TextButton::textColourOffId, MultiverseFlatTheme::textSecondary);
         addAndMakeVisible (btn);
     }
     addAndMakeVisible (presetNameLabel);
@@ -121,17 +121,17 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::setupTabs()
 {
-    tabs.addTab ("Synth",      CyberpunkTheme::bgBase, &synthPanel,            false);
-    tabs.addTab ("Drums",      CyberpunkTheme::bgBase, &drumSequencerPanel,    false);
-    tabs.addTab ("Modulation", CyberpunkTheme::bgBase, &modulationMatrixPanel, false);
-    tabs.addTab ("Sampler",    CyberpunkTheme::bgBase, &samplerPanel,          false);
-    tabs.addTab ("Sequencer",  CyberpunkTheme::bgBase, &proSequencerPanel,     false);
-    tabs.addTab ("Arp",        CyberpunkTheme::bgBase, &arpeggiatorPanel,      false);
-    tabs.addTab ("Effects",    CyberpunkTheme::bgBase, &effectsPanel,          false);
-    tabs.addTab ("Macros",     CyberpunkTheme::bgBase, &macroPanel,            false);
-    tabs.addTab ("Granular",   CyberpunkTheme::bgBase, &granularPanel,         false);
-    tabs.addTab ("Layers",     CyberpunkTheme::bgBase, &layersPanel,           false);
-    tabs.addTab ("Perf",       CyberpunkTheme::bgBase, &performancePanel,      false);
+    tabs.addTab ("Synth",      MultiverseFlatTheme::bgBase, &synthPanel,            false);
+    tabs.addTab ("Drums",      MultiverseFlatTheme::bgBase, &drumSequencerPanel,    false);
+    tabs.addTab ("Modulation", MultiverseFlatTheme::bgBase, &modulationMatrixPanel, false);
+    tabs.addTab ("Sampler",    MultiverseFlatTheme::bgBase, &samplerPanel,          false);
+    tabs.addTab ("Sequencer",  MultiverseFlatTheme::bgBase, &proSequencerPanel,     false);
+    tabs.addTab ("Arp",        MultiverseFlatTheme::bgBase, &arpeggiatorPanel,      false);
+    tabs.addTab ("Effects",    MultiverseFlatTheme::bgBase, &effectsPanel,          false);
+    tabs.addTab ("Macros",     MultiverseFlatTheme::bgBase, &macroPanel,            false);
+    tabs.addTab ("Granular",   MultiverseFlatTheme::bgBase, &granularPanel,         false);
+    tabs.addTab ("Layers",     MultiverseFlatTheme::bgBase, &layersPanel,           false);
+    tabs.addTab ("Perf",       MultiverseFlatTheme::bgBase, &performancePanel,      false);
 }
 
 void PluginEditor::setupMidiLearnButton()
@@ -426,8 +426,8 @@ void PluginEditor::updateFavoriteButtonColor()
             return;
         }
     }
-    favoriteButton.setColour (juce::TextButton::textColourOffId, CyberpunkTheme::textSecondary);
-    favoriteButton.setColour (juce::TextButton::textColourOnId, CyberpunkTheme::textSecondary);
+    favoriteButton.setColour (juce::TextButton::textColourOffId, MultiverseFlatTheme::textSecondary);
+    favoriteButton.setColour (juce::TextButton::textColourOnId, MultiverseFlatTheme::textSecondary);
 }
 
 void PluginEditor::navigatePresetPrev()

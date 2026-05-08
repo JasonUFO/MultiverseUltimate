@@ -14,12 +14,12 @@ void PerformancePanel::XYPad::paint(juce::Graphics& g)
     auto b = getLocalBounds().toFloat();
 
     // Card background
-    CyberpunkTheme::drawNeumorphicRect(g, b, 10.0f, 3.0f);
-    g.setColour(CyberpunkTheme::bgDeep);
+    MultiverseFlatTheme::drawCard (g, b, 10.0f);
+    g.setColour(MultiverseFlatTheme::bgDeep);
     g.fillRoundedRectangle(b, 10.0f);
 
     // Title
-    g.setColour(CyberpunkTheme::textLabel);
+    g.setColour(MultiverseFlatTheme::textLabel);
     g.setFont(juce::Font(9.0f, juce::Font::bold));
     g.drawText("XY PAD  (MACRO 1 \xc3\x97 MACRO 2)",
                (int)b.getX() + 10, (int)b.getY() + 6, 200, 14,
@@ -28,7 +28,7 @@ void PerformancePanel::XYPad::paint(juce::Graphics& g)
     auto inner = b.reduced(12.0f).withTrimmedTop(16.0f);
 
     // Grid
-    g.setColour(CyberpunkTheme::accentBlue.withAlpha(0.10f));
+    g.setColour(MultiverseFlatTheme::accentBlue.withAlpha(0.10f));
     for (int i = 1; i < 5; ++i)
     {
         float x = inner.getX() + inner.getWidth()  * (float)i / 5.0f;
@@ -38,14 +38,14 @@ void PerformancePanel::XYPad::paint(juce::Graphics& g)
     }
 
     // Centre crosshair
-    g.setColour(CyberpunkTheme::accentBlue.withAlpha(0.18f));
+    g.setColour(MultiverseFlatTheme::accentBlue.withAlpha(0.18f));
     float cx = inner.getCentreX();
     float cy = inner.getCentreY();
     g.drawLine(cx, inner.getY(), cx, inner.getBottom(), 1.0f);
     g.drawLine(inner.getX(), cy, inner.getRight(), cy, 1.0f);
 
     // Axis labels
-    g.setColour(CyberpunkTheme::textLabel);
+    g.setColour(MultiverseFlatTheme::textLabel);
     g.setFont(juce::Font(9.0f));
     g.drawText("M1 \xe2\x86\x92", (int)inner.getX(), (int)inner.getBottom() + 1, 40, 12,
                juce::Justification::centredLeft);
@@ -62,25 +62,25 @@ void PerformancePanel::XYPad::paint(juce::Graphics& g)
     float dotPY = inner.getY() + (1.0f - dotY) * inner.getHeight();
 
     // Crosshair through dot
-    g.setColour(CyberpunkTheme::accentBlue.withAlpha(0.35f));
+    g.setColour(MultiverseFlatTheme::accentBlue.withAlpha(0.35f));
     g.drawLine(inner.getX(), dotPY, inner.getRight(), dotPY, 1.0f);
     g.drawLine(dotPX, inner.getY(), dotPX, inner.getBottom(), 1.0f);
 
     // Glow
     const float glowR = 18.0f;
     juce::ColourGradient glow(
-        CyberpunkTheme::accentBlue.withAlpha(0.35f), dotPX, dotPY,
-        CyberpunkTheme::accentBlue.withAlpha(0.0f),  dotPX + glowR, dotPY,
+        MultiverseFlatTheme::accentBlue.withAlpha(0.35f), dotPX, dotPY,
+        MultiverseFlatTheme::accentBlue.withAlpha(0.0f),  dotPX + glowR, dotPY,
         true);
     g.setGradientFill(glow);
     g.fillEllipse(dotPX - glowR, dotPY - glowR, glowR * 2.0f, glowR * 2.0f);
 
     // Outer ring
-    g.setColour(CyberpunkTheme::accentBlue);
+    g.setColour(MultiverseFlatTheme::accentBlue);
     g.drawEllipse(dotPX - 8.0f, dotPY - 8.0f, 16.0f, 16.0f, 1.5f);
 
     // Inner fill
-    g.setColour(CyberpunkTheme::accentBlue.withAlpha(0.7f));
+    g.setColour(MultiverseFlatTheme::accentBlue.withAlpha(0.7f));
     g.fillEllipse(dotPX - 5.0f, dotPY - 5.0f, 10.0f, 10.0f);
 
     // Bright centre
@@ -141,12 +141,12 @@ PerformancePanel::PerformancePanel(PluginProcessor& p)
 
     titleLabel.setText("PERFORMANCE VIEW", juce::dontSendNotification);
     titleLabel.setJustificationType(juce::Justification::centredLeft);
-    titleLabel.setColour(juce::Label::textColourId, CyberpunkTheme::textLabel);
+    titleLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textLabel);
     titleLabel.setFont(juce::Font(11.0f, juce::Font::bold));
     addAndMakeVisible(titleLabel);
 
     bpmLabel.setJustificationType(juce::Justification::centredRight);
-    bpmLabel.setColour(juce::Label::textColourId, CyberpunkTheme::accentBlue);
+    bpmLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::accentBlue);
     bpmLabel.setFont(juce::Font(13.0f, juce::Font::bold));
     addAndMakeVisible(bpmLabel);
 
@@ -188,23 +188,23 @@ PerformancePanel::~PerformancePanel()
 
 void PerformancePanel::paint(juce::Graphics& g)
 {
-    g.fillAll(CyberpunkTheme::bgBase);
+    g.fillAll(MultiverseFlatTheme::bgBase);
 
     // Info strip card
     if (infoCardRect.getHeight() > 0)
     {
-        CyberpunkTheme::drawNeumorphicRect(g, infoCardRect.toFloat(), 8.0f, 2.0f);
-        g.setColour(CyberpunkTheme::bgRaised);
+        MultiverseFlatTheme::drawCard (g, infoCardRect.toFloat(), 8.0f);
+        g.setColour(MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle(infoCardRect.toFloat(), 8.0f);
     }
 
     // Macro area card
     if (macroCardRect.getHeight() > 0)
     {
-        CyberpunkTheme::drawNeumorphicRect(g, macroCardRect.toFloat(), 10.0f, 3.0f);
-        g.setColour(CyberpunkTheme::bgRaised);
+        MultiverseFlatTheme::drawCard (g, macroCardRect.toFloat(), 10.0f);
+        g.setColour(MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle(macroCardRect.toFloat(), 10.0f);
-        g.setColour(CyberpunkTheme::textLabel);
+        g.setColour(MultiverseFlatTheme::textLabel);
         g.setFont(juce::Font(9.0f, juce::Font::bold));
         g.drawText("MACROS",
                    macroCardRect.getX() + 10, macroCardRect.getY() + 6, 100, 13,
