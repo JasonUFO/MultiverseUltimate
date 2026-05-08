@@ -36,6 +36,26 @@ void Preset::setTagsFromString(const juce::String& commaSeparated)
     }
 }
 
+juce::StringArray Preset::getCharacters() const { return characters; }
+void Preset::setCharacters(const juce::StringArray& c) { characters = c; }
+
+juce::String Preset::getCharactersString() const { return characters.joinIntoString(","); }
+
+void Preset::setCharactersFromString(const juce::String& commaSeparated)
+{
+    characters.clear();
+    if (commaSeparated.isNotEmpty())
+    {
+        auto parts = juce::StringArray::fromTokens(commaSeparated, ",", "");
+        for (auto& p : parts)
+        {
+            p = p.trim().toLowerCase();
+            if (p.isNotEmpty() && !characters.contains(p))
+                characters.add(p);
+        }
+    }
+}
+
 void Preset::setParameter(int index, float value)
 {
     if (index < 0) return;
@@ -58,6 +78,7 @@ void Preset::serialize(juce::XmlElement& xml) const
     xml.setAttribute("author", author);
     xml.setAttribute("description", description);
     xml.setAttribute("tags", getTagsString());
+    xml.setAttribute("characters", getCharactersString());
 
     for (int i = 0; i < (int)parameters.size(); i++)
     {
@@ -72,6 +93,7 @@ bool Preset::deserialize(const juce::XmlElement& xml)
     author = xml.getStringAttribute("author", "MultiphaseAudio");
     description = xml.getStringAttribute("description", "");
     setTagsFromString(xml.getStringAttribute("tags", ""));
+    setCharactersFromString(xml.getStringAttribute("characters", ""));
 
     // Extract #hashtags from description
     if (description.contains("#"))

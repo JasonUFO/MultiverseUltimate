@@ -24,6 +24,7 @@
 #include "Macros/MacroManager.h"
 #include "Granular/GranularEngine.h"
 #include "Layers/LayerManager.h"
+#include "Synth/Filter.h"
 
 enum class EffectID { Chorus = 0, Distortion = 1, EQ = 2, Compressor = 3, Delay = 4, Reverb = 5 };
 
@@ -160,6 +161,7 @@ public:
     juce::String currentPresetAuthor      { "MultiphaseAudio" };
     juce::String currentPresetDescription;
     juce::String currentPresetTags;
+    juce::String currentPresetCharacters;
 
     // Preview note (message thread writes, audio thread reads)
     std::atomic<int>  previewNote         { -1 };   // -1 = idle
@@ -207,6 +209,12 @@ public:
     // Global quality / oversampling
     std::unique_ptr<juce::dsp::Oversampling<float>> activeOversampler;
     int oversamplingFactor { 1 }; // 1, 2, or 4
+
+    // Main Filter (post-effects global filter for QuickFX strip)
+    Filter mainFilter;
+    float mainFilterPrevCutoff   = 20000.0f;
+    float mainFilterPrevRes      = 0.707f;
+    int   mainFilterPrevType     = 0;
 
     // Display FIFO — audio thread writes, UI thread reads (30 Hz)
     static constexpr int DISPLAY_FIFO_SIZE = 4096;

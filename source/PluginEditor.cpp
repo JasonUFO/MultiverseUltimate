@@ -9,24 +9,21 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       arpeggiatorPanel (p.getArpeggiator()),
       synthPanel (p),
       effectsPanel (p),
-      macroPanel (p),
       granularPanel (p),
       layersPanel (p, p.getLayerManager()),
       performancePanel (p),
+      routingPanel (p),
       tabs (juce::TabbedButtonBar::TabsAtTop),
-      midiLearnButton ("MIDI Learn"),
-      midiLearnLabel ("", ""),
-      presetBrowserPanel (p),
-      keyboard (p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
+      librarianPanel (p),
+      bottomBar (p),
+      quickFXStrip (p)
 {
     setLookAndFeel (&mvTheme);
 
     setupTabs();
-    setupMidiLearnButton();
 
-    presetsButton.addListener (this);
-    addAndMakeVisible (presetsButton);
-    addChildComponent (presetBrowserPanel);
+    // Preset browser — always visible in left sidebar
+    addAndMakeVisible (librarianPanel);
 
     // Preset navigation (header)
     prevPresetButton.addListener (this);
@@ -53,61 +50,48 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     updatePresetNameLabel();
     updateFavoriteButtonColor();
 
-    helpButton.setClickingTogglesState (true);
-    helpButton.setToggleState (true, juce::dontSendNotification);
-    helpButton.onClick = [this]
-    {
-        tooltipWindow.setMillisecondsBeforeTipAppears (
-            helpButton.getToggleState() ? 700 : 99999999);
-    };
-    addAndMakeVisible (helpButton);
+    // Menu button (☰)
+    menuButton.setTooltip ("Menu — Save, Import, Export, Scale, Quality, FX Mode, MIDI Learn");
+    menuButton.setColour (juce::TextButton::buttonColourId, MultiverseFlatTheme::bgDeep);
+    menuButton.setColour (juce::TextButton::textColourOffId, MultiverseFlatTheme::textPrimary);
+    menuButton.addListener (this);
+    addAndMakeVisible (menuButton);
 
     // Randomize button
     randomizeButton.setTooltip ("Randomize synth parameters for sound design");
     randomizeButton.onClick = [this] { showRandomizeMenu(); };
     addAndMakeVisible (randomizeButton);
 
-    // Scale combo
+    // Scale combo (hidden — controlled via menu)
     scaleCombo.addItem ("75%",  1);
     scaleCombo.addItem ("100%", 2);
     scaleCombo.addItem ("125%", 3);
     scaleCombo.addItem ("150%", 4);
     scaleCombo.setSelectedId (2, juce::dontSendNotification);
-    scaleCombo.setTooltip ("UI scale factor");
-    scaleCombo.onChange = [this] {
-        const float factors[] = { 0.75f, 1.0f, 1.25f, 1.5f };
-        int idx = juce::jlimit (0, 3, scaleCombo.getSelectedId() - 1);
-        setSize (juce::roundToInt (1200 * factors[idx]),
-                 juce::roundToInt (800  * factors[idx]));
-    };
-    addAndMakeVisible (scaleCombo);
 
-    // Global quality combo
+    // Global quality combo (hidden — controlled via menu)
     qualCombo.addItem ("Off",      1);
     qualCombo.addItem ("2x High",  2);
     qualCombo.addItem ("4x Ultra", 3);
-    qualCombo.setTooltip ("Global oversampling quality — higher quality reduces aliasing, increases CPU (takes effect on next play)");
     qualAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
         p.apvts, "globalQuality", qualCombo);
-    addAndMakeVisible (qualCombo);
 
-    // FX Mode button
+    // FX Mode button (hidden — controlled via menu)
     fxModeButton.setClickingTogglesState (true);
-    fxModeButton.setTooltip ("FX Mode — route audio input through the effects chain (connect audio track to this plugin)");
     fxModeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         p.apvts, "fxModeEnabled", fxModeButton);
-    addAndMakeVisible (fxModeButton);
 
-    // Built-in keyboard
-    keyboard.setOctaveForMiddleC (5);
-    keyboard.setAvailableRange (24, 108);
-    keyboard.setLowestVisibleKey (36);
-    addAndMakeVisible (keyboard);
+    // Bottom bar and right strip
+    addAndMakeVisible (bottomBar);
+    addAndMakeVisible (quickFXStrip);
 
     addAndMakeVisible (tabs);
-    addAndMakeVisible (midiLearnButton);
-    addAndMakeVisible (midiLearnLabel);
-    addAndMakeVisible (paramSelector);
+
+    // Routing panel tab-switch callback
+    routingPanel.onSwitchToTab = [this] (int index)
+    {
+        tabs.setCurrentTabIndex (index, true);
+    };
 
     setResizable (true, true);
     setResizeLimits (800, 533, 1920, 1280);
@@ -121,67 +105,34 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::setupTabs()
 {
-    tabs.addTab ("Synth",      MultiverseFlatTheme::bgBase, &synthPanel,            false);
-    tabs.addTab ("Drums",      MultiverseFlatTheme::bgBase, &drumSequencerPanel,    false);
-    tabs.addTab ("Modulation", MultiverseFlatTheme::bgBase, &modulationMatrixPanel, false);
-    tabs.addTab ("Sampler",    MultiverseFlatTheme::bgBase, &samplerPanel,          false);
-    tabs.addTab ("Sequencer",  MultiverseFlatTheme::bgBase, &proSequencerPanel,     false);
-    tabs.addTab ("Arp",        MultiverseFlatTheme::bgBase, &arpeggiatorPanel,      false);
-    tabs.addTab ("Effects",    MultiverseFlatTheme::bgBase, &effectsPanel,          false);
-    tabs.addTab ("Macros",     MultiverseFlatTheme::bgBase, &macroPanel,            false);
-    tabs.addTab ("Granular",   MultiverseFlatTheme::bgBase, &granularPanel,         false);
-    tabs.addTab ("Layers",     MultiverseFlatTheme::bgBase, &layersPanel,           false);
-    tabs.addTab ("Perf",       MultiverseFlatTheme::bgBase, &performancePanel,      false);
-}
-
-void PluginEditor::setupMidiLearnButton()
-{
-    midiLearnButton.setToggleState (false, juce::dontSendNotification);
-    midiLearnButton.setColour (juce::ToggleButton::textColourId, juce::Colours::white);
-    midiLearnButton.setTooltip ("Enable MIDI Learn — select a parameter, then move a controller");
-    midiLearnButton.addListener (this);
-
-    midiLearnLabel.setJustificationType (juce::Justification::centredLeft);
-    midiLearnLabel.setFont (juce::Font (11.0f, juce::Font::plain));
-    midiLearnLabel.setColour (juce::Label::textColourId, juce::Colours::orange);
-    midiLearnLabel.setVisible (false);
-
-    // Populate parameter selector with all APVTS parameters
-    paramSelector.addItem ("(select parameter)", 1);
-    auto& params = processorRef.getParameters();
-    for (int i = 0; i < params.size(); ++i)
-    {
-        if (auto* rp = dynamic_cast<juce::RangedAudioParameter*>(params[i]))
-            paramSelector.addItem (rp->getName (64), i + 2); // offset by 2: id 1 = placeholder
-    }
-    paramSelector.setSelectedId (1, juce::dontSendNotification);
-    paramSelector.setVisible (false);
-    paramSelector.addListener (this);
+    tabs.addTab ("SYN",  MultiverseFlatTheme::bgBase, &synthPanel,            false);
+    tabs.addTab ("DRM",  MultiverseFlatTheme::bgBase, &drumSequencerPanel,    false);
+    tabs.addTab ("MOD",  MultiverseFlatTheme::bgBase, &modulationMatrixPanel, false);
+    tabs.addTab ("SMP",  MultiverseFlatTheme::bgBase, &samplerPanel,          false);
+    tabs.addTab ("SEQ",  MultiverseFlatTheme::bgBase, &proSequencerPanel,     false);
+    tabs.addTab ("ARP",  MultiverseFlatTheme::bgBase, &arpeggiatorPanel,      false);
+    tabs.addTab ("FX",   MultiverseFlatTheme::bgBase, &effectsPanel,          false);
+    tabs.addTab ("GRN",  MultiverseFlatTheme::bgBase, &granularPanel,         false);
+    tabs.addTab ("LYR",  MultiverseFlatTheme::bgBase, &layersPanel,           false);
+    tabs.addTab ("PRF",  MultiverseFlatTheme::bgBase, &performancePanel,      false);
+    tabs.addTab ("ROU",  MultiverseFlatTheme::bgBase, &routingPanel,          false);
 }
 
 void PluginEditor::paint (juce::Graphics& g)
 {
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll (MultiverseFlatTheme::bgVoid);
 }
 
 void PluginEditor::resized()
 {
     auto area = getLocalBounds();
 
-    // Header strip: 32 px tall
+    // Header: 32px across full width
     auto header = area.removeFromTop (32);
-    midiLearnButton.setBounds (header.removeFromLeft (110).reduced (4, 4));
-    paramSelector.setBounds   (header.removeFromLeft (200).reduced (2, 4));
-
-    // Right side controls
-    presetsButton.setBounds   (header.removeFromRight (72).reduced (4, 4));
-    helpButton.setBounds      (header.removeFromRight (28).reduced (2, 4));
+    menuButton.setBounds (header.removeFromLeft (32).reduced (4, 4));
     randomizeButton.setBounds (header.removeFromRight (52).reduced (4, 4));
-    scaleCombo.setBounds      (header.removeFromRight (70).reduced (4, 4));
-    qualCombo.setBounds       (header.removeFromRight (80).reduced (4, 4));
-    fxModeButton.setBounds    (header.removeFromRight (36).reduced (4, 4));
 
-    // Center: preset navigation strip (prev | name | next | ★ | ◀ | ▶)
+    // Center: preset navigation strip
     auto center = header.withSize (320, 32).withCentre (header.getCentre());
     backButton.setBounds      (center.removeFromLeft (28).reduced (2, 4));
     prevPresetButton.setBounds(center.removeFromLeft (28).reduced (2, 4));
@@ -190,31 +141,26 @@ void PluginEditor::resized()
     favoriteButton.setBounds  (center.removeFromLeft (28).reduced (2, 4));
     forwardButton.setBounds   (center.removeFromLeft (28).reduced (2, 4));
 
-    // Preset browser (collapsible, 280px)
-    if (presetsVisible)
-    {
-        presetBrowserPanel.setBounds (area.removeFromTop (280));
-        presetBrowserPanel.setVisible (true);
-    }
-    else
-    {
-        presetBrowserPanel.setVisible (false);
-    }
+    // Bottom bar: 88px across center + right strip
+    auto bottomArea = area.removeFromBottom (88);
+    bottomBar.setBounds (area.getX(), bottomArea.getY(),
+                         area.getWidth() + 200, 88);
 
-    // Built-in keyboard at bottom
-    keyboard.setBounds (area.removeFromBottom (KEYBOARD_H));
+    // Left sidebar: 280px
+    librarianPanel.setBounds (area.removeFromLeft (280));
 
+    // Right FX strip: 200px
+    quickFXStrip.setBounds (area.removeFromRight (200));
+
+    // Tabs fill remaining center area
     tabs.setBounds (area);
 }
 
 void PluginEditor::buttonClicked (juce::Button* button)
 {
-    if (button == &presetsButton)
+    if (button == &menuButton)
     {
-        presetsVisible = !presetsVisible;
-        if (presetsVisible)
-            presetBrowserPanel.refresh();
-        resized();
+        showMainMenu();
         return;
     }
 
@@ -245,27 +191,13 @@ void PluginEditor::buttonClicked (juce::Button* button)
         }
         return;
     }
-
-    if (button != &midiLearnButton)
-        return;
-
-    const bool isActive = midiLearnButton.getToggleState();
-    processorRef.midiLearnActive = isActive;
-
-    if (!isActive)
-    {
-        processorRef.stopMidiLearn();
-        paramSelector.setSelectedId (1, juce::dontSendNotification);
-    }
-
-    updateMidiLearnUI();
 }
 
 void PluginEditor::comboBoxChanged (juce::ComboBox* combo)
 {
-    if (combo == &paramSelector)
+    if (combo == midiLearnCallout.getComponent())
     {
-        const int selectedId = paramSelector.getSelectedId();
+        const int selectedId = combo->getSelectedId();
         if (selectedId <= 1)
         {
             processorRef.learnParameterIndex = -1;
@@ -273,20 +205,6 @@ void PluginEditor::comboBoxChanged (juce::ComboBox* combo)
         }
         const int paramIndex = selectedId - 2;
         processorRef.startMidiLearnForParameter (paramIndex);
-        midiLearnLabel.setText ("Waiting for CC...", juce::dontSendNotification);
-        midiLearnLabel.setVisible (true);
-    }
-}
-
-void PluginEditor::updateMidiLearnUI()
-{
-    const bool active = midiLearnButton.getToggleState();
-    paramSelector.setVisible (active);
-
-    if (!active)
-    {
-        midiLearnLabel.setVisible (false);
-        midiLearnLabel.setText ("", juce::dontSendNotification);
     }
 }
 
@@ -302,19 +220,104 @@ bool PluginEditor::keyPressed (const juce::KeyPress& key)
         processorRef.undoManager.redo();
         return true;
     }
-    // Cmd+F: focus preset search
+    // Cmd+F: focus preset search (sidebar is always visible)
     if (key == juce::KeyPress ('f', juce::ModifierKeys::commandModifier, 0))
     {
-        if (!presetsVisible)
-        {
-            presetsVisible = true;
-            presetBrowserPanel.refresh();
-            resized();
-        }
-        presetBrowserPanel.focusSearchEditor();
+        librarianPanel.focusSearchEditor();
         return true;
     }
     return false;
+}
+
+void PluginEditor::showMainMenu()
+{
+    juce::PopupMenu menu;
+
+    // Preset actions
+    menu.addItem ("Save Preset", [this] { librarianPanel.saveCurrentPreset(); });
+
+    // Import/Export
+    menu.addItem ("Import Preset", [this] { librarianPanel.importPreset(); });
+    menu.addItem ("Export Preset", [this] { librarianPanel.exportPreset(); });
+
+    menu.addSeparator();
+
+    // UI Scale submenu
+    juce::PopupMenu scaleMenu;
+    const float factors[] = { 0.75f, 1.0f, 1.25f, 1.5f };
+    const char* scaleLabels[] = { "75%", "100%", "125%", "150%" };
+    for (int i = 0; i < 4; ++i)
+    {
+        const int id = i + 1;
+        scaleMenu.addItem (scaleLabels[i], true, scaleCombo.getSelectedId() == id,
+            [this, id] {
+                scaleCombo.setSelectedId (id);
+                const float f[] = { 0.75f, 1.0f, 1.25f, 1.5f };
+                setSize (juce::roundToInt (1200 * f[id - 1]),
+                         juce::roundToInt (800  * f[id - 1]));
+            });
+    }
+    menu.addSubMenu ("UI Scale", scaleMenu);
+
+    // Quality submenu
+    juce::PopupMenu qualMenu;
+    qualMenu.addItem ("Off (no oversampling)",     true, qualCombo.getSelectedId() == 1, [this] { qualCombo.setSelectedId (1); });
+    qualMenu.addItem ("2x High Quality",           true, qualCombo.getSelectedId() == 2, [this] { qualCombo.setSelectedId (2); });
+    qualMenu.addItem ("4x Ultra Quality",           true, qualCombo.getSelectedId() == 3, [this] { qualCombo.setSelectedId (3); });
+    menu.addSubMenu ("Quality", qualMenu);
+
+    // FX Mode toggle
+    menu.addItem ("FX Mode (Audio Input)", true, fxModeButton.getToggleState(),
+        [this] {
+            fxModeButton.setToggleState (! fxModeButton.getToggleState(), juce::sendNotificationSync);
+        });
+
+    menu.addSeparator();
+
+    // MIDI Learn toggle
+    menu.addItem ("MIDI Learn", true, midiLearnActive,
+        [this] {
+            midiLearnActive = ! midiLearnActive;
+            processorRef.midiLearnActive = midiLearnActive;
+            if (! midiLearnActive)
+            {
+                processorRef.stopMidiLearn();
+                midiLearnCallout = nullptr;
+            }
+            else
+            {
+                showMidiLearnCallout();
+            }
+        });
+
+    // Tooltips toggle
+    menu.addItem ("Show Tooltips", true, tooltipsEnabled,
+        [this] {
+            tooltipsEnabled = ! tooltipsEnabled;
+            tooltipWindow.setMillisecondsBeforeTipAppears (tooltipsEnabled ? 700 : 99999999);
+        });
+
+    menu.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (menuButton));
+}
+
+void PluginEditor::showMidiLearnCallout()
+{
+    auto* selector = new juce::ComboBox();
+    selector->addItem ("(select parameter)", 1);
+    auto& params = processorRef.getParameters();
+    for (int i = 0; i < params.size(); ++i)
+    {
+        if (auto* rp = dynamic_cast<juce::RangedAudioParameter*>(params[i]))
+            selector->addItem (rp->getName (64), i + 2);
+    }
+    selector->setSize (250, 24);
+    selector->addListener (this);
+
+    midiLearnCallout = selector;
+
+    juce::CallOutBox::launchAsynchronously (
+        std::unique_ptr<juce::Component>(selector),
+        menuButton.getScreenBounds(), nullptr);
 }
 
 void PluginEditor::showRandomizeMenu()
@@ -475,7 +478,6 @@ void PluginEditor::cycleFavorite()
             newColor = -1;
         pm.setFavorite (idx, newColor);
         updateFavoriteButtonColor();
-        if (presetsVisible)
-            presetBrowserPanel.refresh();
+        librarianPanel.refresh();
     }
 }

@@ -8,9 +8,11 @@ PresetManager::PresetManager()
                            .getChildFile("Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate");
     presetsDirectory.createDirectory();
     favoritesFile = presetsDirectory.getChildFile("favorites.json");
+    bookmarksFile = presetsDirectory.getChildFile("bookmarks.json");
     createFactoryPresetsIfNeeded();
     scanPresetsDirectory();
     loadFavorites();
+    loadBookmarks();
 }
 
 juce::StringArray PresetManager::getBankNames() const
@@ -209,6 +211,7 @@ void PresetManager::scanPresetsDirectory()
     // Build metadata cache
     scanPresetMetadata();
     buildTagIndex();
+    buildCharacterIndex();
 }
 
 void PresetManager::scanPresetMetadata()
@@ -269,6 +272,19 @@ void PresetManager::scanPresetMetadata()
                     }
                 }
             }
+
+            // Parse characters from attribute
+            juce::String charStr = xml->getStringAttribute("characters", "");
+            if (charStr.isNotEmpty())
+            {
+                auto parts = juce::StringArray::fromTokens(charStr, ",", "");
+                for (auto& p : parts)
+                {
+                    p = p.trim().toLowerCase();
+                    if (p.isNotEmpty() && !m.characters.contains(p))
+                        m.characters.add(p);
+                }
+            }
         }
     }
 }
@@ -297,6 +313,27 @@ juce::StringArray PresetManager::getAllTags() const
 {
     juce::StringArray result;
     for (const auto& entry : tagIndex)
+        result.add(entry.first);
+    result.sortNatural();
+    return result;
+}
+
+void PresetManager::buildCharacterIndex()
+{
+    characterIndex.clear();
+    for (int i = 0; i < (int)presetMeta.size(); ++i)
+    {
+        for (const auto& ch : presetMeta[i].characters)
+        {
+            characterIndex[ch].push_back(i);
+        }
+    }
+}
+
+juce::StringArray PresetManager::getAllCharacters() const
+{
+    juce::StringArray result;
+    for (const auto& entry : characterIndex)
         result.add(entry.first);
     result.sortNatural();
     return result;
@@ -500,4 +537,106 @@ void PresetManager::exportBank(const juce::File& destDirectory)
     destDirectory.createDirectory();
     for (auto& f : presetFiles)
         f.copyFileTo(destDirectory.getChildFile(f.getFileName()));
+}
+
+//==============================================================================
+// Bookmarks
+
+void PresetManager::loadBookmarks()
+{
+    bookmarkFolders.clear();
+    if (!bookmarksFile.existsAsFile())
+        return;
+
+    auto json = juce::JSON::parse(bookmarksFile.loadFileAsString());
+    if (auto* obj = json.getDynamicObject())
+    {
+        auto folders = obj->getProperty("folders");
+        if (auto* arr = folders.getArray())
+        {
+            for (const auto& item : *arr)
+            {
+                if (auto* folder = item.getDynamicObject())
+                {
+                    BookmarkFolder bf;
+                    bf.name = folder->getProperty("name").toString();
+                    auto paths = folder->getProperty("presets");
+                    if (auto* pathsArr = paths.getArray())
+                    {
+                        for (const auto& p : *pathsArr)
+                            bf.presetPaths.add(p.toString());
+                    }
+                    if (bf.name.isNotEmpty())
+                        bookmarkFolders.push_back(bf);
+                }
+            }
+        }
+    }
+}
+
+void PresetManager::saveBookmarks()
+{
+    auto* root = new juce::DynamicObject();
+    root->setProperty("version", 1);
+
+    juce::Array<juce::var> foldersArr;
+    for (const auto& folder : bookmarkFolders)
+    {
+        auto* obj = new juce::DynamicObject();
+        obj->setProperty("name", folder.name);
+        juce::Array<juce::var> pathsArr;
+        for (const auto& path : folder.presetPaths)
+            pathsArr.add(juce::var(path));
+        obj->setProperty("presets", pathsArr);
+        foldersArr.add(juce::var(obj));
+    }
+    root->setProperty("folders", foldersArr);
+
+    juce::String jsonText = juce::JSON::toString(juce::var(root), false);
+    bookmarksFile.replaceWithText(jsonText);
+}
+
+void PresetManager::createBookmarkFolder(const juce::String& name)
+{
+    bookmarkFolders.push_back({name, {}});
+    saveBookmarks();
+}
+
+void PresetManager::deleteBookmarkFolder(int index)
+{
+    if (index >= 0 && index < (int)bookmarkFolders.size())
+    {
+        bookmarkFolders.erase(bookmarkFolders.begin() + index);
+        saveBookmarks();
+    }
+}
+
+void PresetManager::renameBookmarkFolder(int index, const juce::String& name)
+{
+    if (index >= 0 && index < (int)bookmarkFolders.size())
+    {
+        bookmarkFolders[index].name = name;
+        saveBookmarks();
+    }
+}
+
+void PresetManager::addPresetToBookmark(int folderIndex, const juce::String& presetPath)
+{
+    if (folderIndex >= 0 && folderIndex < (int)bookmarkFolders.size())
+    {
+        if (!bookmarkFolders[folderIndex].presetPaths.contains(presetPath))
+        {
+            bookmarkFolders[folderIndex].presetPaths.add(presetPath);
+            saveBookmarks();
+        }
+    }
+}
+
+void PresetManager::removePresetFromBookmark(int folderIndex, const juce::String& presetPath)
+{
+    if (folderIndex >= 0 && folderIndex < (int)bookmarkFolders.size())
+    {
+        bookmarkFolders[folderIndex].presetPaths.removeString(presetPath);
+        saveBookmarks();
+    }
 }

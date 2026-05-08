@@ -24,6 +24,11 @@ public:
     juce::String getTagsString() const;
     void setTagsFromString(const juce::String& commaSeparated);
 
+    juce::StringArray getCharacters() const;
+    void setCharacters(const juce::StringArray& c);
+    juce::String getCharactersString() const;
+    void setCharactersFromString(const juce::String& commaSeparated);
+
     void setParameter(int index, float value);
     float getParameter(int index) const;
 
@@ -36,5 +41,6 @@ private:
     juce::String author = "MultiphaseAudio";
     juce::String description;
     juce::StringArray tags;
+    juce::StringArray characters;
     std::vector<float> parameters;
 };

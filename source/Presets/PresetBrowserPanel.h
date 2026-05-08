@@ -60,13 +60,13 @@ private:
 
     // Categories (vertical pill tabs) — includes virtual "Favorites"
     juce::TextButton catAll      { "All"    };
-    juce::TextButton catInit    { "Init"   };
-    juce::TextButton catBass    { "Bass"   };
-    juce::TextButton catLead    { "Lead"   };
+    juce::TextButton catInit    { "Ini"   };
+    juce::TextButton catBass    { "Bas"   };
+    juce::TextButton catLead    { "Led"   };
     juce::TextButton catPad     { "Pad"    };
-    juce::TextButton catDrums   { "Drums"  };
+    juce::TextButton catDrums   { "Drm"  };
     juce::TextButton catFX      { "FX"     };
-    juce::TextButton catFavorites { "Favs" };
+    juce::TextButton catFavorites { "Fav" };
     juce::Array<juce::TextButton*> categoryButtons;
 
     // Action buttons (compact icon buttons in search bar)
@@ -102,11 +102,15 @@ private:
 
     void rebuildFilter();
     void setActiveCategory(juce::TextButton* cat);
+
+public:
     void saveCurrentPreset();
-    void loadSelectedPreset();
-    void deleteSelectedPreset();
     void importPreset();
     void exportPreset();
+
+private:
+    void loadSelectedPreset();
+    void deleteSelectedPreset();
     void updateMetadataStrip();
     void showSaveDialog();
     void showRightClickMenu(int row);

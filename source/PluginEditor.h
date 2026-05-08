@@ -10,11 +10,13 @@
 #include "Sequencer/ProSequencerPanel.h"
 #include "Sequencer/ArpeggiatorPanel.h"
 #include "Effects/EffectsPanel.h"
-#include "Presets/PresetBrowserPanel.h"
-#include "Macros/MacroPanel.h"
+#include "Presets/LibrarianPanel.h"
 #include "Granular/GranularPanel.h"
 #include "Layers/LayersPanel.h"
 #include "Performance/PerformancePanel.h"
+#include "UI/BottomBar.h"
+#include "UI/QuickFXStrip.h"
+#include "Routing/RoutingPanel.h"
 
 class PluginEditor : public juce::AudioProcessorEditor,
                      public juce::Button::Listener,
@@ -41,16 +43,20 @@ private:
     ArpeggiatorPanel     arpeggiatorPanel;
     SynthPanel            synthPanel;
     EffectsPanel          effectsPanel;
-    MacroPanel            macroPanel;
     GranularPanel         granularPanel;
     LayersPanel           layersPanel;
     PerformancePanel      performancePanel;
+    RoutingPanel          routingPanel;
     juce::TabbedComponent tabs;
 
-    // Preset browser
-    PresetBrowserPanel presetBrowserPanel;
-    juce::TextButton   presetsButton { "Presets" };
-    bool               presetsVisible = false;
+    // Librarian panel (permanent left sidebar)
+    LibrarianPanel librarianPanel;
+
+    // Bottom bar (macros + keyboard)
+    BottomBar           bottomBar;
+
+    // Right FX strip (placeholder for Phase 4)
+    QuickFXStrip         quickFXStrip;
 
     // Preset navigation (header)
     juce::TextButton   prevPresetButton  { "<" };
@@ -68,35 +74,30 @@ private:
 
     // Tooltips
     juce::TooltipWindow tooltipWindow { this, 700 };
-    juce::TextButton    helpButton    { "?" };
+    bool tooltipsEnabled = true;
 
-    // MIDI Learn
-    juce::ToggleButton midiLearnButton;
-    juce::Label        midiLearnLabel;
-    juce::ComboBox     paramSelector;
-
-    // Built-in keyboard
-    juce::MidiKeyboardComponent keyboard;
-    static constexpr int KEYBOARD_H = 64;
+    // Menu button (☰)
+    juce::TextButton menuButton { "\xe2\x98\xb0" };
+    void showMainMenu();
 
     // Quick randomize
     juce::TextButton randomizeButton { "RAND" };
     void showRandomizeMenu();
     void randomizeParams(const juce::StringArray& prefixes, bool filterBoring = true);
 
-    // UI scale
+    // Hidden controls (kept for APVTS attachments + menu access)
     juce::ComboBox scaleCombo;
-
-    // Global quality (oversampling)
     juce::ComboBox qualCombo;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> qualAttachment;
-
-    // FX Mode (audio input passthrough)
     juce::TextButton fxModeButton { "FX" };
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> fxModeAttachment;
 
+    // MIDI Learn (via menu + CallOutBox)
+    bool midiLearnActive = false;
+    juce::Component::SafePointer<juce::ComboBox> midiLearnCallout;
+    void showMidiLearnCallout();
+
     void setupTabs();
-    void setupMidiLearnButton();
-    void updateMidiLearnUI();
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
 };

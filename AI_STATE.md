@@ -552,9 +552,9 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 ## Next Session
 
-**Phase 2 — Layout Restructure:** Permanent left sidebar (280px), right FX strip (200px), bottom bar (88px, 8 macros + keyboard), compact Nexus 5 header, 3-letter tab abbreviations (SYN/DRM/MOD/SMP/SEQ/ARP/FX/MAC/GRN/LAY/PRF/ROU).
+**Phase 3 — Librarian (collapsible sections + bookmark folders):** Replace ListBox preset list with custom `LibrarianPresetList` using collapsible section headers (Factory > Init/Bass/Lead/Pad/Drums/FX, User Presets, Bookmarks). Add bookmark folder right-click menus (create/rename/delete folders, add/remove presets).
 
-**Full plan:** `/Users/jason/.claude/plans/kind-popping-nygaard.md`
+**Full plan:** `/Users/jason/.claude/plans/staged-snacking-taco.md`
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).
 
@@ -574,6 +574,116 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 - **PresetBrowserPanel** unified to global theme colors (removed local anonymous-namespace color constants)
 - **Backward-compatible aliases**: `accentBlue`, `neonCyan`, `neonPink`, `neonPurple`, `neonGreen` map to new accent colors
 - CyberpunkTheme.h/.cpp still exist in project (not compiled by any panel anymore)
-- **Plan**: 5 phases total — Phase 1 (theme) ✅, Phase 2 (layout), Phase 3 (librarian), Phase 4 (quick FX), Phase 5 (routing)
+- **Plan**: 5 phases total — Phase 1 (theme) ✅, Phase 2 (layout) ✅, Phase 3 (librarian), Phase 4 (quick FX), Phase 5 (routing)
 
 **Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (UI Overhaul Phase 2 — Layout Restructure) (2026-05-08)
+
+- **Layout restructure**: PluginEditor now uses permanent 3-column layout:
+  - **Left sidebar (280px)**: PresetBrowserPanel always visible (no more collapsible overlay)
+  - **Right FX strip (200px)**: QuickFXStrip placeholder for Phase 4
+  - **Bottom bar (88px)**: 8 macro knobs (32px, NoTextBox) + virtual keyboard
+  - **Header (32px)**: Compact — menu button (☰), preset nav, randomize
+- **Menu button (☰)**: Save/Import/Export, UI Scale submenu, Quality submenu, FX Mode toggle, MIDI Learn toggle (CallOutBox), Show Tooltips toggle
+- **Hidden controls** (kept for APVTS attachments): `scaleCombo`, `qualCombo`, `fxModeButton`
+- **BottomBar** (`Source/UI/BottomBar.h/.cpp`): 8 macro knobs with APVTS SliderAttachment + editable name labels + MidiKeyboardComponent; 30Hz timer pushes macro values to targets
+- **QuickFXStrip** (`Source/UI/QuickFXStrip.h/.cpp`): Placeholder with section headers (FILTER/AMP/DELAY/REVERB/OUTPUT) — Phase 4 fills with controls
+- **Tab changes**: 3-letter abbreviations (SYN/DRM/MOD/SMP/SEQ/ARP/FX/GRN/LYR/PRF); MAC tab removed (macros in bottom bar)
+- **PresetBrowserPanel adapted** for 280px sidebar: compact action buttons, narrower category pills (28px, abbreviated labels: All/Ini/Bas/Led/Pad/Drm/FX/Fav)
+- **MIDI Learn**: Moved from header toggle+combo to ☰ menu → CallOutBox with SafePointer
+- **Cmd+F**: Now just focuses preset search (sidebar always visible, no toggle needed)
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (UI Overhaul Phase 3 — Librarian Panel, partial) (2026-05-08)
+
+- **Characters field** added to PresetMetadata, Preset class, PresetManager scan/build, and PluginProcessor state persistence
+  - `juce::StringArray characters` in PresetMetadata, parsed from `characters` XML attribute (comma-separated)
+  - `PresetManager::buildCharacterIndex()` + `getAllCharacters()` for character-based filtering
+  - `PresetManager::currentPresetCharacters` persisted in getState/setState XML root attribute
+- **Factory presets** all have character tags (1-2 per preset): dark/bright/active/spiky/wide/dirty
+- **Bookmark persistence** added to PresetManager: `BookmarkFolder` struct, `bookmarks.json` file, full CRUD API
+- **LibrarianPanel** (`Source/Presets/LibrarianPanel.h/.cpp`) replaces PresetBrowserPanel in PluginEditor
+  - History navigation: ◀ ▶ buttons in sidebar (same PresetManager history stack as header)
+  - Category pills: All/Bass/Lead/Pad/Drums/FX (full names, 36px each)
+  - Character filter pills: Dark/Bright/Active/Spiky/Wide/Dirty — 3-state toggle (None→Include→Exclude→None)
+  - Favorite filter: ♥ button toggles showing only favorited presets
+  - Search bar with #tag extraction
+  - Metadata strip: author, description, tags (accentCyan), characters (accentAmber)
+  - Save dialog: now includes "Chars" field for character tags
+  - Right-click context menu: Load/Save/Delete/Import/Export/Favorite + "Add to Bookmark" submenu
+  - Auto-preview (50ms timer), import/export via FileChooser
+- **PluginEditor** swapped from `PresetBrowserPanel` to `LibrarianPanel`
+- **Multiverse.jucer** updated with LibrarianPanel.h/.cpp entries
+
+**Completed sub-tasks 3.6 + 3.7 (2026-05-08):**
+- **3.6 Collapsible section-based preset list**: `LibrarianPresetList` custom component replaces `juce::ListBox`
+  - Factory section with collapsible sub-sections (Init/Bass/Lead/Pad/Drums/FX)
+  - User Presets section
+  - Bookmarks section with per-folder sub-sections
+  - Section headers (22px, `bgDeep` fill, accentCyan disclosure triangle)
+  - Sub-section headers (20px, `bgBase` fill, `textMuted` text, small disclosure triangle)
+  - Preset rows (28px): favorite color dot + name + category right-aligned
+  - `Viewport` for scrolling; `hitTest()` for click detection; hover highlighting via `mouseMove`
+  - Category pills filter which sub-sections are shown; collapsed sub-sections hidden
+- **3.7 Bookmark folder UI**: Right-click menus for bookmark management
+  - Right-click Bookmarks section header → "New Folder" (promptNewBookmarkFolder CallOutBox)
+  - Right-click bookmark sub-section header → "Rename Folder" / "Delete Folder"
+  - Right-click preset in bookmark → "Remove from 'Folder Name'" option
+  - "Add to Bookmark" submenu on all preset right-clicks (existing, preserved)
+  - `bookmarkFolderIndex` tracked in `Section::SubSection` for hit testing
+
+**Phase 3 COMPLETE.**
+
+**Build verified:** VST3 builds and installs successfully ✅
+
+## Completed (UI Overhaul Phase 4 — Quick FX Strip) (2026-05-08)
+
+- **Filter Modifier** (bipolar offsets to per-voice filter):
+  - `filterModEnabled` (Bool), `filterModCutoff` (Float -1..1), `filterModResonance` (Float -1..1), `filterModEnvDepth` (Float -1..1)
+  - Cutoff offset maps ±1 → ±8000 Hz; Resonance offset maps ±1 → ±5.0; Env depth scales ModEnv2 to filter cutoff
+  - Applied in processBlock: effCutoff/effRes modified before `synthEngine.setFilterParams()`
+- **Amp Modifier** (bipolar offsets to amp volume/pan):
+  - `ampModEnabled` (Bool), `ampModVolume` (Float -1..1), `ampModPan` (Float -1..1)
+  - Volume offset maps ±1 → ±0.5; Pan offset adds directly to effPan
+  - Applied in processBlock: effVol and effPan modified before panning
+- **Delay & Reverb** (direct APVTS parameter access):
+  - Delay: Mix, Time, Feedback knobs wired directly to `delayMix`, `delayTime`, `delayFeedback`
+  - Reverb: Wet, Room, Damp knobs wired directly to `reverbWet`, `reverbRoom`, `reverbDamp`
+  - No new APVTS params — existing params used
+- **Main Filter** (post-effects global filter):
+  - `mainFilterEnabled` (Bool), `mainFilterType` (Choice: LP/HP/BP/Notch), `mainFilterCutoff` (Float 20-20000, skew 0.3), `mainFilterResonance` (Float 0.1-10, skew 0.5)
+  - Applied after pan, before aux sends in processBlock
+  - `Filter mainFilter` member in PluginProcessor with dirty-check on cutoff/res/type
+  - Prepared in `prepareToPlay()`
+- **QuickFXStrip UI** (`Source/UI/QuickFXStrip.h/.cpp`):
+  - 5 section cards: FILTER MOD, AMP MOD, DELAY, REVERB, MAIN FILTER
+  - Compact layout: 28px NeuKnob with NoTextBox, short 3-char labels below each knob
+  - Enable toggles on sections with modifiers (Filter Mod, Amp Mod, Main Filter)
+  - ComboBox for Main Filter type (LP/HP/BP/Notch)
+  - All knobs use NeuKnob with APVTS SliderAttachment + MidiLearnSlider.init()
+  - Section cards drawn with `MultiverseFlatTheme::drawCard()`
+- **11 new APVTS parameters** (filterModEnabled/FilterModCutoff/filterModResonance/filterModEnvDepth, ampModEnabled/ampModVolume/ampModPan, mainFilterEnabled/mainFilterType/mainFilterCutoff/mainFilterResonance)
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (UI Overhaul Phase 5 — Visual Routing Page) (2026-05-08)
+
+- **RoutingPanel** (`Source/Routing/RoutingPanel.h/.cpp`) — new "ROU" tab (11th tab)
+- **LayerBlock** (×8 inner struct): engine type ComboBox (Off/Synth/Granular/Sampler), Mute/Solo toggles, bus selector (Main/Bus 1–8), level bar, bus indicator dot; all wired to `LayerManager` API directly
+- **DrumsSummaryBlock**: "DRUMS — 8 tracks" summary card with "Edit" button → switches to DRM tab
+- **ChainStrip** (inner struct): drag-reorder effect chain tiles (mirrors EffectChainStrip logic), reads `effectChainOrder` atomic, calls `swapChainSlots` on drag
+- **Aux Send knobs**: `auxSendDelay` + `auxSendReverb` NeuKnob with APVTS SliderAttachment
+- **Connection lines**: vertical flow lines in `paint()`, color-coded (accentCyan for Main, accentAmber for Bus, accentPink for soloed, textMuted for muted), small arrow heads at section transitions
+- **Output terminus**: "→ OUTPUT" label at bottom of signal flow
+- **Timer-based UI refresh**: 10 Hz `timerCallback()` syncs engine type, mute/solo, bus, level from `LayerManager`
+- **Tab switch callback**: `onSwitchToTab(int)` set by PluginEditor; Layer name click → LYR tab, Drums Edit → DRM tab
+- **Multiverse.jucer**: `GrpRou` group added with RoutingPanel.h/.cpp entries
+- **PluginEditor.h/.cpp**: `#include "Routing/RoutingPanel.h"`, `RoutingPanel routingPanel` member, `tabs.addTab("ROU", ...)`, `routingPanel.onSwitchToTab` callback
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Next Session
+
+**Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).

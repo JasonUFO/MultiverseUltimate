@@ -45,11 +45,14 @@ public:
     struct PresetMetadata {
         juce::String name, category, author, description;
         juce::StringArray tags;
+        juce::StringArray characters;
         int index = 0;
     };
     const PresetMetadata& getPresetMetadata(int index) const;
     const std::map<juce::String, std::vector<int>>& getTagIndex() const { return tagIndex; }
     juce::StringArray getAllTags() const;
+    const std::map<juce::String, std::vector<int>>& getCharacterIndex() const { return characterIndex; }
+    juce::StringArray getAllCharacters() const;
 
     // Favorites
     static constexpr int NUM_FAV_COLORS = 8;
@@ -59,6 +62,7 @@ public:
     int  getFavoriteColor(int presetIndex) const;   // 0-7, -1 if not favorite
     void setFavorite(int presetIndex, int colorIndex); // -1 to remove
     juce::Array<int> getFavoritesIndices() const;
+    juce::String getRelativePresetPath(int index) const;
 
     // History
     static constexpr int MAX_HISTORY = 32;
@@ -67,6 +71,20 @@ public:
     bool canGoForward() const;
     int goBack();
     int goForward();
+
+    // Bookmarks
+    struct BookmarkFolder {
+        juce::String name;
+        juce::StringArray presetPaths; // relative paths from presetsDirectory
+    };
+    void loadBookmarks();
+    void saveBookmarks();
+    const std::vector<BookmarkFolder>& getBookmarkFolders() const { return bookmarkFolders; }
+    void createBookmarkFolder(const juce::String& name);
+    void deleteBookmarkFolder(int index);
+    void renameBookmarkFolder(int index, const juce::String& name);
+    void addPresetToBookmark(int folderIndex, const juce::String& presetPath);
+    void removePresetFromBookmark(int folderIndex, const juce::String& presetPath);
 
 private:
     std::vector<Preset> presets;
@@ -78,7 +96,9 @@ private:
     // Metadata cache
     std::vector<PresetMetadata> presetMeta;
     std::map<juce::String, std::vector<int>> tagIndex;
+    std::map<juce::String, std::vector<int>> characterIndex;
     void buildTagIndex();
+    void buildCharacterIndex();
     void scanPresetMetadata();
 
     // Favorites
@@ -88,11 +108,14 @@ private:
     };
     std::map<juce::String, FavoriteEntry> favorites;
     juce::File favoritesFile;
-    juce::String getRelativePresetPath(int index) const;
 
     // History
     std::vector<int> historyStack;
     int historyPosition = -1;
+
+    // Bookmarks
+    std::vector<BookmarkFolder> bookmarkFolders;
+    juce::File bookmarksFile;
 
     int currentBank = User;
     juce::File getBankDirectory() const;

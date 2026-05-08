@@ -135,24 +135,24 @@ void PresetBrowserPanel::resized()
 {
     auto area = getLocalBounds().reduced (6, 6);
 
-    // Search bar row (28px)
+    // Search bar row (28px) — compact for 280px sidebar
     auto searchBar = area.removeFromTop (28);
-    countLabel.setBounds (searchBar.removeFromRight (72).reduced (0, 6));
-    autoPreviewButton.setBounds (searchBar.removeFromRight (62).reduced (2, 2));
-    exportButton.setBounds  (searchBar.removeFromRight (50).reduced (2, 2));
-    importButton.setBounds   (searchBar.removeFromRight (50).reduced (2, 2));
-    saveButton.setBounds    (searchBar.removeFromRight (42).reduced (2, 2));
+    countLabel.setBounds (searchBar.removeFromRight (48).reduced (0, 6));
+    autoPreviewButton.setBounds (searchBar.removeFromRight (36).reduced (2, 2));
+    exportButton.setBounds  (searchBar.removeFromRight (28).reduced (2, 2));
+    importButton.setBounds   (searchBar.removeFromRight (28).reduced (2, 2));
+    saveButton.setBounds    (searchBar.removeFromRight (28).reduced (2, 2));
     searchEditor.setBounds (searchBar.reduced (0, 2));
     area.removeFromTop (6);
 
-    // Category pills row (26px)
+    // Category pills row (26px) — compact for 280px sidebar
     auto catRow = area.removeFromTop (26);
-    const int pillWidth = 36;
-    const int pillPad = 2;
+    const int pillWidth = 28;
+    const int pillPad = 1;
     int cx = catRow.getX();
     for (auto* btn : categoryButtons)
     {
-        int w = (btn == &catFavorites) ? 40 : pillWidth;
+        int w = (btn == &catFavorites) ? 30 : pillWidth;
         btn->setBounds (cx, catRow.getY() + 2, w, catRow.getHeight() - 6);
         cx += w + pillPad;
     }
@@ -330,16 +330,16 @@ void PresetBrowserPanel::paintListBoxItem (int row, juce::Graphics& g, int w, in
     g.setColour (selected ? textPrimary : textSecondary);
     g.setFont (juce::Font (12.0f, juce::Font::plain));
     juce::String name = (presetIndex >= 0 && presetIndex < allNames.size()) ? allNames[presetIndex] : juce::String{};
-    g.drawText (name, 24, 0, w - 140, h, juce::Justification::centredLeft);
+    g.drawText (name, 24, 0, w - 80, h, juce::Justification::centredLeft);
 
     // Category (right-aligned)
     const auto& meta = pm.getPresetMetadata(presetIndex);
     g.setColour (textMuted);
     g.setFont (juce::Font (9.0f, juce::Font::plain));
-    g.drawText (meta.category, w - 120, 0, 50, h, juce::Justification::centredRight);
+    g.drawText (meta.category, w - 70, 0, 46, h, juce::Justification::centredRight);
 
     // Author (far right)
-    g.drawText (meta.author, w - 60, 0, 50, h, juce::Justification::centredRight);
+    g.drawText (meta.author, w - 30, 0, 26, h, juce::Justification::centredRight);
 }
 
 void PresetBrowserPanel::listBoxItemDoubleClicked (int row, const juce::MouseEvent&)

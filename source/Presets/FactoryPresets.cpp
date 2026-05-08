@@ -47,7 +47,8 @@ struct PresetData {
     juce::String              name, category;
     juce::String              author      { "MultiphaseAudio" };
     juce::String              description;
-    juce::String              tags;  // comma-separated
+    juce::String              tags;        // comma-separated
+    juce::String              characters; // comma-separated (dark,bright,active,spiky,wide,dirty)
     int                       synthMode = 0; // 0=Classic 1=FM
     int                       oscCount  = 1;
     std::array<OscData, 8>    oscs;
@@ -281,6 +282,7 @@ static juce::String buildPresetXml(const PresetData& pd,
         << "\" author=\"" << pd.author
         << "\" description=\"" << pd.description
         << "\" tags=\"" << pd.tags
+        << "\" characters=\"" << pd.characters
         << "\">\n";
 
     // APVTSState
@@ -362,6 +364,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Clean starting point with a single saw oscillator #classic";
         p.tags = "classic,saw,init";
+        p.characters = "";
     }
     {
         auto& p = make("Init FM", "Init", 1);
@@ -371,6 +374,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "FM synthesis starting point #fm #classic";
         p.tags = "fm,classic,init";
+        p.characters = "";
     }
     {
         auto& p = make("Init Additive", "Init");
@@ -381,6 +385,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Additive synthesis starting point #additive #classic";
         p.tags = "experimental,classic,init";
+        p.characters = "";
     }
     {
         auto& p = make("Init PhaseDist", "Init");
@@ -391,6 +396,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Phase distortion starting point #phase-distortion #classic";
         p.tags = "phase-distortion,classic,init";
+        p.characters = "";
     }
     {
         auto& p = make("Init Wavetable", "Init");
@@ -401,6 +407,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Wavetable synthesis starting point #wavetable #classic";
         p.tags = "digital,classic,init";
+        p.characters = "";
     }
 
     // ────────────────────────────────── BASS ──────────────────────────────────
@@ -416,6 +423,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Resonant TB-303 style acid bass with filter sweep #acid #resonant #aggressive";
         p.tags = "acid,resonant,aggressive";
+        p.characters = "spiky,dirty";
     }
     {
         auto& p = make("Sub Bass", "Bass");
@@ -429,6 +437,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Deep sub sine bass with sub-oscillator #sub #deep #warm";
         p.tags = "sub,deep,warm";
+        p.characters = "dark,wide";
     }
     {
         auto& p = make("Reese Bass", "Bass");
@@ -442,6 +451,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Classic detuned reese bass with chorus #reese #dark #chorus";
         p.tags = "reese,dark,chorus";
+        p.characters = "dark,wide";
     }
     {
         auto& p = make("FM Bass", "Bass", 1);
@@ -451,6 +461,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Punchy FM bass with quick decay #fm #punchy #aggressive";
         p.tags = "fm,punchy,aggressive";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Dirty Grit", "Bass");
@@ -464,6 +475,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Heavily distorted gritty bass #gritty #distorted #aggressive";
         p.tags = "gritty,distorted,aggressive";
+        p.characters = "dirty,spiky";
     }
     {
         auto& p = make("Pluck Bass", "Bass");
@@ -475,6 +487,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Short percussive pluck bass #pluck #percussive #punchy";
         p.tags = "pluck,percussive,punchy";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Rubber Bass", "Bass");
@@ -486,6 +499,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Bouncy square wave bass with resonant filter #resonant #warm #classic";
         p.tags = "resonant,warm,classic";
+        p.characters = "active";
     }
     {
         auto& p = make("Deep Dark", "Bass");
@@ -498,6 +512,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Dark sine and square layered bass #dark #deep #warm";
         p.tags = "dark,deep,warm";
+        p.characters = "dark,wide";
     }
     {
         auto& p = make("Wobble Bass", "Bass");
@@ -510,6 +525,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "LFO-modulated waveshaping wobble bass #wobble #evolving #aggressive";
         p.tags = "wobble,evolving,aggressive";
+        p.characters = "active,dirty";
     }
     {
         auto& p = make("Growl Bass", "Bass");
@@ -521,6 +537,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Aggressive wavefold growl bass #growl #aggressive #distorted";
         p.tags = "growl,aggressive,distorted";
+        p.characters = "dirty,spiky";
     }
     {
         auto& p = make("Stab Bass", "Bass");
@@ -532,6 +549,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Sharp clipped stab bass #stab #punchy #aggressive";
         p.tags = "stab,punchy,aggressive";
+        p.characters = "spiky";
     }
     {
         auto& p = make("DnB Bass", "Bass");
@@ -544,6 +562,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Distorted drum and bass bass #dnb #gritty #punchy";
         p.tags = "dnb,gritty,punchy";
+        p.characters = "dirty,spiky";
     }
     {
         auto& p = make("Analog Warmth", "Bass");
@@ -556,6 +575,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Warm analog-modeled bass with drift #analog-warmth #warm #vintage";
         p.tags = "analog-warmth,warm,vintage";
+        p.characters = "wide,dirty";
     }
     {
         auto& p = make("Tech House", "Bass");
@@ -567,6 +587,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Tech house square bass with drive #tech-house #punchy #warm";
         p.tags = "tech-house,punchy,warm";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Dub Bass", "Bass");
@@ -580,6 +601,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Sine bass with delay and reverb #dub #deep #delay";
         p.tags = "dub,deep,delay";
+        p.characters = "dark,wide";
     }
     {
         auto& p = make("Supersaw Bass", "Bass");
@@ -593,6 +615,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Wide detuned supersaw bass #supersaw #bright #aggressive";
         p.tags = "supersaw,bright,aggressive";
+        p.characters = "bright,wide";
     }
     {
         auto& p = make("Lead Bass", "Bass");
@@ -605,6 +628,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Monophonic lead-style bass with portamento #mono #bright #legato";
         p.tags = "mono,bright,legato";
+        p.characters = "bright";
     }
     {
         auto& p = make("Sub Thump", "Bass");
@@ -618,6 +642,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Ultra-deep sub thump with sub-oscillator #sub #deep #heavy";
         p.tags = "sub,deep,heavy";
+        p.characters = "dark";
     }
     {
         auto& p = make("Modular Bass", "Bass");
@@ -630,6 +655,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Complex additive bass with filter modulation #experimental #resonant #additive";
         p.tags = "experimental,resonant,warm";
+        p.characters = "active,wide";
     }
     {
         auto& p = make("Portal Bass", "Bass");
@@ -641,6 +667,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Phase distortion portal bass #portal #phase-distortion #evolving";
         p.tags = "portal,phase-distortion,evolving";
+        p.characters = "active,spiky";
     }
 
     // ─────────────────────────────── LEAD ────────────────────────────────────
@@ -656,6 +683,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Classic saw lead with resonant filter #classic #bright #saw";
         p.tags = "classic,bright,saw";
+        p.characters = "bright";
     }
     {
         auto& p = make("Supersaw Lead", "Lead");
@@ -671,6 +699,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Massive supersaw lead with chorus #supersaw #bright #lush";
         p.tags = "supersaw,bright,lush";
+        p.characters = "bright,wide";
     }
     {
         auto& p = make("Square Lead", "Lead");
@@ -682,6 +711,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Hollow square wave lead #square #classic #bright";
         p.tags = "square,classic,bright";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Pluck Lead", "Lead");
@@ -694,6 +724,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Short pluck lead with reverb tail #pluck #bright #reverb";
         p.tags = "pluck,bright,reverb";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Mono Lead", "Lead");
@@ -706,6 +737,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Monophonic lead with drive and portamento #mono #warm #legato";
         p.tags = "mono,warm,legato";
+        p.characters = "bright";
     }
     {
         auto& p = make("FM Lead", "Lead", 1);
@@ -715,6 +747,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Bright FM lead #fm #bright #punchy";
         p.tags = "fm,bright,punchy";
+        p.characters = "spiky,dirty";
     }
     {
         auto& p = make("Whistle Lead", "Lead");
@@ -727,6 +760,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Clean sine whistle lead #sine #bright #smooth";
         p.tags = "sine,bright,smooth";
+        p.characters = "bright";
     }
     {
         auto& p = make("Arp Lead", "Lead");
@@ -740,6 +774,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Arpeggiated lead with chord mode #chord #bright #rhythmic";
         p.tags = "chord,bright,rhythmic";
+        p.characters = "active,bright";
     }
     {
         auto& p = make("Dual Saw Lead", "Lead");
@@ -752,6 +787,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Detuned dual saw lead #supersaw #bright #warm";
         p.tags = "supersaw,bright,warm";
+        p.characters = "bright,wide";
     }
     {
         auto& p = make("Bite Lead", "Lead");
@@ -763,6 +799,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Aggressive driven lead #aggressive #distorted #bright";
         p.tags = "aggressive,distorted,bright";
+        p.characters = "spiky,dirty";
     }
     {
         auto& p = make("Alien Lead", "Lead");
@@ -774,6 +811,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Phase distortion alien lead #alien #phase-distortion #evolving";
         p.tags = "alien,phase-distortion,evolving";
+        p.characters = "active,dirty";
     }
     {
         auto& p = make("Analog Lead", "Lead");
@@ -786,6 +824,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Warm analog-modeled lead with drift #analog #warm #vintage";
         p.tags = "analog,warm,vintage";
+        p.characters = "wide,dirty";
     }
     {
         auto& p = make("Bright Lead", "Lead");
@@ -798,6 +837,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Ultra-bright lead with EQ boost #bright #aggressive #punchy";
         p.tags = "bright,aggressive,punchy";
+        p.characters = "bright";
     }
     {
         auto& p = make("Pad Lead", "Lead");
@@ -812,6 +852,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Sustained pad-like lead with reverb #pad #lush #reverb";
         p.tags = "pad,lush,reverb";
+        p.characters = "dark,wide";
     }
     {
         auto& p = make("Stab Lead", "Lead");
@@ -824,6 +865,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Sharp clipped stab lead #stab #punchy #aggressive";
         p.tags = "stab,punchy,aggressive";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Chord Lead", "Lead");
@@ -838,6 +880,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Chord mode lead with strum #chord #strum #bright";
         p.tags = "chord,strum,bright";
+        p.characters = "wide,bright";
     }
     {
         auto& p = make("Legato Lead", "Lead");
@@ -850,6 +893,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Smooth legato lead with drive #legato #mono #warm";
         p.tags = "legato,mono,warm";
+        p.characters = "bright,active";
     }
     {
         auto& p = make("Screamer", "Lead");
@@ -863,6 +907,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Heavily distorted screaming lead #screamer #distorted #aggressive";
         p.tags = "screamer,distorted,aggressive";
+        p.characters = "spiky,dirty";
     }
     {
         auto& p = make("Crystal Lead", "Lead");
@@ -875,6 +920,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Digital crystal lead #crystal #digital #bright";
         p.tags = "crystal,digital,bright";
+        p.characters = "bright,active";
     }
     {
         auto& p = make("Unison Lead", "Lead");
@@ -888,6 +934,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Wide unison lead with chorus #unison #lush #bright";
         p.tags = "unison,lush,bright";
+        p.characters = "bright,wide";
     }
 
     // ─────────────────────────────── PAD ─────────────────────────────────────
@@ -906,6 +953,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Lush detuned string pad #pad #lush #chorus";
         p.tags = "pad,lush,chorus";
+        p.characters = "wide,dark";
     }
     {
         auto& p = make("Angel Pad", "Pad");
@@ -919,6 +967,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Ethereal sine pad with heavy reverb #pad #ethereal #reverb";
         p.tags = "pad,ethereal,reverb";
+        p.characters = "wide,bright";
     }
     {
         auto& p = make("Saw Pad", "Pad");
@@ -933,6 +982,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Wide detuned saw pad #pad #bright #lush";
         p.tags = "pad,bright,lush";
+        p.characters = "wide,dark";
     }
     {
         auto& p = make("Warm Pad", "Pad");
@@ -947,6 +997,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Warm triangle pad with chorus #pad #warm #chorus";
         p.tags = "pad,warm,chorus";
+        p.characters = "wide,dark";
     }
     {
         auto& p = make("Dark Pad", "Pad");
@@ -960,6 +1011,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Dark saw and square pad #pad #dark #reverb";
         p.tags = "pad,dark,reverb";
+        p.characters = "dark";
     }
     {
         auto& p = make("Lush Pad", "Pad");
@@ -976,6 +1028,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Rich unison pad with chorus #pad #lush #unison";
         p.tags = "pad,lush,unison";
+        p.characters = "wide,active";
     }
     {
         auto& p = make("Glass Pad", "Pad");
@@ -988,6 +1041,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Bright driven glass pad #pad #bright #distorted";
         p.tags = "pad,bright,distorted";
+        p.characters = "bright,active";
     }
     {
         auto& p = make("Choir Pad", "Pad");
@@ -1002,6 +1056,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Additive choir-like pad #pad #ethereal #smooth";
         p.tags = "pad,ethereal,smooth";
+        p.characters = "wide,dark";
     }
     {
         auto& p = make("Motion Pad", "Pad");
@@ -1016,6 +1071,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Evolving pad with LFO filter sweep #pad #evolving #resonant";
         p.tags = "pad,evolving,resonant";
+        p.characters = "active,wide";
     }
     {
         auto& p = make("Trance Pad", "Pad");
@@ -1031,6 +1087,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Wide trance supersaw pad #pad #supersaw #bright";
         p.tags = "pad,supersaw,bright";
+        p.characters = "wide,bright";
     }
     {
         auto& p = make("Cinematic Pad", "Pad", 1);
@@ -1041,6 +1098,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "FM cinematic pad with long release #pad #cinematic #fm";
         p.tags = "pad,cinematic,fm";
+        p.characters = "dark,wide";
     }
     {
         auto& p = make("Ambient Pad", "Pad");
@@ -1055,6 +1113,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Sparse ambient sine pad with delay #pad #ambient #delay";
         p.tags = "pad,ambient,delay";
+        p.characters = "dark,wide";
     }
     {
         auto& p = make("Shimmer Pad", "Pad");
@@ -1070,6 +1129,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Bright unison shimmer pad #pad #shimmer #unison";
         p.tags = "pad,shimmer,unison";
+        p.characters = "bright,active";
     }
     {
         auto& p = make("Ice Pad", "Pad");
@@ -1082,6 +1142,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Cold digital pad with reverb #pad #ice #digital";
         p.tags = "pad,ice,digital";
+        p.characters = "bright";
     }
     {
         auto& p = make("Ether Pad", "Pad");
@@ -1096,6 +1157,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Warm analog pad with delay #pad #analog-warmth #delay";
         p.tags = "pad,analog-warmth,delay";
+        p.characters = "wide,bright";
     }
     {
         auto& p = make("Breathe Pad", "Pad");
@@ -1110,6 +1172,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Slow triangle pad with chorus #pad #warm #smooth";
         p.tags = "pad,warm,smooth";
+        p.characters = "dark,active";
     }
     {
         auto& p = make("Vintage Keys", "Pad");
@@ -1124,6 +1187,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Analog vintage keys pad #pad #vintage #analog-warmth";
         p.tags = "pad,vintage,analog-warmth";
+        p.characters = "wide,bright";
     }
     {
         auto& p = make("Tape Pad", "Pad");
@@ -1138,6 +1202,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Warm analog tape pad with chorus #pad #analog-warmth #chorus";
         p.tags = "pad,analog-warmth,chorus";
+        p.characters = "dirty,dark";
     }
     {
         auto& p = make("Evolving Pad", "Pad");
@@ -1153,6 +1218,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Slowly evolving saw and triangle pad #pad #evolving #resonant";
         p.tags = "pad,evolving,resonant";
+        p.characters = "active,wide";
     }
     {
         auto& p = make("Space Pad", "Pad");
@@ -1167,6 +1233,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Deep space ambient pad #pad #space #ambient";
         p.tags = "pad,space,ambient";
+        p.characters = "dark,wide";
     }
     {
         auto& p = make("Solar Pad", "Pad");
@@ -1180,6 +1247,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Phase distortion pad with reverb #pad #phase-distortion #warm";
         p.tags = "pad,phase-distortion,warm";
+        p.characters = "bright,active";
     }
     {
         auto& p = make("Pulse Pad", "Pad");
@@ -1194,6 +1262,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Square wave pulse pad #pad #square #chorus";
         p.tags = "pad,square,chorus";
+        p.characters = "active,spiky";
     }
     {
         auto& p = make("Horizon Pad", "Pad");
@@ -1209,6 +1278,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Wide 4-osc triangle and saw pad #pad #lush #bright";
         p.tags = "pad,lush,bright";
+        p.characters = "wide,dark";
     }
     {
         auto& p = make("Drone Pad", "Pad");
@@ -1223,6 +1293,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Deep analog drone pad #pad #drone #analog-warmth";
         p.tags = "pad,drone,analog-warmth";
+        p.characters = "dark";
     }
     {
         auto& p = make("Bell Pad", "Pad", 1);
@@ -1233,6 +1304,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "FM bell-like pad #pad #bell #fm";
         p.tags = "pad,bell,fm";
+        p.characters = "bright,active";
     }
 
     // ────────────────────────────── DRUMS ─────────────────────────────────────
@@ -1247,6 +1319,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Deep sine kick drum #drums #sub #punchy";
         p.tags = "sub,punchy,percussive";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Kick Click", "Drums");
@@ -1259,6 +1332,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Punchy kick with click attack #drums #punchy #percussive";
         p.tags = "punchy,percussive,aggressive";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Snare Core", "Drums");
@@ -1271,6 +1345,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Snare with body and noise #drums #noise #percussive";
         p.tags = "noise,percussive,punchy";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Hi-Hat Open", "Drums");
@@ -1282,6 +1357,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Open metallic hi-hat #drums #metallic #noise";
         p.tags = "metallic,noise,percussive";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Hi-Hat Closed", "Drums");
@@ -1293,6 +1369,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Closed tight hi-hat #drums #metallic #percussive";
         p.tags = "metallic,percussive,bright";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Tom Low", "Drums");
@@ -1304,6 +1381,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Low sine tom #drums #deep #percussive";
         p.tags = "deep,percussive,warm";
+        p.characters = "spiky,dark";
     }
     {
         auto& p = make("Tom High", "Drums");
@@ -1315,6 +1393,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "High pitched tom #drums #bright #percussive";
         p.tags = "bright,percussive,punchy";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Rim Shot", "Drums");
@@ -1327,6 +1406,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Sharp rim shot #drums #punchy #aggressive";
         p.tags = "punchy,aggressive,percussive";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Clap", "Drums");
@@ -1339,6 +1419,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Noise clap with reverb #drums #noise #reverb";
         p.tags = "noise,reverb,percussive";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Cymbal Crash", "Drums");
@@ -1351,6 +1432,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Long noise crash cymbal #drums #metallic #reverb";
         p.tags = "metallic,reverb,noise";
+        p.characters = "bright,spiky";
     }
     {
         auto& p = make("Perc Snap", "Drums");
@@ -1362,6 +1444,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Sharp square wave percussive snap #drums #punchy #square";
         p.tags = "punchy,square,percussive";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Shaker", "Drums");
@@ -1373,6 +1456,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Subtle high-frequency shaker #drums #noise #percussive";
         p.tags = "noise,percussive,bright";
+        p.characters = "active";
     }
     {
         auto& p = make("Conga", "Drums");
@@ -1385,6 +1469,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Sine and noise conga hit #drums #warm #percussive";
         p.tags = "warm,percussive,punchy";
+        p.characters = "spiky";
     }
     {
         auto& p = make("Synth Perc", "Drums");
@@ -1396,6 +1481,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Digital driven synth percussion #drums #digital #distorted";
         p.tags = "digital,distorted,percussive";
+        p.characters = "active,spiky";
     }
     {
         auto& p = make("Sub Kick", "Drums");
@@ -1409,6 +1495,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Ultra-deep sub kick with sub-oscillator #drums #sub #heavy";
         p.tags = "sub,heavy,deep";
+        p.characters = "dark,spiky";
     }
 
     // ─────────────────────────────── FX ──────────────────────────────────────
@@ -1426,6 +1513,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Sweeping riser with long filter #fx #riser #evolving";
         p.tags = "riser,evolving,bright";
+        p.characters = "active,bright";
     }
     {
         auto& p = make("Downlifter", "FX");
@@ -1439,6 +1527,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Descending pitch downlifter #fx #downlifter #smooth";
         p.tags = "downlifter,smooth,dark";
+        p.characters = "active,dark";
     }
     {
         auto& p = make("Noise Sweep", "FX");
@@ -1452,6 +1541,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Filtered noise sweep #fx #sweep #noise";
         p.tags = "sweep,noise,evolving";
+        p.characters = "active,dirty";
     }
     {
         auto& p = make("White Space", "FX");
@@ -1464,6 +1554,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Ambient noise space #fx #ambient #noise";
         p.tags = "ambient,noise,space";
+        p.characters = "bright";
     }
     {
         auto& p = make("Feedback FX", "FX");
@@ -1476,6 +1567,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Self-oscillating feedback effect #fx #self-osc #experimental";
         p.tags = "self-osc,experimental,dark";
+        p.characters = "dirty,active";
     }
     {
         auto& p = make("Drone FX", "FX");
@@ -1491,6 +1583,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Wide analog drone #fx #drone #analog-warmth";
         p.tags = "drone,analog-warmth,ambient";
+        p.characters = "dark,dirty";
     }
     {
         auto& p = make("Glitch FX", "FX");
@@ -1502,6 +1595,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Digital clipped glitch effect #fx #glitch #digital";
         p.tags = "glitch,digital,experimental";
+        p.characters = "dirty,spiky";
     }
     {
         auto& p = make("Sci-Fi Sweep", "FX");
@@ -1516,6 +1610,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Phase distortion sci-fi sweep #fx #sweep #phase-distortion";
         p.tags = "sweep,phase-distortion,alien";
+        p.characters = "active,bright";
     }
     {
         auto& p = make("Alien Signal", "FX");
@@ -1530,6 +1625,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Triple phase distortion alien signal #fx #alien #phase-distortion";
         p.tags = "alien,phase-distortion,evolving";
+        p.characters = "active,dirty";
     }
     {
         auto& p = make("Wind FX", "FX");
@@ -1544,6 +1640,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Noise wind effect with LFO #fx #noise #ambient";
         p.tags = "noise,ambient,space";
+        p.characters = "dark,wide";
     }
     {
         auto& p = make("Stutter FX", "FX");
@@ -1557,6 +1654,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Square LFO stutter effect #fx #stutter #rhythmic";
         p.tags = "stutter,rhythmic,digital";
+        p.characters = "spiky,active";
     }
     {
         auto& p = make("Reverse FX", "FX");
@@ -1570,6 +1668,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Long attack reverse sound #fx #reverse #smooth";
         p.tags = "reverse,smooth,ambient";
+        p.characters = "active,dark";
     }
     {
         auto& p = make("Chord Riser", "FX");
@@ -1585,6 +1684,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Chord mode riser with strum #fx #chord #strum";
         p.tags = "chord,strum,riser";
+        p.characters = "active,bright";
     }
     {
         auto& p = make("Horror Scape", "FX");
@@ -1599,6 +1699,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Dark analog horror soundscape #fx #horror #dark";
         p.tags = "horror,dark,drone";
+        p.characters = "dark,dirty";
     }
     {
         auto& p = make("Pad Rise FX", "FX");
@@ -1614,6 +1715,7 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.author = "MultiphaseAudio";
         p.description = "Slowly evolving pad rise effect #fx #evolving #reverb";
         p.tags = "evolving,reverb,ambient";
+        p.characters = "active,wide";
     }
 
     return presets;

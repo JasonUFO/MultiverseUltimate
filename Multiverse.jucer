@@ -65,6 +65,8 @@
         <FILE id="Dd0004" name="PresetManager.cpp"       compile="1" resource="0" file="source/Presets/PresetManager.cpp"/>
         <FILE id="Dd0005" name="PresetBrowserPanel.h"   compile="0" resource="0" file="source/Presets/PresetBrowserPanel.h"/>
         <FILE id="Dd0006" name="PresetBrowserPanel.cpp" compile="1" resource="0" file="source/Presets/PresetBrowserPanel.cpp"/>
+        <FILE id="Dd0009" name="LibrarianPanel.h"       compile="0" resource="0" file="source/Presets/LibrarianPanel.h"/>
+        <FILE id="Dd0010" name="LibrarianPanel.cpp"     compile="1" resource="0" file="source/Presets/LibrarianPanel.cpp"/>
         <FILE id="Dd0007" name="FactoryPresets.h"       compile="0" resource="0" file="source/Presets/FactoryPresets.h"/>
         <FILE id="Dd0008" name="FactoryPresets.cpp"     compile="1" resource="0" file="source/Presets/FactoryPresets.cpp"/>
       </GROUP>
@@ -137,6 +139,16 @@
       <GROUP id="GrpPrf" name="Performance">
         <FILE id="Pf0001" name="PerformancePanel.h"   compile="0" resource="0" file="source/Performance/PerformancePanel.h"/>
         <FILE id="Pf0002" name="PerformancePanel.cpp" compile="1" resource="0" file="source/Performance/PerformancePanel.cpp"/>
+      </GROUP>
+      <GROUP id="GrpRou" name="Routing">
+        <FILE id="Rt0001" name="RoutingPanel.h"   compile="0" resource="0" file="source/Routing/RoutingPanel.h"/>
+        <FILE id="Rt0002" name="RoutingPanel.cpp"  compile="1" resource="0" file="source/Routing/RoutingPanel.cpp"/>
+      </GROUP>
+      <GROUP id="GrpUIt" name="UI">
+        <FILE id="Ui0001" name="BottomBar.h"      compile="0" resource="0" file="source/UI/BottomBar.h"/>
+        <FILE id="Ui0002" name="BottomBar.cpp"    compile="1" resource="0" file="source/UI/BottomBar.cpp"/>
+        <FILE id="Ui0003" name="QuickFXStrip.h"  compile="0" resource="0" file="source/UI/QuickFXStrip.h"/>
+        <FILE id="Ui0004" name="QuickFXStrip.cpp" compile="1" resource="0" file="source/UI/QuickFXStrip.cpp"/>
       </GROUP>
     </GROUP>
   </MAINGROUP>

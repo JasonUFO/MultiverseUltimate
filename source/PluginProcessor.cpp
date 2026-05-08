@@ -400,6 +400,42 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
     layout.add(std::make_unique<juce::AudioParameterBool>(
         juce::ParameterID{"fxModeEnabled", 1}, "FX Mode", false));
 
+    // Quick FX — Filter Modifier
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"filterModEnabled", 1}, "Filter Mod Enable", false));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"filterModCutoff", 1}, "Filter Mod Cutoff",
+        juce::NormalisableRange<float>(-1.0f, 1.0f), 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"filterModResonance", 1}, "Filter Mod Resonance",
+        juce::NormalisableRange<float>(-1.0f, 1.0f), 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"filterModEnvDepth", 1}, "Filter Mod Env Depth",
+        juce::NormalisableRange<float>(-1.0f, 1.0f), 0.0f));
+
+    // Quick FX — Amp Modifier
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"ampModEnabled", 1}, "Amp Mod Enable", false));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"ampModVolume", 1}, "Amp Mod Volume",
+        juce::NormalisableRange<float>(-1.0f, 1.0f), 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"ampModPan", 1}, "Amp Mod Pan",
+        juce::NormalisableRange<float>(-1.0f, 1.0f), 0.0f));
+
+    // Quick FX — Main Filter (post-effects global filter)
+    layout.add(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID{"mainFilterEnabled", 1}, "Main Filter Enable", false));
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{"mainFilterType", 1}, "Main Filter Type",
+        juce::StringArray{"LP", "HP", "BP", "Notch"}, 0));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"mainFilterCutoff", 1}, "Main Filter Cutoff",
+        juce::NormalisableRange<float>(20.0f, 20000.0f, 0.0f, 0.3f), 20000.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{"mainFilterResonance", 1}, "Main Filter Resonance",
+        juce::NormalisableRange<float>(0.1f, 10.0f, 0.0f, 0.5f), 0.707f));
+
     return layout;
 }
 
@@ -510,6 +546,13 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     modulationMatrix.prepare (sampleRate, samplesPerBlock);
     modEnv2.setSampleRate(sampleRate);
     modEnv3.setSampleRate(sampleRate);
+
+    // Main filter (QuickFX strip)
+    mainFilter.setSampleRate(sampleRate);
+    mainFilter.setFilterType(Filter::FilterType::LP);
+    mainFilter.setCutoff(20000.0f);
+    mainFilter.setResonance(0.707f);
+    mainFilter.reset();
 
     // Global quality: set up oversampler and prepare effects at oversampled rate
     const int qualIdx = juce::jlimit(0, 2,
@@ -1370,18 +1413,44 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         baseFilterCutoff + baseFilterModAmount + modSums[static_cast<int>(ModTargetType::FilterCutoff)]);
     float effRes = juce::jlimit(0.1f, 10.0f,
         baseFilterResonance + modSums[static_cast<int>(ModTargetType::FilterResonance)]);
+
+    // Quick FX — Filter Modifier offsets
+    const bool filterModOn = *apvts.getRawParameterValue("filterModEnabled") > 0.5f;
+    if (filterModOn)
+    {
+        const float fmCutoff = *apvts.getRawParameterValue("filterModCutoff");
+        const float fmRes    = *apvts.getRawParameterValue("filterModResonance");
+        const float fmEnv    = *apvts.getRawParameterValue("filterModEnvDepth");
+        // Cutoff: ±1 maps to ±8000 Hz offset (musical range)
+        effCutoff = juce::jlimit(20.0f, 20000.0f, effCutoff + fmCutoff * 8000.0f);
+        // Resonance: ±1 maps to ±5.0 offset
+        effRes = juce::jlimit(0.1f, 10.0f, effRes + fmRes * 5.0f);
+        // Env depth: scale modulation value to cutoff offset
+        const float env2Val = modulationMatrix.getModulationValue(ModSourceType::Envelope2, 0);
+        effCutoff = juce::jlimit(20.0f, 20000.0f, effCutoff + fmEnv * env2Val * 8000.0f);
+    }
     synthEngine.setFilterParams(effCutoff, effRes);
 
     float effVol = juce::jlimit(0.0f, 1.0f,
         masterVolume + modSums[static_cast<int>(ModTargetType::AmpVolume)]);
+    float effPan = juce::jlimit(-1.0f, 1.0f, modSums[static_cast<int>(ModTargetType::AmpPan)]);
+
+    // Quick FX — Amp Modifier offsets
+    const bool ampModOn = *apvts.getRawParameterValue("ampModEnabled") > 0.5f;
+    if (ampModOn)
+    {
+        const float amVol = *apvts.getRawParameterValue("ampModVolume");
+        const float amPan = *apvts.getRawParameterValue("ampModPan");
+        effVol = juce::jlimit(0.0f, 1.0f, effVol + amVol * 0.5f);
+        effPan = juce::jlimit(-1.0f, 1.0f, effPan + amPan);
+    }
+
     float effSynthVol = juce::jlimit(0.0f, 1.0f,
         effVol + modSums[static_cast<int>(ModTargetType::OscillatorLevel)]);
     synthEngine.setMasterVolume(effSynthVol);
     samplerEngine.setMasterVolume(effVol);
 
     synthEngine.setPitchBend(basePitchBend + modSums[static_cast<int>(ModTargetType::OscillatorPitch)]);
-
-    const float pan = juce::jlimit(-1.0f, 1.0f, modSums[static_cast<int>(ModTargetType::AmpPan)]);
 
     // Granular engine — push params and render (modulated targets use scaled modSums)
     granularEngine.setPosition(juce::jlimit(0.0f, 1.0f,
@@ -1555,12 +1624,37 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     }
 
     // Pan (always at native rate, after any downsampling)
-    const float panGainL = 1.0f - juce::jmax(0.0f, pan);
-    const float panGainR = 1.0f + juce::jmin(0.0f, pan);
+    const float panGainL = 1.0f - juce::jmax(0.0f, effPan);
+    const float panGainR = 1.0f + juce::jmin(0.0f, effPan);
     for (int i = 0; i < numSamples; ++i)
     {
         if (numChannels > 0) buffer.getWritePointer(0)[i] *= panGainL;
         if (numChannels > 1) buffer.getWritePointer(1)[i] *= panGainR;
+    }
+
+    // Quick FX — Main Filter (post-effects global filter)
+    const bool mainFilterOn = *apvts.getRawParameterValue("mainFilterEnabled") > 0.5f;
+    if (mainFilterOn)
+    {
+        const float mfCutoff = *apvts.getRawParameterValue("mainFilterCutoff");
+        const float mfRes    = *apvts.getRawParameterValue("mainFilterResonance");
+        const int   mfType   = static_cast<int>(*apvts.getRawParameterValue("mainFilterType"));
+        if (mfCutoff != mainFilterPrevCutoff || mfRes != mainFilterPrevRes || mfType != mainFilterPrevType)
+        {
+            mainFilter.setCutoff(mfCutoff);
+            mainFilter.setResonance(mfRes);
+            mainFilter.setFilterType(static_cast<Filter::FilterType>(mfType));
+            mainFilterPrevCutoff = mfCutoff;
+            mainFilterPrevRes    = mfRes;
+            mainFilterPrevType   = mfType;
+        }
+        for (int i = 0; i < numSamples; ++i)
+        {
+            if (numChannels > 0)
+                buffer.getWritePointer(0)[i] = mainFilter.process(buffer.getReadPointer(0)[i]);
+            if (numChannels > 1)
+                buffer.getWritePointer(1)[i] = mainFilter.process(buffer.getReadPointer(1)[i]);
+        }
     }
 
     // Aux sends: parallel delay/reverb returns mixed into main output
@@ -1689,6 +1783,7 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     root.setProperty("author",      currentPresetAuthor, nullptr);
     root.setProperty("description", currentPresetDescription, nullptr);
     root.setProperty("tags",         currentPresetTags, nullptr);
+    root.setProperty("characters",  currentPresetCharacters, nullptr);
 
     root.appendChild(apvts.copyState(), nullptr);
 
@@ -1779,6 +1874,7 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     currentPresetAuthor      = xml->getStringAttribute("author", "MultiphaseAudio");
     currentPresetDescription = xml->getStringAttribute("description", "");
     currentPresetTags        = xml->getStringAttribute("tags", "");
+    currentPresetCharacters  = xml->getStringAttribute("characters", "");
 
     juce::ValueTree root = juce::ValueTree::fromXml(*xml);
 

@@ -65,6 +65,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - WavetableEditor (`Source/Synth/WavetableEditor.h/.cpp`) — draw/edit wavetable frames, formula gen, import ✅
 - LFOShapeEditor (`Source/Synth/LFOShapeEditor.h/.cpp`) — drawable custom LFO shapes; pencil/line tools, fill buttons, normalize; launched as CallOutBox from DRAW button in each LFO row ✅
 - LayerManager (`Source/Layers/`) — 8 independent layers (Synth/Granular/Sampler), MIDI + audio + state ✅
+- RoutingPanel (`Source/Routing/RoutingPanel.h/.cpp`) — "ROU" tab: signal flow graph with 8 LayerBlocks (engine type/mute/solo/bus/level bar), Drums summary, drag-reorder ChainStrip, aux send knobs, connection lines, tab-switch callbacks ✅
 
 ## What Is Broken / Unconnected
 - None (WavetableEditor FFT button is a placeholder — just calls normalizeFrame; real FFT not yet implemented)
@@ -114,6 +115,8 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Factory Presets | `Source/Presets/FactoryPresets.h/.cpp` — 100 presets (Init×5, Bass×20, Lead×20, Pad×25, Drums×15, FX×15); `PresetData` struct with helpers (`setAdsr/setFilter/setReverb/setChorus/setDelay/setUnison/setMono/applyOscs`); full APVTS XML (all 220+ params) per preset for clean load; normalization helpers `nLin/nSkw/nCh` + shorthands `A/D/R/FC/FR/LR/PT/DT`; `PresetManager::createFactoryPresetsIfNeeded` calls `FactoryPresets::writeToDirectory` when < 10 presets found (recursive scan) |
 | Preset Browser 2.0 | `PresetManager` extended with metadata cache, 8-color favorites JSON, tag index, back/forward history; `PresetBrowserPanel` redesigned — 280px, category pills, tag filter, auto-preview, save dialog, right-click context menu; header navigation bar (prev/next/name/fav/back/forward); all 100 factory presets have author/description/tags metadata |
 | Plugin Classification | `JucePluginDefines.h` corrected: IsSynth=1, WantsMidiInput=1, Vst3Category="Instrument", AUMainType='aumu' (was incorrectly set to effect) |
+| UI-9 | **COMPLETE** — Phase 2 Layout Restructure: permanent left sidebar (280px PresetBrowserPanel), right FX strip (200px QuickFXStrip placeholder), bottom bar (88px BottomBar: 8 macros + keyboard), compact header with ☰ menu; 10 tabs with 3-letter abbreviations (SYN/DRM/MOD/SMP/SEQ/ARP/FX/GRN/LYR/PRF); MAC tab removed |
+| UI-10 | **COMPLETE** — Phase 5 Visual Routing: RoutingPanel ("ROU" tab, 11th); 8× LayerBlock (engine type/mute/solo/bus/level bar); DrumsSummaryBlock; ChainStrip (drag-reorder effect chain); Aux send knobs (auxSendDelay/auxSendReverb); connection lines color-coded by bus/solo/mute; tab-switch callback to LYR/DRM tabs |
 
 ## Next Steps
 
@@ -126,19 +129,21 @@ All gap-fill phases (0–7) complete. Now in competitive feature expansion.
 4. ~~Programmatic preset generation~~ ✅ (2026-05-05) — 100 factory presets, 6 categories
 5. ~~Preset browser 2.0~~ ✅ (2026-05-08) — metadata, favorites, tags, auto-preview, history, save dialog
 
-**Next:** UI Overhaul Phase 2 — Layout Restructure (see Nexus 5 plan)
+**Next:** UI Overhaul Phase 5 — Visual Routing (ROU tab: signal flow graph page with generator→layer→FX blocks, draggable connections)
 
 **Deferred (need decisions or Projucer GUI action):**
 - 7.2 Standalone mode — enable in Projucer GUI (File Formats → Standalone Plugin)
 
 ### Nexus 5 UI Overhaul
 **Phase 1 (Flat Theme) COMPLETE** — `MultiverseFlatTheme` replaces `CyberpunkTheme`. All panels render with flat cards via `drawCard()`. No neumorphic shadows anywhere.
+**Phase 2 (Layout Restructure) COMPLETE** — 3-column layout: left sidebar (280px), right FX strip (200px), bottom bar (88px). Compact header with ☰ menu. 10 tabs with 3-letter abbreviations.
+
+**Phase 3 (Librarian) COMPLETE** — `LibrarianPanel` replaces `PresetBrowserPanel` with collapsible sections (Factory sub-sections, User Presets, Bookmarks), character filter pills, favorite filter, history nav, save dialog with character tags, right-click context menus with bookmark management.
+
+**Phase 4 (Quick FX Strip) COMPLETE** — `QuickFXStrip` fills the right 200px panel with 5 sections: FILTER MOD (bipolar cutoff/resonance/env-depth offsets), AMP MOD (bipolar volume/pan offsets), DELAY (mix/time/feedback), REVERB (wet/room/damp), MAIN FILTER (LP/HP/BP/Notch post-effects global filter). 11 new APVTS params. `Filter mainFilter` in PluginProcessor applied post-pan in processBlock.
 
 **Remaining phases** (see plan at `/Users/jason/.claude/plans/kind-popping-nygaard.md`):
-- Phase 2: Layout Restructure (permanent left sidebar 280px, right FX strip 200px, bottom bar 88px with 8 macros + keyboard, compact header)
-- Phase 3: Librarian (replace preset browser overlay with permanent sidebar: category tree, character tags, bookmarks, search)
-- Phase 4: Quick FX Strip (right-side panel: Filter/Amp Modifier, Delay, Reverb, Main Filter — bipolar offset controls)
-- Phase 5: Visual Routing (ROU tab with signal flow graph: generator→layer→FX blocks, draggable connections)
+- All 5 phases of the Nexus 5 UI Overhaul are now COMPLETE
 
 ---
 
