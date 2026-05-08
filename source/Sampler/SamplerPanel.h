@@ -60,6 +60,8 @@ private:
     juce::Label speedLabel     { {}, "Speed:" };
     juce::Slider speedSlider;
 
+    juce::ToggleButton tstrToggle { "TSTR" };
+
     juce::Label loNoteLabel    { {}, "Lo Key:" };
     juce::ComboBox loNoteCombo;
 

@@ -15,7 +15,7 @@ namespace
     const auto& textMuted   = MultiverseFlatTheme::textMuted;
     const auto& borderLight = MultiverseFlatTheme::borderLight;
 
-    static const juce::StringArray factoryCategories = { "Init", "Bass", "Lead", "Pad", "Drums", "FX" };
+    static const juce::StringArray factoryCategories = { "Init", "Bass", "Lead", "Pad", "Drums", "FX", "Keys", "Arp" };
 }
 
 const juce::Colour LibrarianPanel::favColors[8] = {
@@ -525,7 +525,7 @@ LibrarianPanel::LibrarianPanel(PluginProcessor& p)
     addAndMakeVisible(searchEditor);
 
     // Category buttons
-    categoryButtons = { &catAll, &catBass, &catLead, &catPad, &catDrums, &catFX };
+    categoryButtons = { &catAll, &catBass, &catLead, &catPad, &catDrums, &catFX, &catKeys, &catArp };
     for (auto* btn : categoryButtons)
     {
         btn->setClickingTogglesState(true);
@@ -708,6 +708,8 @@ void LibrarianPanel::setActiveCategory(juce::TextButton* cat)
     else if (cat == &catPad)    activeCategory = "Pad";
     else if (cat == &catDrums)  activeCategory = "Drums";
     else if (cat == &catFX)     activeCategory = "FX";
+    else if (cat == &catKeys)   activeCategory = "Keys";
+    else if (cat == &catArp)    activeCategory = "Arp";
 
     rebuildFilter();
 }
@@ -980,9 +982,9 @@ void LibrarianPanel::showSaveDialog()
     dialog->addAndMakeVisible(nameLb);
 
     auto* catCb = new juce::ComboBox();
-    catCb->addItemList({"Init", "Bass", "Lead", "Pad", "Drums", "FX"}, 1);
+    catCb->addItemList({"Init", "Bass", "Lead", "Pad", "Drums", "FX", "Keys", "Arp"}, 1);
     juce::String curCat = processorRef.currentPresetCategory;
-    int catIdx = juce::StringArray({"Init", "Bass", "Lead", "Pad", "Drums", "FX"}).indexOf(curCat);
+    int catIdx = juce::StringArray({"Init", "Bass", "Lead", "Pad", "Drums", "FX", "Keys", "Arp"}).indexOf(curCat);
     if (catIdx < 0) catIdx = 0;
     catCb->setSelectedItemIndex(catIdx, juce::dontSendNotification);
     catCb->setBounds(70, 40, 220, 24);

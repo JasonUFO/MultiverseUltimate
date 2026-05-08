@@ -68,6 +68,19 @@ SamplerPanel::SamplerPanel (PluginProcessor& p, SamplerEngine& engine)
     addAndMakeVisible (speedLabel);
     addAndMakeVisible (speedSlider);
 
+    // Timestretch toggle
+    tstrToggle.setToggleState (false, juce::dontSendNotification);
+    tstrToggle.setEnabled (false);
+    tstrToggle.setTooltip ("Timestretch: decouple pitch from speed (requires loop mode)");
+    tstrToggle.setColour (juce::ToggleButton::textColourId, MultiverseFlatTheme::textSecondary);
+    tstrToggle.setColour (juce::ToggleButton::tickColourId, MultiverseFlatTheme::accentCyan);
+    tstrToggle.onClick = [this]
+    {
+        if (selectedZoneIndex < 0 || selectedZoneIndex >= static_cast<int> (ownedZones.size())) return;
+        ownedZones[static_cast<size_t> (selectedZoneIndex)]->timestretchEnabled = tstrToggle.getToggleState();
+    };
+    addAndMakeVisible (tstrToggle);
+
     // Lo/Hi key range combos
     loNoteCombo.setSelectedId (1, juce::dontSendNotification);
     loNoteCombo.onChange = [this]
@@ -184,8 +197,8 @@ SamplerPanel::SamplerPanel (PluginProcessor& p, SamplerEngine& engine)
     clearButton.setTooltip       ("Remove all loaded sample zones");
     autoMapButton.setTooltip     ("Distribute zones evenly across the full key range (C-1 to G9)");
     rootNoteCombo.setTooltip     ("Root note: MIDI pitch at which the sample plays at its original speed");
-    tuningSlider.setTooltip      ("Tune: pitch offset in semitones (±24), 0.1 resolution — shifts pitch independently of root note");
-    speedSlider.setTooltip       ("Speed: playback rate multiplier (0.25×–4×) — changes tempo independently of pitch mapping");
+    tuningSlider.setTooltip      ("Tune: pitch offset in semitones (±24) — with TSTR, changes pitch without affecting speed");
+    speedSlider.setTooltip       ("Speed: playback rate multiplier (0.25×–4×) — with TSTR, changes speed without affecting pitch");
     loNoteCombo.setTooltip       ("Lo Key: lowest MIDI note this zone responds to");
     hiNoteCombo.setTooltip       ("Hi Key: highest MIDI note this zone responds to");
     loVelSlider.setTooltip       ("Lo Vel: minimum velocity (0–127) this zone responds to");
@@ -292,6 +305,8 @@ void SamplerPanel::resized()
     row (rootNoteLabel,      rootNoteCombo);
     row (tuningLabel,        tuningSlider);
     row (speedLabel,         speedSlider);
+    tstrToggle.setBounds (area.removeFromTop (22).withTrimmedLeft (50));
+    area.removeFromTop (3);
     row (loNoteLabel,        loNoteCombo);
     row (hiNoteLabel,        hiNoteCombo);
     row (loVelLabel,         loVelSlider);
@@ -386,6 +401,7 @@ void SamplerPanel::updateControlsForSelectedZone()
     rootNoteCombo.setEnabled (valid);
     tuningSlider.setEnabled (valid);
     speedSlider.setEnabled (valid);
+    tstrToggle.setEnabled (valid);
     loNoteCombo.setEnabled (valid);
     hiNoteCombo.setEnabled (valid);
     loVelSlider.setEnabled (valid);
@@ -404,6 +420,7 @@ void SamplerPanel::updateControlsForSelectedZone()
     rootNoteCombo.setSelectedId (zone.rootNote + 1,                          juce::dontSendNotification);
     tuningSlider.setValue       ((double) zone.tuning,                       juce::dontSendNotification);
     speedSlider.setValue        ((double) zone.speed,                        juce::dontSendNotification);
+    tstrToggle.setToggleState   (zone.timestretchEnabled,                    juce::dontSendNotification);
     loNoteCombo.setSelectedId   (zone.loNote + 1,                            juce::dontSendNotification);
     hiNoteCombo.setSelectedId   (zone.hiNote + 1,                            juce::dontSendNotification);
     loVelSlider.setValue        ((double) zone.loVel,                        juce::dontSendNotification);

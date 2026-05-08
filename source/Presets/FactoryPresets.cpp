@@ -1718,6 +1718,1514 @@ static std::vector<PresetData> buildAllPresets(const std::map<juce::String, floa
         p.characters = "active,wide";
     }
 
+    // ────────────────────────────── NEW BASS ──────────────────────────────────────
+
+    {
+        auto& p = make("Mono Acid 2", "Bass");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 1, 0.7f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.12f, 0.0f, 0.1f);
+        p.setFilter(500.0f, 8.0f, 0);
+        p.setMono(true, 0.06f);
+        p.set("distMix", 0.2f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "TB-303 acid bass with legato glide and resonant squelch #acid #mono #resonant";
+        p.tags = "acid,mono,resonant";
+        p.characters = "spiky,dirty";
+    }
+    {
+        auto& p = make("Digital Growl", "Bass");
+        p.oscCount = 1;
+        p.oscs[0] = {5, 1.0f, 0.0f, 1, 0.0f, 2, 0.65f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.15f, 0.5f, 0.2f);
+        p.setFilter(4000.0f, 3.5f, 0);
+        p.set("distMix", 0.35f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Digital wavefold growl bass with aggressive filter #growl #digital #aggressive";
+        p.tags = "growl,digital,aggressive";
+        p.characters = "dirty,spiky";
+    }
+    {
+        auto& p = make("Resonant Stab", "Bass");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 1.0f, -0.05f, 1, 0.0f, 3, 0.45f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f,  0.05f, 1, 0.0f, 3, 0.45f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.06f, 0.0f, 0.07f);
+        p.setFilter(5500.0f, 7.0f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Sharp resonant stab with clipped detune #stab #resonant #punchy";
+        p.tags = "stab,resonant,punchy";
+        p.characters = "spiky";
+    }
+    {
+        auto& p = make("Sub Pulse", "Bass");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.6f, 0.0f, 0.4f);
+        p.setFilter(250.0f, 0.7f, 0);
+        p.set("subOscEnable", 1.0f);
+        p.set("subOscLevel", 0.85f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Deep pulsing sub bass with sub-oscillator reinforcement #sub #deep #pulse";
+        p.tags = "sub,deep,pulse";
+        p.characters = "dark";
+    }
+    {
+        auto& p = make("Dark DnB", "Bass");
+        p.oscCount = 2;
+        p.oscs[0] = {4, 0.85f, -0.12f, 1, 0.0f, 2, 0.55f, 0.0f, 0.5f};
+        p.oscs[1] = {4, 0.75f,  0.12f, 2, 0.0f, 2, 0.55f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.18f, 0.35f, 0.15f);
+        p.setFilter(2500.0f, 5.0f, 0);
+        p.set("distMix", 0.3f);
+        p.set("distDrive", nSkw(55.0f, 1.0f, 100.0f, 0.3f));
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Dark drum and bass with analog fold and distortion #dnb #dark #aggressive";
+        p.tags = "dnb,dark,aggressive";
+        p.characters = "dirty,dark";
+    }
+    {
+        auto& p = make("House Jack", "Bass");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 2, 0.0f, 1, 0.35f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.15f, 0.65f, 0.15f);
+        p.setFilter(6500.0f, 2.0f, 0);
+        p.setMono(true, 0.03f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Punchy house bass with square wave and drive #house #punchy #groove";
+        p.tags = "house,punchy,groove";
+        p.characters = "active,spiky";
+    }
+    {
+        auto& p = make("Distorted Low", "Bass");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 1, 0.9f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.12f, 0.55f, 0.2f);
+        p.setFilter(3500.0f, 2.5f, 0);
+        p.set("distMix", 0.5f);
+        p.set("distDrive", nSkw(70.0f, 1.0f, 100.0f, 0.3f));
+        p.set("eqLowGain", nLin(4.0f, -12.0f, 12.0f));
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Heavily distorted low bass with boosted lows #distorted #heavy #aggressive";
+        p.tags = "distorted,heavy,aggressive";
+        p.characters = "dirty";
+    }
+    {
+        auto& p = make("Wobble Sub", "Bass");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 0, 0.0f, 2, 0.35f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.2f, 0.7f, 0.3f);
+        p.setFilter(1500.0f, 5.0f, 0);
+        p.set("lfo1Rate", LR(4.0f));
+        p.set("subOscEnable", 1.0f);
+        p.set("subOscLevel", 0.7f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Wobbling sub bass with LFO filter modulation and sub-osc #wobble #sub #dubstep";
+        p.tags = "wobble,sub,dubstep";
+        p.characters = "active,dirty";
+    }
+    {
+        auto& p = make("Square Bass", "Bass");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.85f, -0.06f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.85f,  0.06f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.01f, 0.2f, 0.75f, 0.35f);
+        p.setFilter(4500.0f, 1.2f, 0);
+        p.setChorus(0.15f, 0.25f, 0.35f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Detuned square bass with chorus width #square #warm #chorus";
+        p.tags = "square,warm,chorus";
+        p.characters = "wide,active";
+    }
+    {
+        auto& p = make("Filtered Bass", "Bass");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.01f, 0.15f, 0.6f, 0.25f);
+        p.setFilter(800.0f, 6.0f, 0);
+        p.set("lfo1Rate", LR(2.0f));
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "LFO-modulated filtered bass with resonant sweep #filtered #resonant #evolving";
+        p.tags = "filtered,resonant,evolving";
+        p.characters = "active,dark";
+    }
+    {
+        auto& p = make("Neuro Bass", "Bass");
+        p.oscCount = 3;
+        p.oscs[0] = {0, 0.7f, -0.15f, 1, 0.0f, 2, 0.7f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 1.0f,  0.0f,  1, 0.0f, 2, 0.7f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.7f,  0.15f, 1, 0.0f, 2, 0.7f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.12f, 0.45f, 0.18f);
+        p.setFilter(3000.0f, 4.0f, 0);
+        p.set("distMix", 0.4f);
+        p.set("distDrive", nSkw(45.0f, 1.0f, 100.0f, 0.3f));
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Complex neuro bass with triple wavefold and distortion #neuro #aggressive #complex";
+        p.tags = "neuro,aggressive,complex";
+        p.characters = "dirty,spiky";
+    }
+    {
+        auto& p = make("Vintage Sub", "Bass");
+        p.oscCount = 1;
+        p.oscs[0] = {4, 1.0f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.015f, 0.4f, 0.85f, 0.7f);
+        p.setFilter(2000.0f, 0.8f, 0);
+        p.set("subOscEnable", 1.0f);
+        p.set("subOscLevel", 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Warm vintage sub with analog drift and sub-osc #vintage #sub #warm";
+        p.tags = "vintage,sub,warm";
+        p.characters = "dark,wide";
+    }
+    {
+        auto& p = make("Dirty Reese", "Bass");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.8f, -0.1f, 1, 0.0f, 1, 0.5f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f,  0.1f, 1, 0.0f, 1, 0.5f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.15f, 0.75f, 0.35f);
+        p.setFilter(2500.0f, 2.0f, 0);
+        p.set("distMix", 0.35f);
+        p.set("distDrive", nSkw(35.0f, 1.0f, 100.0f, 0.3f));
+        p.setChorus(0.25f, 0.35f, 0.45f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Driven detuned reese with distortion and chorus #reese #dirty #chorus";
+        p.tags = "reese,dirty,chorus";
+        p.characters = "dirty,wide";
+    }
+    {
+        auto& p = make("Phase Bass", "Bass");
+        p.oscCount = 1;
+        p.oscs[0] = {3, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.75f};
+        p.setAdsr(0.001f, 0.2f, 0.5f, 0.25f);
+        p.setFilter(5000.0f, 2.5f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Phase distortion bass with evolving timbre #phase-distortion #evolving #punchy";
+        p.tags = "phase-distortion,evolving,punchy";
+        p.characters = "active,spiky";
+    }
+    {
+        auto& p = make("Sine Drop", "Bass");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.8f, 0.0f, 0.5f);
+        p.setFilter(350.0f, 0.7f, 0);
+        p.set("subOscEnable", 1.0f);
+        p.set("subOscLevel", 0.9f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Deep sine drop with sub-osc for maximum low end #drop #sub #deep";
+        p.tags = "drop,sub,deep";
+        p.characters = "dark";
+    }
+
+    // ────────────────────────────── NEW LEAD ───────────────────────────────────────
+
+    {
+        auto& p = make("Bright Lead", "Lead");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.08f, 0.92f, 0.3f);
+        p.setFilter(18000.0f, 1.0f, 0);
+        p.set("eqHighGain", nLin(6.0f, -12.0f, 12.0f));
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Ultra-bright saw lead with EQ high boost #bright #saw #punchy";
+        p.tags = "bright,saw,punchy";
+        p.characters = "bright";
+    }
+    {
+        auto& p = make("Digital Lead", "Lead");
+        p.oscCount = 1;
+        p.oscs[0] = {5, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.12f, 0.8f, 0.35f);
+        p.setFilter(14000.0f, 1.8f, 0);
+        p.setReverb(0.15f, 0.4f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Clean digital oscillator lead with reverb #digital #bright #clean";
+        p.tags = "digital,bright,clean";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Phase Lead", "Lead");
+        p.oscCount = 1;
+        p.oscs[0] = {3, 1.0f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.8f};
+        p.setAdsr(0.001f, 0.15f, 0.75f, 0.4f);
+        p.setFilter(11000.0f, 2.5f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Phase distortion lead with rich harmonic movement #phase-distortion #evolving #bright";
+        p.tags = "phase-distortion,evolving,bright";
+        p.characters = "active,bright";
+    }
+    {
+        auto& p = make("Mono Lead", "Lead");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 1, 0.25f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.1f, 0.85f, 0.3f);
+        p.setFilter(10000.0f, 2.0f, 0);
+        p.setMono(true, 0.08f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Monophonic lead with glide and drive #mono #legato #warm";
+        p.tags = "mono,legato,warm";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Stab Lead 2", "Lead");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 1.0f, -0.06f, 1, 0.0f, 3, 0.5f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 1.0f,  0.06f, 1, 0.0f, 3, 0.5f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.05f, 0.0f, 0.07f);
+        p.setFilter(12000.0f, 2.5f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Ultra-short clipped stab lead with detune #stab #punchy #aggressive";
+        p.tags = "stab,punchy,aggressive";
+        p.characters = "spiky";
+    }
+    {
+        auto& p = make("Ethereal", "Lead");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.75f, -0.08f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.75f,  0.08f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.4f, 0.3f, 0.85f, 1.2f);
+        p.setFilter(7000.0f, 0.7f, 0);
+        p.setReverb(0.55f, 0.8f);
+        p.setChorus(0.35f, 0.3f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Ethereal triangle and sine lead with reverb #ethereal #smooth #reverb";
+        p.tags = "ethereal,smooth,reverb";
+        p.characters = "bright,wide";
+    }
+    {
+        auto& p = make("Brass Lead", "Lead");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 1.0f, -0.05f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.85f,  0.05f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.005f, 0.15f, 0.7f, 0.25f);
+        p.setFilter(6000.0f, 2.0f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Brassy dual-saw lead with resonant filter #brass #warm #classic";
+        p.tags = "brass,warm,classic";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Sync Lead", "Lead");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.6f, 7.0f, 1, 0.0f, 0, 0.0f, 0.95f, 0.5f};
+        p.setAdsr(0.001f, 0.12f, 0.8f, 0.35f);
+        p.setFilter(10000.0f, 2.5f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Sync-saw lead with harmonic overtones from self-osc #sync #bright #aggressive";
+        p.tags = "sync,bright,aggressive";
+        p.characters = "spiky,bright";
+    }
+    {
+        auto& p = make("Noise Lead", "Lead");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.7f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.4f, 0.0f, 4, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.1f, 0.75f, 0.3f);
+        p.setFilter(9000.0f, 1.5f, 0);
+        p.setReverb(0.2f, 0.45f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Saw and noise blended lead with reverb #noise #bright #textured";
+        p.tags = "noise,bright,textured";
+        p.characters = "dirty,bright";
+    }
+    {
+        auto& p = make("FM Lead 2", "Lead", 1);
+        p.oscCount = 1;
+        p.setAdsr(0.001f, 0.2f, 0.65f, 0.35f);
+        p.set("fmOp2Ratio", nSkw(3.0f, 0.5f, 32.0f, 0.5f));
+        p.set("fmOp2Level", 0.7f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Bright FM lead with modulator ratio #fm #bright #punchy";
+        p.tags = "fm,bright,punchy";
+        p.characters = "spiky";
+    }
+    {
+        auto& p = make("Poly Lead", "Lead");
+        p.oscCount = 3;
+        p.oscs[0] = {0, 0.85f, -0.12f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 1.0f,  0.0f,  1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.85f,  0.12f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.01f, 0.1f, 0.85f, 0.5f);
+        p.setFilter(11000.0f, 1.2f, 0);
+        p.setChorus(0.3f, 0.35f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Wide polyphonic supersaw lead with chorus #poly #lush #wide";
+        p.tags = "poly,lush,wide";
+        p.characters = "bright,wide";
+    }
+    {
+        auto& p = make("Porta Lead", "Lead");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 1, 0.3f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.1f, 0.9f, 0.4f);
+        p.setFilter(12000.0f, 1.5f, 0);
+        p.setMono(true, 0.15f);
+        p.setReverb(0.15f, 0.4f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Portamento lead with drive glide and reverb tail #portamento #mono #smooth";
+        p.tags = "portamento,mono,smooth";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Bit Lead", "Lead");
+        p.oscCount = 1;
+        p.oscs[0] = {5, 1.0f, 0.0f, 2, 0.0f, 3, 0.6f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.1f, 0.85f, 0.3f);
+        p.setFilter(8000.0f, 2.0f, 0);
+        p.set("distMix", 0.25f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Crunchy bit-crushed digital square lead #lofi #digital #crunchy";
+        p.tags = "lofi,digital,crunchy";
+        p.characters = "dirty,spiky";
+    }
+    {
+        auto& p = make("Unison Wide", "Lead");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.01f, 0.08f, 0.9f, 0.45f);
+        p.setFilter(13000.0f, 1.5f, 0);
+        p.setUnison(7, 40.0f, 1.0f);
+        p.setChorus(0.2f, 0.4f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Massive wide unison lead with 7 voices #unison #wide #lush";
+        p.tags = "unison,wide,lush";
+        p.characters = "bright,wide";
+    }
+    {
+        auto& p = make("Soft Lead", "Lead");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.05f, 0.2f, 0.75f, 0.6f);
+        p.setFilter(6000.0f, 0.8f, 0);
+        p.setReverb(0.25f, 0.55f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Gentle triangle lead with soft attack and reverb #soft #smooth #warm";
+        p.tags = "soft,smooth,warm";
+        p.characters = "dark";
+    }
+    {
+        auto& p = make("Razor Lead", "Lead");
+        p.oscCount = 1;
+        p.oscs[0] = {2, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.1f, 0.8f, 0.3f);
+        p.setFilter(15000.0f, 2.5f, 0);
+        p.set("distMix", 0.2f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Sharp additive saw lead with edge distortion #additive #sharp #aggressive";
+        p.tags = "additive,sharp,aggressive";
+        p.characters = "spiky,bright";
+    }
+
+    // ────────────────────────────── NEW PAD ───────────────────────────────────────
+
+    {
+        auto& p = make("Warm Pad 2", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {0, 0.85f, -0.1f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 1.0f,  0.0f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.85f,  0.1f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.7f, 0.5f, 0.88f, 1.8f);
+        p.setFilter(5000.0f, 0.8f, 0);
+        p.setChorus(0.4f, 0.3f, 0.55f);
+        p.setReverb(0.35f, 0.7f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Warm triangle pad with slow chorus #pad #warm #chorus";
+        p.tags = "pad,warm,chorus";
+        p.characters = "wide,dark";
+    }
+    {
+        auto& p = make("Dark Ambience", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {0, 0.7f, -0.2f, 1, 0.0f, 1, 0.3f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f,  0.0f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.7f,  0.2f, 1, 0.0f, 1, 0.3f, 0.0f, 0.5f};
+        p.setAdsr(1.5f, 0.8f, 0.7f, 3.0f);
+        p.setFilter(1800.0f, 1.2f, 0);
+        p.setReverb(0.65f, 0.9f);
+        p.setDelay(0.2f, 0.5f, 0.45f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Deep dark ambience with driven saws #pad #dark #ambient";
+        p.tags = "pad,dark,ambient";
+        p.characters = "dark,wide";
+    }
+    {
+        auto& p = make("Crystal Pad", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {0, 0.8f, -0.15f, 0, 0.0f, 1, 0.15f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 1.0f,  0.0f,  0, 0.0f, 1, 0.15f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.8f,  0.15f, 0, 0.0f, 1, 0.15f, 0.0f, 0.5f};
+        p.setAdsr(0.9f, 0.4f, 0.82f, 2.2f);
+        p.setFilter(12000.0f, 1.0f, 0);
+        p.setChorus(0.35f, 0.35f, 0.5f);
+        p.setReverb(0.55f, 0.85f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Bright driven sine crystal pad #pad #crystal #bright";
+        p.tags = "pad,crystal,bright";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Choir Pad 2", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {2, 0.85f, -0.12f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {2, 1.0f,   0.0f,  0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {2, 0.85f,  0.12f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(1.0f, 0.5f, 0.85f, 2.0f);
+        p.setFilter(6500.0f, 0.8f, 0);
+        p.setChorus(0.5f, 0.3f, 0.6f);
+        p.setReverb(0.5f, 0.75f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Vocal additive choir pad #pad #choir #ethereal";
+        p.tags = "pad,choir,ethereal";
+        p.characters = "wide,dark";
+    }
+    {
+        auto& p = make("String Pad 2", "Pad");
+        p.oscCount = 4;
+        p.oscs[0] = {0, 0.85f, -0.25f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 1.0f,  -0.08f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 1.0f,   0.08f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[3] = {0, 0.85f,  0.25f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.5f, 0.35f, 0.82f, 1.4f);
+        p.setFilter(7500.0f, 0.9f, 0);
+        p.setChorus(0.45f, 0.4f, 0.6f);
+        p.setReverb(0.4f, 0.7f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Wide 4-osc detuned string pad #pad #lush #strings";
+        p.tags = "pad,lush,strings";
+        p.characters = "wide,bright";
+    }
+    {
+        auto& p = make("Glass Pad 2", "Pad");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.9f, -0.07f, 0, 0.0f, 1, 0.25f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.9f,  0.07f, 0, 0.0f, 1, 0.25f, 0.0f, 0.5f};
+        p.setAdsr(0.8f, 0.45f, 0.78f, 2.0f);
+        p.setFilter(11000.0f, 1.3f, 0);
+        p.setReverb(0.55f, 0.75f);
+        p.setDelay(0.15f, 0.375f, 0.35f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Driven glass sine pad with delay #pad #glass #bright";
+        p.tags = "pad,glass,bright";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Shimmer Pad 2", "Pad");
+        p.oscCount = 4;
+        p.oscs[0] = {0, 0.75f, -0.3f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 1.0f,  -0.1f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 1.0f,   0.1f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[3] = {0, 0.75f,  0.3f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.8f, 0.4f, 0.9f, 2.5f);
+        p.setFilter(13000.0f, 0.8f, 0);
+        p.setUnison(4, 22.0f, 1.0f);
+        p.setReverb(0.65f, 0.9f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Wide unison shimmer pad with heavy reverb #pad #shimmer #unison";
+        p.tags = "pad,shimmer,unison";
+        p.characters = "bright,wide";
+    }
+    {
+        auto& p = make("Analog Pad", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {4, 0.85f, -0.1f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {4, 1.0f,   0.0f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {4, 0.85f,  0.1f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.6f, 0.4f, 0.85f, 1.6f);
+        p.setFilter(5500.0f, 0.9f, 0);
+        p.setChorus(0.4f, 0.35f, 0.55f);
+        p.setReverb(0.35f, 0.65f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Warm analog-modeled pad with chorus #pad #analog-warmth #warm";
+        p.tags = "pad,analog-warmth,warm";
+        p.characters = "wide,dirty";
+    }
+    {
+        auto& p = make("Digital Pad", "Pad");
+        p.oscCount = 2;
+        p.oscs[0] = {5, 0.9f, -0.08f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {5, 0.9f,  0.08f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.7f, 0.4f, 0.82f, 1.8f);
+        p.setFilter(9000.0f, 1.0f, 0);
+        p.setReverb(0.45f, 0.7f);
+        p.setDelay(0.18f, 0.375f, 0.4f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Clean digital pad with delay #pad #digital #clean";
+        p.tags = "pad,digital,clean";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Phase Pad", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {3, 0.8f, -0.12f, 0, 0.0f, 0, 0.0f, 0.0f, 0.8f};
+        p.oscs[1] = {3, 1.0f,  0.0f,  0, 0.0f, 0, 0.0f, 0.0f, 0.65f};
+        p.oscs[2] = {3, 0.8f,  0.12f, 0, 0.0f, 0, 0.0f, 0.0f, 0.8f};
+        p.setAdsr(0.8f, 0.5f, 0.85f, 2.0f);
+        p.setFilter(7500.0f, 1.2f, 0);
+        p.setChorus(0.35f, 0.3f, 0.5f);
+        p.setReverb(0.45f, 0.75f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Phase distortion pad with chorus #pad #phase-distortion #evolving";
+        p.tags = "pad,phase-distortion,evolving";
+        p.characters = "active,wide";
+    }
+    {
+        auto& p = make("Detuned Pad", "Pad");
+        p.oscCount = 4;
+        p.oscs[0] = {0, 0.8f, -0.35f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.9f, -0.12f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.9f,  0.12f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[3] = {0, 0.8f,  0.35f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(1.0f, 0.4f, 0.88f, 2.0f);
+        p.setFilter(8000.0f, 0.9f, 0);
+        p.setChorus(0.3f, 0.25f, 0.45f);
+        p.setReverb(0.4f, 0.7f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Wide detuned supersaw pad #pad #supersaw #lush";
+        p.tags = "pad,supersaw,lush";
+        p.characters = "wide,dark";
+    }
+    {
+        auto& p = make("Stereo Wide", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {0, 0.85f, -0.18f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 1.0f,   0.0f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.85f,  0.18f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.9f, 0.4f, 0.88f, 2.2f);
+        p.setFilter(9000.0f, 0.8f, 0);
+        p.setUnison(4, 35.0f, 1.0f);
+        p.setReverb(0.5f, 0.8f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Ultra-wide unison pad with triangle center #pad #wide #lush";
+        p.tags = "pad,wide,lush";
+        p.characters = "wide,bright";
+    }
+    {
+        auto& p = make("Slow Evolve", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {0, 0.8f, -0.15f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 1.0f,  0.0f,  3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.8f,  0.15f, 1, 0.0f, 2, 0.3f, 0.0f, 0.5f};
+        p.setAdsr(1.5f, 0.8f, 0.85f, 3.5f);
+        p.setFilter(4500.0f, 2.0f, 0);
+        p.set("lfo1Rate", LR(0.15f));
+        p.setReverb(0.5f, 0.8f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Slowly evolving saw and triangle pad with LFO #pad #evolving #resonant";
+        p.tags = "pad,evolving,resonant";
+        p.characters = "active,dark";
+    }
+    {
+        auto& p = make("Ethereal Pad", "Pad");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.75f, -0.08f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.75f,  0.08f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(2.0f, 0.8f, 0.85f, 4.0f);
+        p.setFilter(5500.0f, 0.7f, 0);
+        p.setReverb(0.75f, 0.95f);
+        p.setDelay(0.22f, 0.5f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Ultra-slow ethereal sine pad with heavy reverb #pad #ethereal #reverb";
+        p.tags = "pad,ethereal,reverb";
+        p.characters = "wide,dark";
+    }
+    {
+        auto& p = make("Dark Drone", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {4, 0.85f, -0.07f, 0, 0.0f, 1, 0.2f, 0.0f, 0.5f};
+        p.oscs[1] = {4, 1.0f,   0.0f,  1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {4, 0.85f,  0.07f, 0, 0.0f, 1, 0.2f, 0.0f, 0.5f};
+        p.setAdsr(2.5f, 1.0f, 0.9f, 4.5f);
+        p.setFilter(2000.0f, 1.5f, 0);
+        p.setReverb(0.6f, 0.9f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Dark analog drone with driven sub #pad #drone #dark";
+        p.tags = "pad,drone,dark";
+        p.characters = "dark,dirty";
+    }
+    {
+        auto& p = make("Bell Pad 2", "Pad");
+        p.oscCount = 2;
+        p.oscs[0] = {5, 1.0f, -0.05f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {5, 0.7f,  0.05f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 1.2f, 0.0f, 1.5f);
+        p.setFilter(15000.0f, 1.0f, 0);
+        p.setReverb(0.6f, 0.85f);
+        p.setDelay(0.18f, 0.375f, 0.35f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Digital bell pad with delay and reverb #pad #bell #digital";
+        p.tags = "pad,bell,digital";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Soft Keys Pad", "Pad");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.9f, -0.06f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.9f,  0.06f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.2f, 0.5f, 0.75f, 1.0f);
+        p.setFilter(6000.0f, 0.8f, 0);
+        p.setChorus(0.3f, 0.25f, 0.35f);
+        p.setReverb(0.25f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Soft triangle keys pad with chorus #pad #warm #soft";
+        p.tags = "pad,warm,soft";
+        p.characters = "wide,dark";
+    }
+    {
+        auto& p = make("Organ Pad", "Pad");
+        p.oscCount = 4;
+        p.oscs[0] = {0, 0.7f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.6f, 0.0f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.4f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[3] = {0, 0.3f, 0.0f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.01f, 0.1f, 0.95f, 0.4f);
+        p.setFilter(10000.0f, 0.7f, 0);
+        p.setChorus(0.2f, 0.3f, 0.35f);
+        p.setReverb(0.3f, 0.6f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Drawbar-style organ pad with chorus #pad #organ #warm";
+        p.tags = "pad,organ,warm";
+        p.characters = "active,wide";
+    }
+    {
+        auto& p = make("Noise Pad", "Pad");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.6f, -0.1f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.5f,  0.1f, 4, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(1.2f, 0.6f, 0.7f, 2.5f);
+        p.setFilter(4000.0f, 1.5f, 0);
+        p.setReverb(0.5f, 0.85f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Atmospheric saw and noise pad #pad #noise #atmospheric";
+        p.tags = "pad,noise,atmospheric";
+        p.characters = "dark,dirty";
+    }
+    {
+        auto& p = make("Harmonic Pad", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {2, 0.9f, -0.1f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {2, 1.0f,  0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {2, 0.9f,  0.1f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.8f, 0.5f, 0.85f, 2.0f);
+        p.setFilter(8000.0f, 0.8f, 0);
+        p.setChorus(0.4f, 0.35f, 0.55f);
+        p.setReverb(0.45f, 0.75f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Additive harmonic pad with chorus #pad #additive #lush";
+        p.tags = "pad,additive,lush";
+        p.characters = "wide,bright";
+    }
+    {
+        auto& p = make("Deep Space", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {0, 0.7f, -0.2f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f,  0.0f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.7f,  0.2f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(2.5f, 1.0f, 0.8f, 5.0f);
+        p.setFilter(4000.0f, 0.8f, 0);
+        p.setReverb(0.75f, 0.95f);
+        p.setDelay(0.3f, 0.5f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Ultra-deep space ambient pad #pad #space #ambient";
+        p.tags = "pad,space,ambient";
+        p.characters = "dark,wide";
+    }
+    {
+        auto& p = make("Fog Pad", "Pad");
+        p.oscCount = 3;
+        p.oscs[0] = {4, 0.75f, -0.12f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {4, 0.85f,  0.0f,  1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {4, 0.75f,  0.12f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(1.8f, 0.8f, 0.82f, 3.5f);
+        p.setFilter(3500.0f, 0.9f, 0);
+        p.setReverb(0.65f, 0.9f);
+        p.setDelay(0.2f, 0.45f, 0.45f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Thick analog fog pad with delay #pad #fog #analog-warmth";
+        p.tags = "pad,fog,analog-warmth";
+        p.characters = "dark,wide";
+    }
+
+    // ────────────────────────────── NEW DRUMS ─────────────────────────────────────
+
+    {
+        auto& p = make("Kick 808", "Drums");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.6f, 0.0f, 0.3f);
+        p.setFilter(250.0f, 0.8f, 0);
+        p.set("subOscEnable", 1.0f);
+        p.set("subOscLevel", 0.7f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Deep 808 kick with sub-oscillator #drums #808 #sub";
+        p.tags = "808,sub,punchy";
+        p.characters = "dark,spiky";
+    }
+    {
+        auto& p = make("Snare Tight", "Drums");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.7f, 0.0f, 0, 0.0f, 1, 0.3f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f, 0.0f, 4, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.12f, 0.0f, 0.08f);
+        p.setFilter(4000.0f, 2.0f, 1);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Tight punchy snare with driven body #drums #snare #punchy";
+        p.tags = "snare,punchy,percussive";
+        p.characters = "spiky";
+    }
+    {
+        auto& p = make("Closed Hat 2", "Drums");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.6f, 0.0f, 2, 0.0f, 1, 0.3f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f, 0.0f, 4, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.04f, 0.0f, 0.03f);
+        p.setFilter(11000.0f, 2.0f, 1);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Tight closed hi-hat with square attack #drums #hihat #tight";
+        p.tags = "hihat,tight,percussive";
+        p.characters = "spiky";
+    }
+    {
+        auto& p = make("Open Hat 2", "Drums");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.5f, 0.0f, 2, 0.0f, 1, 0.25f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.9f, 0.0f, 4, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.4f, 0.0f, 0.3f);
+        p.setFilter(8500.0f, 1.5f, 1);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Open hi-hat with square body and noise sizzle #drums #hihat #open";
+        p.tags = "hihat,open,bright";
+        p.characters = "bright,spiky";
+    }
+    {
+        auto& p = make("Clap 2", "Drums");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.5f, 0.0f, 4, 0.0f, 1, 0.4f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.6f, 0.0f, 4, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.18f, 0.0f, 0.15f);
+        p.setFilter(3500.0f, 3.0f, 1);
+        p.setReverb(0.25f, 0.45f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Layered noise clap with reverb tail #drums #clap #reverb";
+        p.tags = "clap,reverb,percussive";
+        p.characters = "spiky,active";
+    }
+    {
+        auto& p = make("Rim 2", "Drums");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.6f, 0.0f, 2, 0.0f, 3, 0.6f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.5f, 0.0f, 4, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.06f, 0.0f, 0.05f);
+        p.setFilter(5000.0f, 2.5f, 1);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Sharp clipped rim shot with noise layer #drums #rim #punchy";
+        p.tags = "rim,punchy,percussive";
+        p.characters = "spiky";
+    }
+    {
+        auto& p = make("Tom Mid", "Drums");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 1.0f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.3f, 0.0f, 4, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.3f, 0.0f, 0.2f);
+        p.setFilter(800.0f, 1.2f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Mid-pitched sine tom with noise attack #drums #tom #warm";
+        p.tags = "tom,warm,percussive";
+        p.characters = "spiky,dark";
+    }
+    {
+        auto& p = make("Cowbell", "Drums");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.8f, 0.0f, 2, 0.0f, 1, 0.35f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.7f, 0.0f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.3f, 0.1f, 0.2f);
+        p.setFilter(3000.0f, 2.5f, 2);
+        p.set("distMix", 0.15f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Classic square wave cowbell with drive and bandpass #drums #cowbell #bright";
+        p.tags = "cowbell,bright,percussive";
+        p.characters = "bright,spiky";
+    }
+    {
+        auto& p = make("Shaker 2", "Drums");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 0.65f, 0.0f, 4, 0.0f, 2, 0.15f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.05f, 0.0f, 0.04f);
+        p.setFilter(9000.0f, 1.2f, 1);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Folded noise shaker with HP filter #drums #shaker #bright";
+        p.tags = "shaker,bright,percussive";
+        p.characters = "active";
+    }
+    {
+        auto& p = make("Cymbal Ride", "Drums");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.7f, 0.0f, 4, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.5f, 0.0f, 2, 0.0f, 1, 0.2f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 1.5f, 0.2f, 1.0f);
+        p.setFilter(7000.0f, 1.0f, 1);
+        p.setReverb(0.2f, 0.45f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Sustained ride cymbal with noise and driven square #drums #cymbal #metallic";
+        p.tags = "cymbal,metallic,bright";
+        p.characters = "bright,spiky";
+    }
+
+    // ────────────────────────────── NEW FX ────────────────────────────────────────
+
+    {
+        auto& p = make("Noise Burst", "FX");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.9f, 0.0f, 4, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f, 0.0f, 2, 0.0f, 1, 0.5f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.15f, 0.0f, 0.1f);
+        p.setFilter(6000.0f, 2.0f, 0);
+        p.setReverb(0.35f, 0.6f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Sharp noise and square burst with reverb #fx #burst #noise #aggressive";
+        p.tags = "burst,noise,aggressive";
+        p.characters = "spiky,dirty";
+    }
+    {
+        auto& p = make("Filter Sweep", "FX");
+        p.oscCount = 3;
+        p.oscs[0] = {0, 0.8f, -0.15f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 1.0f,  0.0f,  1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.8f,  0.15f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 2.0f, 0.8f, 1.5f);
+        p.setFilter(800.0f, 5.0f, 0);
+        p.set("lfo1Rate", LR(0.3f));
+        p.setReverb(0.4f, 0.7f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Slow LFO filter sweep with resonant cutoff #fx #sweep #resonant #evolving";
+        p.tags = "sweep,resonant,evolving";
+        p.characters = "active,wide";
+    }
+    {
+        auto& p = make("Bit Crush FX", "FX");
+        p.oscCount = 1;
+        p.oscs[0] = {5, 1.0f, 0.0f, 1, 0.0f, 3, 0.7f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.5f, 0.6f, 0.8f);
+        p.setFilter(10000.0f, 2.5f, 0);
+        p.set("distMix", 0.4f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Bit-crushed digital FX with distortion #fx #lofi #digital #crunchy";
+        p.tags = "lofi,digital,crunchy";
+        p.characters = "dirty,spiky";
+    }
+    {
+        auto& p = make("Resonant Zap", "FX");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.08f, 0.0f, 0.05f);
+        p.setFilter(5000.0f, 10.0f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Short self-resonating sine zap #fx #zap #resonant #punchy";
+        p.tags = "zap,resonant,punchy";
+        p.characters = "spiky";
+    }
+    {
+        auto& p = make("Space Drone", "FX");
+        p.oscCount = 4;
+        p.oscs[0] = {4, 0.6f, -0.25f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {4, 0.7f, -0.08f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {4, 0.7f,  0.08f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[3] = {4, 0.6f,  0.25f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(3.0f, 1.5f, 0.9f, 5.0f);
+        p.setFilter(3000.0f, 0.8f, 0);
+        p.setReverb(0.8f, 0.95f);
+        p.setDelay(0.25f, 0.5f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Wide analog space drone with heavy reverb #fx #drone #space #ambient";
+        p.tags = "drone,space,ambient";
+        p.characters = "dark,wide";
+    }
+    {
+        auto& p = make("Granular Wash", "FX");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 0.5f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.5f, 0.3f, 0.8f, 2.0f);
+        p.setFilter(4000.0f, 1.0f, 0);
+        p.setReverb(0.7f, 0.9f);
+        p.set("granularDensity", nSkw(25.0f, 1.0f, 64.0f, 0.4f));
+        p.set("granularSpray", 0.4f);
+        p.set("granularGrainSize", nSkw(0.15f, 0.01f, 0.5f, 0.4f));
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Granular texture wash with heavy reverb #fx #granular #ambient #texture";
+        p.tags = "granular,ambient,texture";
+        p.characters = "active,wide";
+    }
+    {
+        auto& p = make("FM Impact", "FX", 1);
+        p.oscCount = 1;
+        p.setAdsr(0.001f, 0.4f, 0.0f, 0.3f);
+        p.set("fmOp2Ratio", nSkw(8.0f, 0.5f, 32.0f, 0.5f));
+        p.set("fmOp2Level", 0.85f);
+        p.set("fmOp2Feedback", 0.3f);
+        p.setReverb(0.3f, 0.55f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Sharp FM impact with high ratio and reverb tail #fx #fm #impact #aggressive";
+        p.tags = "fm,impact,aggressive";
+        p.characters = "spiky,dirty";
+    }
+    {
+        auto& p = make("Reverse Gate", "FX");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.9f, -0.12f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.9f,  0.12f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(2.5f, 0.001f, 0.9f, 0.5f);
+        p.setFilter(7000.0f, 1.5f, 0);
+        p.setReverb(0.6f, 0.8f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Long attack reverse gate effect #fx #reverse #gate #evolving";
+        p.tags = "reverse,gate,evolving";
+        p.characters = "active,wide";
+    }
+    {
+        auto& p = make("Metallic Ring", "FX");
+        p.oscCount = 3;
+        p.oscs[0] = {2, 0.7f, -0.05f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {2, 0.8f,  0.0f,  0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {2, 0.7f,  0.05f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 1.8f, 0.0f, 1.2f);
+        p.setFilter(12000.0f, 2.0f, 0);
+        p.setReverb(0.55f, 0.8f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Additive metallic ring with long decay and reverb #fx #metallic #additive #bright";
+        p.tags = "metallic,additive,bright";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Sub Drop", "FX");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 1.5f, 0.0f, 0.8f);
+        p.setFilter(200.0f, 0.7f, 0);
+        p.set("subOscEnable", 1.0f);
+        p.set("subOscLevel", 0.9f);
+        p.setReverb(0.35f, 0.65f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Deep sub drop with sub-osc and long decay #fx #sub #drop #deep";
+        p.tags = "sub,drop,deep";
+        p.characters = "dark";
+    }
+    {
+        auto& p = make("Chord FX Rise", "FX");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(3.0f, 0.5f, 0.9f, 1.5f);
+        p.setFilter(6000.0f, 2.5f, 0);
+        p.set("chordModeEnabled", 1.0f);
+        p.set("chordShape", nCh(2, 12));  // Minor
+        p.setReverb(0.5f, 0.8f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Minor chord riser with filter sweep and reverb #fx #chord #riser #dark";
+        p.tags = "chord,riser,dark";
+        p.characters = "active,dark";
+    }
+
+    // ────────────────────────────── KEYS ─────────────────────────────────────────
+
+    {
+        auto& p = make("Electric Piano", "Keys");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.9f, -0.04f, 0, 0.0f, 1, 0.2f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.85f, 0.04f, 3, 0.0f, 1, 0.15f, 0.0f, 0.5f};
+        p.setAdsr(0.005f, 0.8f, 0.3f, 0.6f);
+        p.setFilter(8000.0f, 0.8f, 0);
+        p.setChorus(0.25f, 0.3f, 0.35f);
+        p.setReverb(0.2f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Warm electric piano with drive and chorus #keys #epiano #warm #vintage";
+        p.tags = "epiano,warm,vintage";
+        p.characters = "wide,dark";
+    }
+    {
+        auto& p = make("Clavinet", "Keys");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 2, 0.0f, 1, 0.35f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.25f, 0.1f, 0.15f);
+        p.setFilter(4000.0f, 2.5f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Punchy clavinet with square drive and resonant filter #keys #clav #punchy #bright";
+        p.tags = "clav,punchy,bright";
+        p.characters = "spiky,bright";
+    }
+    {
+        auto& p = make("Organ", "Keys");
+        p.oscCount = 4;
+        p.oscs[0] = {0, 0.8f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.7f, 0.0f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {0, 0.5f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[3] = {0, 0.35f, 0.0f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.01f, 0.08f, 0.95f, 0.3f);
+        p.setFilter(12000.0f, 0.7f, 0);
+        p.setChorus(0.15f, 0.25f, 0.3f);
+        p.setReverb(0.15f, 0.45f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Drawbar organ with sine and square harmonics #keys #organ #warm #classic";
+        p.tags = "organ,warm,classic";
+        p.characters = "active,wide";
+    }
+    {
+        auto& p = make("Bell Keys", "Keys");
+        p.oscCount = 2;
+        p.oscs[0] = {5, 0.9f, -0.03f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {5, 0.7f, 0.03f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 1.5f, 0.0f, 1.0f);
+        p.setFilter(15000.0f, 1.0f, 0);
+        p.setReverb(0.5f, 0.75f);
+        p.setDelay(0.12f, 0.375f, 0.3f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Digital bell keys with long decay and reverb #keys #bell #digital #bright";
+        p.tags = "bell,digital,bright";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Digital Piano", "Keys");
+        p.oscCount = 2;
+        p.oscs[0] = {5, 0.9f, -0.05f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {5, 0.85f, 0.05f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.003f, 1.2f, 0.2f, 0.5f);
+        p.setFilter(10000.0f, 0.8f, 0);
+        p.setReverb(0.25f, 0.55f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Clean digital piano with saw and triangle #keys #piano #digital #clean";
+        p.tags = "piano,digital,clean";
+        p.characters = "bright";
+    }
+    {
+        auto& p = make("Warm Keys", "Keys");
+        p.oscCount = 2;
+        p.oscs[0] = {4, 0.9f, -0.06f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {4, 0.85f, 0.06f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.01f, 0.6f, 0.4f, 0.5f);
+        p.setFilter(7000.0f, 0.8f, 0);
+        p.setChorus(0.3f, 0.25f, 0.35f);
+        p.setReverb(0.2f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Warm analog-modeled keys with chorus #keys #warm #analog-warmth #vintage";
+        p.tags = "warm,analog-warmth,vintage";
+        p.characters = "wide,dark";
+    }
+    {
+        auto& p = make("Bright Keys", "Keys");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.9f, -0.04f, 1, 0.0f, 1, 0.15f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.85f, 0.04f, 3, 0.0f, 1, 0.1f, 0.0f, 0.5f};
+        p.setAdsr(0.003f, 0.5f, 0.35f, 0.4f);
+        p.setFilter(12000.0f, 0.9f, 0);
+        p.setReverb(0.15f, 0.45f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Bright driven keys with saw and triangle #keys #bright #driven #clean";
+        p.tags = "bright,driven,clean";
+        p.characters = "bright";
+    }
+    {
+        auto& p = make("Phase Keys", "Keys");
+        p.oscCount = 1;
+        p.oscs[0] = {3, 1.0f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.7f};
+        p.setAdsr(0.005f, 0.8f, 0.25f, 0.5f);
+        p.setFilter(9000.0f, 1.0f, 0);
+        p.setReverb(0.25f, 0.55f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Phase distortion keys with evolving timbre #keys #phase-distortion #evolving #bright";
+        p.tags = "phase-distortion,evolving,bright";
+        p.characters = "active,bright";
+    }
+    {
+        auto& p = make("FM Keys", "Keys", 1);
+        p.oscCount = 1;
+        p.setAdsr(0.001f, 1.0f, 0.15f, 0.6f);
+        p.set("fmOp2Ratio", nSkw(2.0f, 0.5f, 32.0f, 0.5f));
+        p.set("fmOp2Level", 0.5f);
+        p.setReverb(0.3f, 0.6f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "FM electric piano with modulator and reverb #keys #fm #epiano #bright";
+        p.tags = "fm,epiano,bright";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Wurlitzer", "Keys");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 2, 0.0f, 1, 0.25f, 0.0f, 0.5f};
+        p.setAdsr(0.005f, 0.6f, 0.25f, 0.35f);
+        p.setFilter(5000.0f, 1.5f, 0);
+        p.setChorus(0.2f, 0.25f, 0.3f);
+        p.setReverb(0.2f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Gritty Wurlitzer-style electric piano #keys #wurlitzer #gritty #vintage";
+        p.tags = "wurlitzer,gritty,vintage";
+        p.characters = "dirty,spiky";
+    }
+    {
+        auto& p = make("Soft Keys", "Keys");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.85f, -0.05f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f, 0.05f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.05f, 0.5f, 0.6f, 0.7f);
+        p.setFilter(6000.0f, 0.7f, 0);
+        p.setReverb(0.3f, 0.6f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Soft triangle and sine keys with reverb #keys #soft #warm #smooth";
+        p.tags = "soft,warm,smooth";
+        p.characters = "dark,wide";
+    }
+    {
+        auto& p = make("Tine EP", "Keys");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.9f, -0.03f, 0, 0.0f, 1, 0.18f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f, 0.03f, 0, 0.0f, 1, 0.12f, 0.0f, 0.5f};
+        p.setAdsr(0.003f, 1.0f, 0.25f, 0.5f);
+        p.setFilter(9000.0f, 0.9f, 0);
+        p.setChorus(0.2f, 0.3f, 0.35f);
+        p.setReverb(0.2f, 0.55f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Rhodes-style tine EP with drive and chorus #keys #rhodes #warm #vintage";
+        p.tags = "rhodes,warm,vintage";
+        p.characters = "wide,dark";
+    }
+    {
+        auto& p = make("Barrel Organ", "Keys");
+        p.oscCount = 3;
+        p.oscs[0] = {2, 0.8f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {2, 0.6f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[2] = {2, 0.4f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.01f, 0.08f, 0.9f, 0.2f);
+        p.setFilter(10000.0f, 0.6f, 0);
+        p.setReverb(0.3f, 0.65f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Additive barrel organ with harmonic overtones #keys #organ #additive #vintage";
+        p.tags = "organ,additive,vintage";
+        p.characters = "active,wide";
+    }
+    {
+        auto& p = make("Digital Clav", "Keys");
+        p.oscCount = 1;
+        p.oscs[0] = {5, 1.0f, 0.0f, 2, 0.0f, 1, 0.3f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.2f, 0.1f, 0.1f);
+        p.setFilter(6000.0f, 2.0f, 0);
+        p.set("distMix", 0.15f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Digital clavinet with drive and distortion #keys #clav #digital #punchy";
+        p.tags = "clav,digital,punchy";
+        p.characters = "spiky,bright";
+    }
+    {
+        auto& p = make("Glass Keys", "Keys");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.85f, -0.06f, 0, 0.0f, 1, 0.15f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f, 0.06f, 0, 0.0f, 1, 0.1f, 0.0f, 0.5f};
+        p.setAdsr(0.005f, 0.8f, 0.2f, 0.6f);
+        p.setFilter(12000.0f, 0.9f, 0);
+        p.setReverb(0.4f, 0.7f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Glassy driven sine keys with reverb #keys #glass #bright #clean";
+        p.tags = "glass,bright,clean";
+        p.characters = "bright,active";
+    }
+
+    // ────────────────────────────── ARP ──────────────────────────────────────────
+
+    {
+        auto& p = make("Seq Pluck", "Arp");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.2f, 0.0f, 0.15f);
+        p.setFilter(8000.0f, 2.0f, 0);
+        p.setReverb(0.25f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Short saw pluck for sequencing #arp #pluck #punchy #seq";
+        p.tags = "pluck,punchy,seq";
+        p.characters = "spiky";
+    }
+    {
+        auto& p = make("Arp Saw", "Arp");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.9f, -0.08f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.9f, 0.08f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.15f, 0.6f, 0.3f);
+        p.setFilter(10000.0f, 1.5f, 0);
+        p.setChorus(0.25f, 0.35f, 0.45f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Wide detuned saw arpeggio with chorus #arp #saw #wide #bright";
+        p.tags = "saw,wide,bright";
+        p.characters = "bright,wide";
+    }
+    {
+        auto& p = make("Trance Gate", "Arp");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.1f, 0.8f, 0.2f);
+        p.setFilter(12000.0f, 1.5f, 0);
+        p.set("lfo1Rate", LR(8.0f));
+        p.set("lfo1Shape", nCh(3, 6));  // Square
+        p.setReverb(0.2f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Square LFO gated trance arpeggio #arp #trance #gate #rhythmic";
+        p.tags = "trance,gate,rhythmic";
+        p.characters = "active,spiky";
+    }
+    {
+        auto& p = make("Digital Arp", "Arp");
+        p.oscCount = 1;
+        p.oscs[0] = {5, 1.0f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.12f, 0.5f, 0.25f);
+        p.setFilter(11000.0f, 1.8f, 0);
+        p.setReverb(0.2f, 0.5f);
+        p.setDelay(0.15f, 0.25f, 0.35f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Clean digital oscillator arpeggio with delay #arp #digital #clean #delay";
+        p.tags = "digital,clean,delay";
+        p.characters = "bright,active";
+    }
+    {
+        auto& p = make("Phase Arp", "Arp");
+        p.oscCount = 1;
+        p.oscs[0] = {3, 1.0f, 0.0f, 0, 0.0f, 0, 0.0f, 0.0f, 0.75f};
+        p.setAdsr(0.001f, 0.15f, 0.55f, 0.3f);
+        p.setFilter(9000.0f, 2.0f, 0);
+        p.setReverb(0.2f, 0.55f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Phase distortion arpeggio with evolving timbre #arp #phase-distortion #evolving #bright";
+        p.tags = "phase-distortion,evolving,bright";
+        p.characters = "active,bright";
+    }
+    {
+        auto& p = make("Bell Arp", "Arp");
+        p.oscCount = 2;
+        p.oscs[0] = {5, 0.9f, -0.04f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {5, 0.7f, 0.04f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.8f, 0.0f, 0.5f);
+        p.setFilter(14000.0f, 1.0f, 0);
+        p.setReverb(0.4f, 0.7f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Digital bell arpeggio with long decay and reverb #arp #bell #digital #bright";
+        p.tags = "bell,digital,bright";
+        p.characters = "bright";
+    }
+    {
+        auto& p = make("Acid Seq", "Arp");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 1, 0.0f, 1, 0.6f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.1f, 0.0f, 0.08f);
+        p.setFilter(1500.0f, 8.0f, 0);
+        p.setMono(true, 0.04f);
+        p.set("distMix", 0.2f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Acid 303-style sequence with resonant filter and drive #arp #acid #resonant #mono";
+        p.tags = "acid,resonant,mono";
+        p.characters = "spiky,dirty";
+    }
+    {
+        auto& p = make("House Stab", "Arp");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.9f, -0.05f, 1, 0.0f, 3, 0.4f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.9f, 0.05f, 1, 0.0f, 3, 0.4f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.06f, 0.0f, 0.05f);
+        p.setFilter(8000.0f, 2.0f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Short clipped house stab for sequencing #arp #house #stab #punchy";
+        p.tags = "house,stab,punchy";
+        p.characters = "spiky";
+    }
+    {
+        auto& p = make("Crystal Arp", "Arp");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.8f, -0.06f, 0, 0.0f, 1, 0.12f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.75f, 0.06f, 0, 0.0f, 1, 0.08f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.5f, 0.1f, 0.4f);
+        p.setFilter(12000.0f, 1.0f, 0);
+        p.setReverb(0.45f, 0.75f);
+        p.setDelay(0.18f, 0.375f, 0.35f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Crystal sine arpeggio with drive and delay #arp #crystal #bright #delay";
+        p.tags = "crystal,bright,delay";
+        p.characters = "bright,wide";
+    }
+    {
+        auto& p = make("Dark Arp", "Arp");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.85f, -0.1f, 1, 0.0f, 1, 0.3f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f, 0.1f, 2, 0.0f, 1, 0.2f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.2f, 0.35f, 0.25f);
+        p.setFilter(4000.0f, 2.5f, 0);
+        p.setReverb(0.3f, 0.65f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Dark driven arpeggio with resonant filter #arp #dark #resonant #driven";
+        p.tags = "dark,resonant,driven";
+        p.characters = "dark,dirty";
+    }
+    {
+        auto& p = make("FM Arp 2", "Arp", 1);
+        p.oscCount = 1;
+        p.setAdsr(0.001f, 0.15f, 0.3f, 0.2f);
+        p.set("fmOp2Ratio", nSkw(4.0f, 0.5f, 32.0f, 0.5f));
+        p.set("fmOp2Level", 0.6f);
+        p.setReverb(0.2f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "FM arpeggio with modulator ratio and reverb #arp #fm #bright #punchy";
+        p.tags = "fm,bright,punchy";
+        p.characters = "spiky";
+    }
+    {
+        auto& p = make("Square Arp", "Arp");
+        p.oscCount = 1;
+        p.oscs[0] = {0, 1.0f, 0.0f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.12f, 0.5f, 0.2f);
+        p.setFilter(7000.0f, 1.5f, 0);
+        p.setReverb(0.15f, 0.45f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Clean square wave arpeggio with reverb #arp #square #clean #vintage";
+        p.tags = "square,clean,vintage";
+        p.characters = "bright";
+    }
+    {
+        auto& p = make("Bounce Arp", "Arp");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.85f, -0.08f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.85f, 0.08f, 0, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.15f, 0.4f, 0.25f);
+        p.setFilter(8000.0f, 1.2f, 0);
+        p.setDelay(0.3f, 0.375f, 0.4f);
+        p.setReverb(0.2f, 0.5f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Bouncy triangle and sine arpeggio with delay #arp #bounce #delay #warm";
+        p.tags = "bounce,delay,warm";
+        p.characters = "active,wide";
+    }
+    {
+        auto& p = make("Noise Arp", "Arp");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.7f, 0.0f, 1, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.4f, 0.0f, 4, 0.0f, 2, 0.2f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.08f, 0.3f, 0.1f);
+        p.setFilter(9000.0f, 2.0f, 0);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Saw and folded noise arpeggio #arp #noise #dirty #aggressive";
+        p.tags = "noise,dirty,aggressive";
+        p.characters = "dirty,spiky";
+    }
+    {
+        auto& p = make("Retro Arp", "Arp");
+        p.oscCount = 2;
+        p.oscs[0] = {0, 0.9f, -0.07f, 2, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.oscs[1] = {0, 0.8f, 0.07f, 3, 0.0f, 0, 0.0f, 0.0f, 0.5f};
+        p.setAdsr(0.001f, 0.2f, 0.3f, 0.25f);
+        p.setFilter(6000.0f, 1.5f, 0);
+        p.setChorus(0.3f, 0.35f, 0.45f);
+        p.setReverb(0.2f, 0.55f);
+        p.applyOscs();
+        p.author = "MultiphaseAudio";
+        p.description = "Retro square and triangle arpeggio with chorus #arp #retro #chorus #vintage";
+        p.tags = "retro,chorus,vintage";
+        p.characters = "wide,bright";
+    }
+
     return presets;
 }
 

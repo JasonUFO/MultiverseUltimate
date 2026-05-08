@@ -684,6 +684,41 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 **Build verified:** VST3 + AU both build and install successfully ✅
 
+## Completed (Feature Expansion — 2026-05-08)
+
+### Feature 1: Factory Presets 100 → 204
+- **204 factory presets** across 8 categories: Init (5), Bass (35), Lead (36), Pad (47), Drums (25), FX (26), Keys (15), Arp (15)
+- **New categories**: "Keys" and "Arp" added to all category string arrays (PresetManager, LibrarianPanel, save dialog)
+- **Version-based refresh**: `factoryVersion = 3` in PresetManager triggers regeneration when stored version < 3
+- **LibrarianPanel**: Added `catKeys` and `catArp` category pill buttons, updated `categoryButtons` array and `setActiveCategory()` mapping
+- Presets use all oscillator types, wave shaping, FM mode, chord mode, effects chains; each has author/description/characters/tags metadata
+- Build verified ✅
+
+### Feature 2: Drag-Drop Modulation Assignment
+- **PluginEditor** inherits `juce::DragAndDropContainer` — enables drag-and-drop hierarchy
+- **LFORow::mouseDrag()** — dragging from LFO label area initiates drag with `modsrc:` description encoding ModSourceType enum value
+- **NeuKnob** inherits `juce::DragAndDropTarget` — accepts `modsrc:` drops
+  - `isInterestedInDragSource()` accepts `modsrc:` prefixed descriptions
+  - `itemDragEnter/Exit` toggles `isDragOver` flag for cyan highlight ring
+  - `itemDropped()` decodes ModSourceType, calls `paramIDToModTarget()` to find target, adds connection at 0.5 depth
+- **Modulation depth arc** — pink outer arc on NeuKnob shows total modulation depth from active connections
+- **paramIDToModTarget()** — new free function in ModulationMatrix.cpp mapping APVTS param IDs to `ModTargetMapping{ModTargetType, targetIndex}`
+- **MidiLearnSlider** — added `getProcessor()` and `getParamID()` protected accessors for subclass use
+- Build verified ✅
+
+### Feature 3: Sampler Timestretch (WSOLA)
+- **SamplerZone** — `bool timestretchEnabled = false` field
+- **SamplerVoice** — WSOLA processor state:
+  - `timestretchActive`, `pitchRate`, `timeRate` split from `playbackRate`
+  - Pre-allocated grain/output/hann buffers (no alloc in process)
+  - `grainSize`, `hopSynthesis`, `hopAnalysis` computed from sample rate and speed
+  - `processTimestretch()` — WSOLA overlap-add: read grains at pitchRate, cross-correlate for best overlap, Hann-windowed overlap-add into output ring
+  - Loop handling: grains wrap within loop boundaries
+  - Fallback: when `timestretchActive` is false, existing varispeed path unchanged
+- **SamplerPanel** — `juce::ToggleButton tstrToggle {"TSTR"}` with tooltip; wired to `zone->timestretchEnabled`
+- **SamplerEngine** — `timestretchEnabled` serialized in getState/setState
+- Build verified ✅
+
 ## Next Session
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).

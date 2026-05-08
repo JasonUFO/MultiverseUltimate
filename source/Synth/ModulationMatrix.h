@@ -2,6 +2,7 @@
 #include <array>
 #include <vector>
 #include <functional>
+#include <optional>
 #include <cstdint>
 #include <atomic>
 #include "JuceHeader.h"
@@ -74,6 +75,16 @@ enum class LFOShape : uint8_t
     SampleAndHold,
     Custom
 };
+
+struct ModTargetMapping
+{
+    ModTargetType target;
+    int targetIndex = 0; // e.g. oscillator index 0-7 for OscillatorPitch
+};
+
+// Map an APVTS parameter ID to a modulation target.
+// Returns std::nullopt if the parameter is not a modulatable target.
+std::optional<ModTargetMapping> paramIDToModTarget(const juce::String& paramID);
 
 struct ModConnection
 {

@@ -19,6 +19,7 @@
 #include "Routing/RoutingPanel.h"
 
 class PluginEditor : public juce::AudioProcessorEditor,
+                     public juce::DragAndDropContainer,
                      public juce::Button::Listener,
                      public juce::ComboBox::Listener
 {

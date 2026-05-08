@@ -31,6 +31,11 @@ private:
     bool             mapped       = false; // cached; updated by timer
     bool             macroAssigned = false;
 
+protected:
+    // Accessors for subclass NeuKnob
+    PluginProcessor* getProcessor() const { return proc; }
+    const juce::String& getParamID() const { return paramID; }
+
     void timerCallback() override;
     bool checkHasMapping() const;
     bool checkHasMacro() const;

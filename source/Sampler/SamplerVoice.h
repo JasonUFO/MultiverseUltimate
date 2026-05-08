@@ -1,5 +1,6 @@
 #pragma once
 #include "SamplerZone.h"
+#include <vector>
 
 class MvSamplerVoice
 {
@@ -14,11 +15,30 @@ public:
 
 private:
     float getSampleAt (double pos) const noexcept;
+    float processTimestretch();
 
     const SamplerZone* currentZone = nullptr;
     double readPos = 0.0;
     double playbackRate = 1.0;
     bool pingPongForward = true;
+
+    // Timestretch (WSOLA) state
+    bool timestretchActive = false;
+    double pitchRate = 1.0;   // pitch ratio (for resampling)
+    double timeRate = 1.0;    // speed ratio (for WSOLA grain placement)
+
+    // WSOLA buffers (pre-allocated in noteOn, no alloc in process)
+    std::vector<float> grainBuffer;
+    std::vector<float> outputBuffer;
+    std::vector<float> hannWindow;
+    int grainSize = 0;        // samples per grain
+    int hopSynthesis = 0;     // output hop size
+    int hopAnalysis = 0;      // input hop size
+    int outputReadPos = 0;    // read position in output ring
+    int outputWritePos = 0;   // write position in output ring
+    int grainsReady = 0;      // number of complete grains in output
+    static constexpr int WSOLA_SEARCH = 512;  // cross-correlation search window
+    static constexpr int OUTPUT_RING_SIZE = 8192; // output ring buffer size
 
     // Time-based ADSR (increments per sample, computed in noteOn)
     enum class EnvStage { Idle, Attack, Decay, Sustain, Release };

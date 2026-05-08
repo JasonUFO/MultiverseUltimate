@@ -34,6 +34,7 @@ private:
 
         LFORow(int index, juce::AudioProcessorValueTreeState& apvts, ModulationMatrix& matrix);
         void resized() override;
+        void mouseDrag(const juce::MouseEvent& e) override;
         void updateDrawButtonState();
     };
 

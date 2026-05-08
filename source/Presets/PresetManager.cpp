@@ -41,7 +41,7 @@ void PresetManager::createFactoryPresetsIfNeeded()
     auto factoryDir = presetsDirectory.getChildFile("Factory");
     factoryDir.createDirectory();
 
-    juce::StringArray categories = { "Init", "Bass", "Lead", "Pad", "Drums", "FX" };
+    juce::StringArray categories = { "Init", "Bass", "Lead", "Pad", "Drums", "FX", "Keys", "Arp" };
     for (const auto& cat : categories)
     {
         auto dir = factoryDir.getChildFile(cat);
@@ -49,11 +49,21 @@ void PresetManager::createFactoryPresetsIfNeeded()
             dir.createDirectory();
     }
 
-    // Generate all factory presets if none exist yet (recursive search)
-    juce::Array<juce::File> existing;
-    factoryDir.findChildFiles(existing, juce::File::findFiles, true, "*.mvpreset");
-    if (existing.size() < 10)
+    // Generate factory presets if version mismatch or none exist
+    static constexpr int factoryVersion = 3; // Increment when presets change
+    juce::File versionFile = factoryDir.getChildFile(".version");
+    int storedVersion = 0;
+    if (versionFile.existsAsFile())
+    {
+        auto stream = versionFile.createInputStream();
+        if (stream != nullptr)
+            storedVersion = stream->readNextLine().getIntValue();
+    }
+    if (storedVersion < factoryVersion)
+    {
         FactoryPresets::writeToDirectory(factoryDir);
+        versionFile.replaceWithText(juce::String(factoryVersion), false, false);
+    }
 }
 
 void PresetManager::loadPreset(const juce::String& path)
@@ -135,7 +145,7 @@ void PresetManager::saveState(const juce::String& name, const juce::MemoryBlock&
     if (auto xml = juce::XmlDocument::parse(tempFile))
     {
         category = xml->getStringAttribute("category", "Init");
-        if (!juce::StringArray({ "Init", "Bass", "Lead", "Pad", "Drums", "FX" }).contains(category))
+        if (!juce::StringArray({ "Init", "Bass", "Lead", "Pad", "Drums", "FX", "Keys", "Arp" }).contains(category))
             category = "Init";
     }
     tempFile.deleteFile();
@@ -175,7 +185,7 @@ void PresetManager::scanPresetsDirectory()
     juce::Array<juce::File> found;
 
     // Scan category subdirectories
-    juce::StringArray categories = { "Init", "Bass", "Lead", "Pad", "Drums", "FX" };
+    juce::StringArray categories = { "Init", "Bass", "Lead", "Pad", "Drums", "FX", "Keys", "Arp" };
     for (const auto& cat : categories)
     {
         auto catDir = bankDir.getChildFile(cat);
@@ -219,7 +229,7 @@ void PresetManager::scanPresetMetadata()
     presetMeta.clear();
     presetMeta.resize(presetFiles.size());
 
-    static const juce::StringArray validCategories { "Init", "Bass", "Lead", "Pad", "Drums", "FX" };
+    static const juce::StringArray validCategories { "Init", "Bass", "Lead", "Pad", "Drums", "FX", "Keys", "Arp" };
 
     for (int i = 0; i < presetFiles.size(); ++i)
     {
@@ -503,7 +513,7 @@ void PresetManager::importPreset(const juce::File& sourceFile)
     if (auto xml = juce::XmlDocument::parse(sourceFile))
     {
         juce::String xmlCat = xml->getStringAttribute("category", "");
-        if (juce::StringArray({ "Init", "Bass", "Lead", "Pad", "Drums", "FX" }).contains(xmlCat))
+        if (juce::StringArray({ "Init", "Bass", "Lead", "Pad", "Drums", "FX", "Keys", "Arp" }).contains(xmlCat))
             category = xmlCat;
     }
 
@@ -528,7 +538,7 @@ juce::String PresetManager::getPresetCategory(int index) const
     if (index < 0 || index >= presetFiles.size())
         return "Init";
     auto parentName = presetFiles[index].getParentDirectory().getFileName();
-    static const juce::StringArray valid { "Init", "Bass", "Lead", "Pad", "Drums", "FX" };
+    static const juce::StringArray valid { "Init", "Bass", "Lead", "Pad", "Drums", "FX", "Keys", "Arp" };
     return valid.contains(parentName) ? parentName : "Init";
 }
 

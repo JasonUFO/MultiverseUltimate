@@ -369,3 +369,55 @@ void ModulationMatrix::setState(const juce::ValueTree& state)
         connections = std::move(newConnections);
     }
 }
+
+std::optional<ModTargetMapping> paramIDToModTarget(const juce::String& paramID)
+{
+    // Per-oscillator targets: osc1..osc8
+    if (paramID.startsWith("osc") && paramID.length() >= 4)
+    {
+        int oscIdx = paramID.substring(3, 4).getIntValue() - 1; // osc1 → 0, osc2 → 1, etc.
+        if (oscIdx < 0 || oscIdx > 7) return std::nullopt;
+        auto rest = paramID.substring(4);
+        if (rest == "Detune")   return ModTargetMapping{ ModTargetType::OscillatorPitch, oscIdx };
+        if (rest == "Level")   return ModTargetMapping{ ModTargetType::OscillatorLevel, oscIdx };
+        if (rest == "ShapeAmt") return ModTargetMapping{ ModTargetType::OscShapeAmount, oscIdx };
+        if (rest == "PhaseDist") return ModTargetMapping{ ModTargetType::OscPhaseDistAmount, oscIdx };
+    }
+
+    // Global targets
+    if (paramID == "filterCutoff")    return ModTargetMapping{ ModTargetType::FilterCutoff, 0 };
+    if (paramID == "filterResonance") return ModTargetMapping{ ModTargetType::FilterResonance, 0 };
+    if (paramID == "masterVolume")    return ModTargetMapping{ ModTargetType::AmpVolume, 0 };
+    if (paramID == "masterPan")       return ModTargetMapping{ ModTargetType::AmpPan, 0 };
+
+    // LFO rates
+    if (paramID == "lfo1Rate") return ModTargetMapping{ ModTargetType::LFO1Rate, 0 };
+    if (paramID == "lfo2Rate") return ModTargetMapping{ ModTargetType::LFO2Rate, 0 };
+    if (paramID == "lfo3Rate") return ModTargetMapping{ ModTargetType::LFO3Rate, 0 };
+    if (paramID == "lfo4Rate") return ModTargetMapping{ ModTargetType::LFO4Rate, 0 };
+    if (paramID == "lfo5Rate") return ModTargetMapping{ ModTargetType::LFO5Rate, 0 };
+    if (paramID == "lfo6Rate") return ModTargetMapping{ ModTargetType::LFO6Rate, 0 };
+    if (paramID == "lfo7Rate") return ModTargetMapping{ ModTargetType::LFO7Rate, 0 };
+    if (paramID == "lfo8Rate") return ModTargetMapping{ ModTargetType::LFO8Rate, 0 };
+
+    // Effect targets
+    if (paramID == "delayMix")     return ModTargetMapping{ ModTargetType::EffectMix, 0 };
+    if (paramID == "reverbWet")    return ModTargetMapping{ ModTargetType::EffectMix, 1 };
+    if (paramID == "chorusMix")    return ModTargetMapping{ ModTargetType::EffectMix, 2 };
+    if (paramID == "distMix")      return ModTargetMapping{ ModTargetType::EffectMix, 3 };
+
+    // Granular targets
+    if (paramID == "granularPosition")    return ModTargetMapping{ ModTargetType::GranularPosition, 0 };
+    if (paramID == "granularDensity")     return ModTargetMapping{ ModTargetType::GranularDensity, 0 };
+    if (paramID == "granularGrainSize")   return ModTargetMapping{ ModTargetType::GranularGrainSize, 0 };
+    if (paramID == "granularSpray")       return ModTargetMapping{ ModTargetType::GranularSpray, 0 };
+    if (paramID == "granularPitchScatter") return ModTargetMapping{ ModTargetType::GranularPitchScatter, 0 };
+
+    // Envelope targets
+    if (paramID == "attack")  return ModTargetMapping{ ModTargetType::AmpVolume, 0 };  // mod volume as proxy
+    if (paramID == "decay")   return ModTargetMapping{ ModTargetType::AmpVolume, 0 };
+    if (paramID == "sustain") return ModTargetMapping{ ModTargetType::AmpVolume, 0 };
+    if (paramID == "release") return ModTargetMapping{ ModTargetType::AmpVolume, 0 };
+
+    return std::nullopt;
+}

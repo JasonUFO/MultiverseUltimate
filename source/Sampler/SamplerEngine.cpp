@@ -214,6 +214,7 @@ juce::ValueTree SamplerEngine::getState() const
         zoneNode.setProperty ("rootNote",       zone->rootNote,                       nullptr);
         zoneNode.setProperty ("tuning",          zone->tuning,                         nullptr);
         zoneNode.setProperty ("speed",           zone->speed,                          nullptr);
+        zoneNode.setProperty ("timestretchEnabled", zone->timestretchEnabled,          nullptr);
         zoneNode.setProperty ("loopMode",       static_cast<int> (zone->loopMode),   nullptr);
         zoneNode.setProperty ("loopStart",      zone->loopStart,                      nullptr);
         zoneNode.setProperty ("loopEnd",        zone->loopEnd,                        nullptr);
@@ -255,6 +256,7 @@ void SamplerEngine::setState (const juce::ValueTree& state)
         zone->rootNote       = (int) zoneNode.getProperty ("rootNote",       60);
         zone->tuning         = (float) zoneNode.getProperty ("tuning",          0.0f);
         zone->speed          = (float) zoneNode.getProperty ("speed",           1.0f);
+        zone->timestretchEnabled = (bool) zoneNode.getProperty ("timestretchEnabled", false);
         zone->loopMode       = static_cast<LoopMode> ((int) zoneNode.getProperty ("loopMode", 0));
         zone->loopStart      = (int) zoneNode.getProperty ("loopStart",       0);
         zone->loopEnd        = (int) zoneNode.getProperty ("loopEnd",         0);

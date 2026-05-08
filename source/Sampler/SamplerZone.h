@@ -27,6 +27,7 @@ struct SamplerZone
     // Pitch and speed (independent controls)
     float tuning = 0.0f;   // semitones offset, ±24
     float speed  = 1.0f;   // playback speed multiplier, 0.25–4.0
+    bool timestretchEnabled = false; // decouple pitch from speed via WSOLA
 
     // Loop settings (sample positions within audioData)
     int loopStart = 0;

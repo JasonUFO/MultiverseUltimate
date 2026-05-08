@@ -114,6 +114,23 @@ void ModulationMatrixPanel::LFORow::resized()
     drawButton.setBounds(b.removeFromLeft(LFO_DRAW_W));
 }
 
+void ModulationMatrixPanel::LFORow::mouseDrag(const juce::MouseEvent& e)
+{
+    // Only start drag if dragging from the label area
+    if (!label.getBounds().contains(e.getMouseDownPosition()))
+        return;
+
+    if (auto* container = juce::DragAndDropContainer::findParentDragContainerFor(this))
+    {
+        // Map LFO index to ModSourceType (LFO1-4 = 0-3, LFO5-8 = 15-18)
+        static const int lfoSourceMap[] = { 0, 1, 2, 3, 15, 16, 17, 18 };
+        int sourceInt = (lfoIdx >= 0 && lfoIdx < 8) ? lfoSourceMap[lfoIdx] : 0;
+
+        auto dragDescription = juce::String("modsrc:") + juce::String(sourceInt);
+        container->startDragging(dragDescription, this);
+    }
+}
+
 void ModulationMatrixPanel::LFORow::updateDrawButtonState()
 {
     // selectedId 6 = "Custom" (1-based)

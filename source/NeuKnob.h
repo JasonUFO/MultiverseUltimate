@@ -10,7 +10,8 @@
 //
 // Safe to use as a drop-in for linear sliders too; the pill only renders
 // for Rotary styles and the amber arc works for any style.
-class NeuKnob : public MidiLearnSlider
+class NeuKnob : public MidiLearnSlider,
+                  public juce::DragAndDropTarget
 {
 public:
     NeuKnob();
@@ -18,8 +19,15 @@ public:
 
     void paint (juce::Graphics& g) override;
 
+    // DragAndDropTarget
+    bool isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails&) override;
+    void itemDragEnter(const juce::DragAndDropTarget::SourceDetails&) override;
+    void itemDragExit(const juce::DragAndDropTarget::SourceDetails&) override;
+    void itemDropped(const juce::DragAndDropTarget::SourceDetails&) override;
+
 private:
     bool lastMacroState = false;
+    bool isDragOver = false;
 
     struct ArcTimer : juce::Timer
     {

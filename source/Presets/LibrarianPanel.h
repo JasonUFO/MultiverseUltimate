@@ -148,6 +148,8 @@ private:
     juce::TextButton catPad      { "Pad"   };
     juce::TextButton catDrums    { "Drums" };
     juce::TextButton catFX       { "FX"    };
+    juce::TextButton catKeys     { "Keys"  };
+    juce::TextButton catArp      { "Arp"   };
     juce::Array<juce::TextButton*> categoryButtons;
 
     // Favorite filter
