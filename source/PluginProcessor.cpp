@@ -608,6 +608,52 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     keyboardState.processNextMidiBuffer(midiMessages, 0, buffer.getNumSamples(), true);
 
+    // Preview note handling (message thread writes atomics, audio thread acts)
+    {
+        int prevNote = previewPrevNote.exchange(-1, std::memory_order_relaxed);
+        if (prevNote >= 0)
+        {
+            synthEngine.noteOff(prevNote);
+            samplerEngine.noteOff(prevNote);
+            granularEngine.noteOff(prevNote);
+            layerManager.noteOff(prevNote);
+        }
+
+        bool fireOn = previewNoteOn.exchange(false, std::memory_order_relaxed);
+        if (fireOn)
+        {
+            int note = previewNote.load(std::memory_order_relaxed);
+            if (note >= 0)
+            {
+                float vel = PREVIEW_VELOCITY / 127.0f;
+                synthEngine.noteOn(note, vel);
+                samplerEngine.noteOn(note, vel);
+                granularEngine.noteOn(note, vel);
+                layerManager.noteOn(note, vel, 1);
+            }
+        }
+
+        int samplesLeft = previewSamplesLeft.load(std::memory_order_relaxed);
+        int note = previewNote.load(std::memory_order_relaxed);
+        if (note >= 0 && samplesLeft > 0)
+        {
+            samplesLeft -= buffer.getNumSamples();
+            if (samplesLeft <= 0)
+            {
+                synthEngine.noteOff(note);
+                samplerEngine.noteOff(note);
+                granularEngine.noteOff(note);
+                layerManager.noteOff(note);
+                previewNote.store(-1, std::memory_order_relaxed);
+                previewSamplesLeft.store(0, std::memory_order_relaxed);
+            }
+            else
+            {
+                previewSamplesLeft.store(samplesLeft, std::memory_order_relaxed);
+            }
+        }
+    }
+
     // Chord/Strum: fire pending notes that are due this block
     {
         const bool chordOn = *apvts.getRawParameterValue("chordModeEnabled") > 0.5f;
@@ -1638,6 +1684,12 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     juce::ValueTree root("Multiverse");
 
+    // Preset metadata
+    root.setProperty("category",    currentPresetCategory, nullptr);
+    root.setProperty("author",      currentPresetAuthor, nullptr);
+    root.setProperty("description", currentPresetDescription, nullptr);
+    root.setProperty("tags",         currentPresetTags, nullptr);
+
     root.appendChild(apvts.copyState(), nullptr);
 
     juce::ValueTree synthParams("SynthParams");
@@ -1721,6 +1773,12 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     std::unique_ptr<juce::XmlElement> xml(doc.getDocumentElement());
     if (xml == nullptr || !xml->hasTagName("Multiverse"))
         return;
+
+    // Read preset metadata from root attributes
+    currentPresetCategory    = xml->getStringAttribute("category", "Init");
+    currentPresetAuthor      = xml->getStringAttribute("author", "MultiphaseAudio");
+    currentPresetDescription = xml->getStringAttribute("description", "");
+    currentPresetTags        = xml->getStringAttribute("tags", "");
 
     juce::ValueTree root = juce::ValueTree::fromXml(*xml);
 
@@ -1869,7 +1927,39 @@ bool PluginProcessor::loadPresetAtIndex(int index)
     if (!presetManager.loadState(index, state))
         return false;
     setStateInformation(state.getData(), (int)state.getSize());
+    presetManager.pushHistory(index);
     return true;
+}
+
+void PluginProcessor::triggerPreviewNote()
+{
+    // Cancel any existing preview first
+    int cur = previewNote.load(std::memory_order_relaxed);
+    if (cur >= 0)
+    {
+        previewPrevNote.store(cur, std::memory_order_relaxed);
+        previewNote.store(-1, std::memory_order_relaxed);
+        previewSamplesLeft.store(0, std::memory_order_relaxed);
+        previewNoteOn.store(false, std::memory_order_relaxed);
+    }
+
+    // Start new preview after a tiny delay (1 block for prev note to release)
+    previewNote.store(PREVIEW_NOTE, std::memory_order_relaxed);
+    double sr = getSampleRate() > 0 ? getSampleRate() : 44100.0;
+    previewSamplesLeft.store(static_cast<int>(sr * 0.3), std::memory_order_relaxed);
+    previewNoteOn.store(true, std::memory_order_relaxed);
+}
+
+void PluginProcessor::cancelPreviewNote()
+{
+    int cur = previewNote.load(std::memory_order_relaxed);
+    if (cur >= 0)
+    {
+        previewPrevNote.store(cur, std::memory_order_relaxed);
+        previewNote.store(-1, std::memory_order_relaxed);
+        previewSamplesLeft.store(0, std::memory_order_relaxed);
+        previewNoteOn.store(false, std::memory_order_relaxed);
+    }
 }
 
 //==============================================================================

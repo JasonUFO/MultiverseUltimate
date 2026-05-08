@@ -52,6 +52,20 @@ private:
     juce::TextButton   presetsButton { "Presets" };
     bool               presetsVisible = false;
 
+    // Preset navigation (header)
+    juce::TextButton   prevPresetButton  { "<" };
+    juce::Label        presetNameLabel;
+    juce::TextButton   nextPresetButton  { ">" };
+    juce::TextButton   favoriteButton    { "\xe2\x98\x85" };  // ★
+    juce::TextButton   backButton        { "\xe2\x97\x80" };  // ◀
+    juce::TextButton   forwardButton     { "\xe2\x96\xb6" };  // ▶
+
+    void updatePresetNameLabel();
+    void updateFavoriteButtonColor();
+    void navigatePresetPrev();
+    void navigatePresetNext();
+    void cycleFavorite();
+
     // Tooltips
     juce::TooltipWindow tooltipWindow { this, 700 };
     juce::TextButton    helpButton    { "?" };

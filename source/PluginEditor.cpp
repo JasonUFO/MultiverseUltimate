@@ -28,6 +28,31 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     addAndMakeVisible (presetsButton);
     addChildComponent (presetBrowserPanel);
 
+    // Preset navigation (header)
+    prevPresetButton.addListener (this);
+    nextPresetButton.addListener (this);
+    favoriteButton.addListener (this);
+    backButton.addListener (this);
+    forwardButton.addListener (this);
+
+    presetNameLabel.setJustificationType (juce::Justification::centred);
+    presetNameLabel.setFont (juce::Font (12.0f, juce::Font::bold));
+    presetNameLabel.setColour (juce::Label::textColourId, juce::Colours::white);
+    presetNameLabel.setColour (juce::Label::backgroundColourId, CyberpunkTheme::bgDeep);
+    presetNameLabel.setColour (juce::Label::outlineColourId, CyberpunkTheme::accentBlue.withAlpha (0.3f));
+    presetNameLabel.setMinimumHorizontalScale (0.8f);
+
+    for (auto* btn : { &prevPresetButton, &nextPresetButton, &favoriteButton, &backButton, &forwardButton })
+    {
+        btn->setColour (juce::TextButton::buttonColourId, CyberpunkTheme::bgDeep);
+        btn->setColour (juce::TextButton::textColourOffId, CyberpunkTheme::textSecondary);
+        addAndMakeVisible (btn);
+    }
+    addAndMakeVisible (presetNameLabel);
+
+    updatePresetNameLabel();
+    updateFavoriteButtonColor();
+
     helpButton.setClickingTogglesState (true);
     helpButton.setToggleState (true, juce::dontSendNotification);
     helpButton.onClick = [this]
@@ -147,18 +172,28 @@ void PluginEditor::resized()
     auto header = area.removeFromTop (32);
     midiLearnButton.setBounds (header.removeFromLeft (110).reduced (4, 4));
     paramSelector.setBounds   (header.removeFromLeft (200).reduced (2, 4));
+
+    // Right side controls
     presetsButton.setBounds   (header.removeFromRight (72).reduced (4, 4));
     helpButton.setBounds      (header.removeFromRight (28).reduced (2, 4));
     randomizeButton.setBounds (header.removeFromRight (52).reduced (4, 4));
     scaleCombo.setBounds      (header.removeFromRight (70).reduced (4, 4));
     qualCombo.setBounds       (header.removeFromRight (80).reduced (4, 4));
     fxModeButton.setBounds    (header.removeFromRight (36).reduced (4, 4));
-    midiLearnLabel.setBounds  (header.reduced (4, 4));
 
-    // Preset browser (collapsible, 220px)
+    // Center: preset navigation strip (prev | name | next | ★ | ◀ | ▶)
+    auto center = header.withSize (320, 32).withCentre (header.getCentre());
+    backButton.setBounds      (center.removeFromLeft (28).reduced (2, 4));
+    prevPresetButton.setBounds(center.removeFromLeft (28).reduced (2, 4));
+    presetNameLabel.setBounds  (center.removeFromLeft (180).reduced (4, 4));
+    nextPresetButton.setBounds(center.removeFromLeft (28).reduced (2, 4));
+    favoriteButton.setBounds  (center.removeFromLeft (28).reduced (2, 4));
+    forwardButton.setBounds   (center.removeFromLeft (28).reduced (2, 4));
+
+    // Preset browser (collapsible, 280px)
     if (presetsVisible)
     {
-        presetBrowserPanel.setBounds (area.removeFromTop (220));
+        presetBrowserPanel.setBounds (area.removeFromTop (280));
         presetBrowserPanel.setVisible (true);
     }
     else
@@ -180,6 +215,34 @@ void PluginEditor::buttonClicked (juce::Button* button)
         if (presetsVisible)
             presetBrowserPanel.refresh();
         resized();
+        return;
+    }
+
+    if (button == &prevPresetButton)   { navigatePresetPrev();  return; }
+    if (button == &nextPresetButton)   { navigatePresetNext();  return; }
+    if (button == &favoriteButton)     { cycleFavorite();       return; }
+    if (button == &backButton)
+    {
+        if (processorRef.getPresetManager().canGoBack())
+        {
+            int idx = processorRef.getPresetManager().goBack();
+            processorRef.cancelPreviewNote();
+            processorRef.loadPresetAtIndex (idx);
+            updatePresetNameLabel();
+            updateFavoriteButtonColor();
+        }
+        return;
+    }
+    if (button == &forwardButton)
+    {
+        if (processorRef.getPresetManager().canGoForward())
+        {
+            int idx = processorRef.getPresetManager().goForward();
+            processorRef.cancelPreviewNote();
+            processorRef.loadPresetAtIndex (idx);
+            updatePresetNameLabel();
+            updateFavoriteButtonColor();
+        }
         return;
     }
 
@@ -237,6 +300,18 @@ bool PluginEditor::keyPressed (const juce::KeyPress& key)
     if (key == juce::KeyPress ('z', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier, 0))
     {
         processorRef.undoManager.redo();
+        return true;
+    }
+    // Cmd+F: focus preset search
+    if (key == juce::KeyPress ('f', juce::ModifierKeys::commandModifier, 0))
+    {
+        if (!presetsVisible)
+        {
+            presetsVisible = true;
+            presetBrowserPanel.refresh();
+            resized();
+        }
+        presetBrowserPanel.focusSearchEditor();
         return true;
     }
     return false;
@@ -312,5 +387,95 @@ void PluginEditor::randomizeParams(const juce::StringArray& prefixes, bool filte
         }
 
         rp->setValueNotifyingHost (rng.nextFloat());
+    }
+}
+
+//==============================================================================
+// Preset navigation methods
+
+void PluginEditor::updatePresetNameLabel()
+{
+    auto& pm = processorRef.getPresetManager();
+    juce::String name = pm.getCurrentPreset().getName();
+    if (name.isEmpty())
+        name = "Init";
+    presetNameLabel.setText (name, juce::dontSendNotification);
+}
+
+void PluginEditor::updateFavoriteButtonColor()
+{
+    auto& pm = processorRef.getPresetManager();
+    juce::String currentName = pm.getCurrentPreset().getName();
+
+    // Find the preset index by name
+    auto names = pm.getPresetNames();
+    int idx = names.indexOf (currentName);
+
+    if (idx >= 0 && pm.isFavorite (idx))
+    {
+        int colorIdx = pm.getFavoriteColor (idx);
+        if (colorIdx >= 0 && colorIdx < PresetManager::NUM_FAV_COLORS)
+        {
+            static const juce::Colour favColors[8] = {
+                juce::Colour(0xFFFF3B30), juce::Colour(0xFFFF9500), juce::Colour(0xFFFFCC00),
+                juce::Colour(0xFF34C759), juce::Colour(0xFF00C7BE), juce::Colour(0xFF007AFF),
+                juce::Colour(0xFFAF52DE), juce::Colour(0xFFFF2D55)
+            };
+            favoriteButton.setColour (juce::TextButton::textColourOffId, favColors[colorIdx]);
+            favoriteButton.setColour (juce::TextButton::textColourOnId, favColors[colorIdx]);
+            return;
+        }
+    }
+    favoriteButton.setColour (juce::TextButton::textColourOffId, CyberpunkTheme::textSecondary);
+    favoriteButton.setColour (juce::TextButton::textColourOnId, CyberpunkTheme::textSecondary);
+}
+
+void PluginEditor::navigatePresetPrev()
+{
+    auto& pm = processorRef.getPresetManager();
+    pm.previousPreset();
+    auto& current = pm.getCurrentPreset();
+    int idx = pm.getPresetNames().indexOf (current.getName());
+    processorRef.cancelPreviewNote();
+    if (idx >= 0)
+        processorRef.loadPresetAtIndex (idx);
+    updatePresetNameLabel();
+    updateFavoriteButtonColor();
+}
+
+void PluginEditor::navigatePresetNext()
+{
+    auto& pm = processorRef.getPresetManager();
+    pm.nextPreset();
+    auto& current = pm.getCurrentPreset();
+    int idx = pm.getPresetNames().indexOf (current.getName());
+    processorRef.cancelPreviewNote();
+    if (idx >= 0)
+        processorRef.loadPresetAtIndex (idx);
+    updatePresetNameLabel();
+    updateFavoriteButtonColor();
+}
+
+void PluginEditor::cycleFavorite()
+{
+    auto& pm = processorRef.getPresetManager();
+    juce::String currentName = pm.getCurrentPreset().getName();
+    auto names = pm.getPresetNames();
+    int idx = names.indexOf (currentName);
+
+    if (idx >= 0)
+    {
+        int currentColor = pm.getFavoriteColor (idx);
+        // Cycle: -1 -> 0, 0 -> 1, ..., 6 -> 7, 7 -> -1
+        int newColor = (currentColor + 1) % PresetManager::NUM_FAV_COLORS;
+        // If was not favorite (colorIdx == -1), set to 0; if was 7, wrap to -1
+        if (currentColor < 0)
+            newColor = 0;
+        else if (currentColor >= PresetManager::NUM_FAV_COLORS - 1)
+            newColor = -1;
+        pm.setFavorite (idx, newColor);
+        updateFavoriteButtonColor();
+        if (presetsVisible)
+            presetBrowserPanel.refresh();
     }
 }

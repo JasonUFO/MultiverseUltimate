@@ -58,6 +58,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - Undo/Redo (Cmd+Z / Cmd+Shift+Z) ✅
 - Filter oversampling (Off/2x/4x/Auto) ✅
 - Preset system (XML) with Factory/User banks ✅
+- State-of-the-art preset browser: 8-color favorites, #hashtags, auto-preview, metadata detail strip, back/forward history, save dialog, right-click context menu ✅
 - Dark Forge UI theme (`CyberpunkTheme`) — neumorphic knobs, sliders, buttons, tabs, menus ✅
 - NeuKnob (`Source/NeuKnob.h/.cpp`) — value pill on hover/drag, amber arc when macro-assigned ✅
 - SynthDisplay (`Source/Synth/SynthDisplay.h/.cpp`) — real-time oscilloscope (left) + FFT spectrum (right), 30 Hz, lock-free FIFO ✅
@@ -110,6 +111,8 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Chord/Strum | chordModeEnabled/chordShape/chordStrumDelay APVTS params; 12 shapes (Major/Minor/Maj7/Min7/Dom7/Dim/Aug/Sus2/Sus4/Power/Octave/Root); PendingNote[64]+ActiveChord[32] pre-alloc queue; chord tones fire at block start, strum delay = ni×strumSamples; CHORD/STRUM card in SynthPanel (Classic mode only); MPE bypasses chord mode |
 | Performance View | `Source/Performance/PerformancePanel.h/.cpp` — "Perf" tab; 4×2 grid of large macro rotary knobs (SliderAttachment to macro1-8) with editable name labels; XYPad inner class (maps macro1=X, macro2=Y, mouse drag calls setValueNotifyingHost, timer updates dot from APVTS at 30 Hz); BPM readout from getPlayHead(); neumorphic section cards; macro names sync from MacroManager at 30 Hz |
 | Factory Presets | `Source/Presets/FactoryPresets.h/.cpp` — 100 presets (Init×5, Bass×20, Lead×20, Pad×25, Drums×15, FX×15); `PresetData` struct with helpers (`setAdsr/setFilter/setReverb/setChorus/setDelay/setUnison/setMono/applyOscs`); full APVTS XML (all 220+ params) per preset for clean load; normalization helpers `nLin/nSkw/nCh` + shorthands `A/D/R/FC/FR/LR/PT/DT`; `PresetManager::createFactoryPresetsIfNeeded` calls `FactoryPresets::writeToDirectory` when < 10 presets found (recursive scan) |
+| Preset Browser 2.0 | `PresetManager` extended with metadata cache, 8-color favorites JSON, tag index, back/forward history; `PresetBrowserPanel` redesigned — 280px, category pills, tag filter, auto-preview, save dialog, right-click context menu; header navigation bar (prev/next/name/fav/back/forward); all 100 factory presets have author/description/tags metadata |
+| Plugin Classification | `JucePluginDefines.h` corrected: IsSynth=1, WantsMidiInput=1, Vst3Category="Instrument", AUMainType='aumu' (was incorrectly set to effect) |
 
 ## Next Steps
 
@@ -120,13 +123,12 @@ All gap-fill phases (0–7) complete. Now in competitive feature expansion.
 2. ~~Chord/Strum Mode~~ ✅ (2026-05-05)
 3. ~~Performance View~~ ✅ (2026-05-05)
 4. ~~Programmatic preset generation~~ ✅ (2026-05-05) — 100 factory presets, 6 categories
-5. **Preset browser polish / MIDI export / Global oversampling** (next)
+5. ~~Preset browser 2.0~~ ✅ (2026-05-08) — metadata, favorites, tags, auto-preview, history, save dialog
+
+**Next:** Expand competitive feature set (see `project_next_suggestions.md`)
 
 **Deferred (need decisions or Projucer GUI action):**
 - 7.2 Standalone mode — enable in Projucer GUI (File Formats → Standalone Plugin)
-- 7.5 Global oversampling
-- 7.6 Audio effect input bus
-- 6.3 1000+ preset library
 
 ### Cyberpunk UI
 Complete — `CyberpunkTheme` is the global LookAndFeel, all panels updated, neumorphic section cards applied.
@@ -144,6 +146,7 @@ Complete — `CyberpunkTheme` is the global LookAndFeel, all panels updated, neu
 | Drum voices | 32 (4/track) |
 | Manufacturer code | `MpAu` |
 | Plugin code | `MvUl` |
+| Plugin type | Instrument (VST3 category: "Instrument", AU: 'aumu') |
 | C++ standard | C++17 |
 | JUCE version | 8.x |
 | macOS target | 10.13+ |
@@ -180,7 +183,7 @@ Complete — `CyberpunkTheme` is the global LookAndFeel, all panels updated, neu
 - `NeuKnob` extends `MidiLearnSlider` — use NeuKnob everywhere you'd use MidiLearnSlider; it's a drop-in. Value pill fires from paint() (isMouseOver/isMouseButtonDown check). Amber arc managed by ArcTimer (inner juce::Timer struct, 10 Hz), calls setColour/removeColour only on state change to avoid repaint storms. `CyberpunkTheme::drawRotarySlider` uses `slider.findColour(rotarySliderFillColourId)` — component-level setColour overrides the LookAndFeel color.
 - `juce::Font::getStringWidthFloat` does not exist in this project's JUCE version — use character-count estimation or `getStringWidth` (int) for pill sizing.
 - `SynthDisplay`: lives at `Source/Synth/SynthDisplay.h/.cpp`. Ring buffer: `RING_SIZE=2048`, `ringWritePos` (masked with `& (RING_SIZE-1)`). FFT: `juce::dsp::FFT fft{FFT_ORDER}` (order 10, 1024-point). Audio data arrives via `PluginProcessor::pullDisplaySamples(float*, int)` (public, message-thread safe). `pushDisplaySamples` is private, called at end of processBlock after pan.
-- `PresetBrowserPanel` (`Source/Presets/PresetBrowserPanel.h/.cpp`): inherits `juce::ListBoxModel` + `Button::Listener` + `ComboBox::Listener`. Uses `juce::ListBox presetList`. Shown as 160px collapsible panel above tabs in `PluginEditor` (toggled by "Presets" button in header). `refresh()` calls `presetList.updateContent()`. Phase 4 redesign: keep all logic, only change `paint()`, `resized()`, `paintListBoxItem()`, and visual styling.
+- `PresetBrowserPanel` (`Source/Presets/PresetBrowserPanel.h/.cpp`): inherits `juce::ListBoxModel` + `Button::Listener` + `ComboBox::Listener` + `TextEditor::Listener` + `juce::Timer`. 280px collapsible panel with search bar, 8 category pills (All/Init/Bass/Lead/Pad/Drums/FX/Favs), tag filter pills, preset list with favorite color dots, metadata detail strip. Auto-preview (50ms timer poll), save dialog (CallOutBox), right-click context menu. Tag filtering uses AND logic. Favorites stored in `favorites.json` (8 colors: Red/Orange/Yellow/Green/Cyan/Blue/Purple/Pink). `PresetManager` has `PresetMetadata` cache, `tagIndex`, favorites, history stack.
 - `WavetableEditor` (`Source/Synth/WavetableEditor.h/.cpp`): takes `WavetableOscillator&` (voice 0 master). `onWavetableChanged` callback must be set by caller to `synthEngine.distributeWavetable(oscIndex)`. Shown as full-panel overlay inside SynthPanel; toggled by "EDIT WT" button per osc strip. FFT button is a placeholder (calls normalizeFrame).
 - `LFOShapeEditor` (`Source/Synth/LFOShapeEditor.h/.cpp`): standalone component, no external dependencies. `setTable(array<float,256>)` to pre-populate; `onTableChanged` callback fires after every edit. Fixed ±1 canvas with center-line grid; pencil (freehand drag), line (mouseDown→mouseUp), SIN/SAW/SQR/TRI fill, NORM. Launched via `CallOutBox::launchAsynchronously` from `LFORow::drawButton`. Size 310×160. `LFOShape::Custom` in advanceLFOs uses linear interpolation: `idx0=(int)(phase/2π*255)&255`, frac blend with `idx1=(idx0+1)&255`. Tables persisted as `lfo1CustomTable`–`lfo8CustomTable` comma-separated float properties in ModulationMatrix XML state.
 - `WavetableOscillator` new public API: `setSample(frame,i,v)`, `getSample(frame,i)`, `clearFrame`, `normalizeFrame`, `fadeFrame`, `reverseFrame`, `generateFormula(frame, fn)`, `loadMultiCycleWavetable`, `processFFT` (placeholder), `getTableCount()`, `getTableSize()`.

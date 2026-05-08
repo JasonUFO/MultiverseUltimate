@@ -155,6 +155,23 @@ public:
     float envFollowerLevel = 0.0f;
     double prevDawPpqPos = -1.0;
 
+    // Preset metadata (persisted in XML, read/written from message thread)
+    juce::String currentPresetCategory    { "Init" };
+    juce::String currentPresetAuthor      { "MultiphaseAudio" };
+    juce::String currentPresetDescription;
+    juce::String currentPresetTags;
+
+    // Preview note (message thread writes, audio thread reads)
+    std::atomic<int>  previewNote         { -1 };   // -1 = idle
+    std::atomic<int>  previewSamplesLeft  { 0 };
+    std::atomic<int>  previewPrevNote     { -1 };   // note to release first
+    std::atomic<bool> previewNoteOn       { false }; // true = fire noteOn this block
+    static constexpr int PREVIEW_NOTE     = 60;      // Middle C
+    static constexpr int PREVIEW_VELOCITY = 100;
+
+    void triggerPreviewNote();
+    void cancelPreviewNote();
+
     // Metronome click state
     int  metClickSamplesLeft  = 0;
     int  metClickSamplePos    = 0;

@@ -512,6 +512,44 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 **Build verified:** VST3 builds and installs successfully ✅
 
+## Completed (State-of-the-Art Preset Browser — 2026-05-08)
+
+- **Preset metadata model**: `Preset` class extended with `description` (juce::String) and `tags` (juce::StringArray); `serialize()` writes `description` and `tags` as XML attributes; `deserialize()` reads them and auto-extracts #hashtags from description text
+- **PresetManager backend**:
+  - `PresetMetadata` struct (name, category, author, description, tags, index) — cached per preset via `scanPresetMetadata()`
+  - `tagIndex` map and `getAllTags()` for tag discovery
+  - `favorites.json` persistence: 8-color favorites (Zebra2-style), `isFavorite()`, `getFavoriteColor()`, `setFavoriteColor()`, `getFavoritesIndices()`
+  - Back/forward history: `pushHistory()`, `canGoBack()`, `canGoForward()`, `goBack()`, `goForward()` — browser-style navigation
+  - Bug fix: `saveState()` now writes `category` to XML root (was always "Init" before)
+- **PluginProcessor extensions**:
+  - `currentPresetCategory`, `currentPresetAuthor`, `currentPresetDescription`, `currentPresetTags` — persisted in `getState/setState`
+  - Preview note system: `std::atomic<int> previewNote`, `previewSamplesLeft`, `previewPrevNote`, `previewNoteOn` — lock-free message→audio thread; `triggerPreviewNote()` / `cancelPreviewNote()` on message thread; processBlock handles noteOn/noteOff with 300ms hold at middle C
+  - `loadPresetAtIndex()` now calls `pushHistory()`
+- **Factory presets metadata**: All 100 presets have `author`, `description` (with #hashtags), and `tags` (comma-separated) fields in `FactoryPresets.cpp` PresetData struct; `buildPresetXml()` writes them as `<Multiverse category="..." author="..." description="..." tags="...">` root attributes
+- **Preset browser panel redesign** (`PresetBrowserPanel.h/.cpp`):
+  - 280px collapsible panel (was 220px)
+  - Search bar row: TextEditor + count label + Preview toggle + Save/Import/Export buttons
+  - Category pills: All/Init/Bass/Lead/Pad/Drums/FX/Favs (8 buttons, radio group)
+  - Tag filter row: removable tag pills with × close buttons
+  - Preset list: favorite color dot (8px circle), preset name, right-aligned category and author
+  - Metadata detail strip: author, description, clickable tags
+  - Auto-preview: 50ms timer polls selected row, triggers preview note on change
+  - Save dialog (CallOutBox): name, category (ComboBox), author, description (multi-line), tags
+  - Right-click context menu: Load, Delete, Favorite (8-color submenu), Export
+  - #hashtag extraction from search text; tag autocomplete via PopupMenu
+  - Filter logic: category AND search AND tags (AND logic for multiple tags)
+- **Header navigation bar** (`PluginEditor.h/.cpp`):
+  - `< prev` / `> next` preset navigation buttons
+  - Preset name label (centered, 180px)
+  - `★` favorite button — cycles through 8 colors then clears
+  - `◀ back` / `▶ forward` history navigation
+  - `Cmd+F` keyboard shortcut to focus preset search
+  - `updatePresetNameLabel()`, `updateFavoriteButtonColor()`, `navigatePresetPrev()`, `navigatePresetNext()`, `cycleFavorite()`
+- **Plugin classification fix**: `JucePluginDefines.h` corrected — `JucePlugin_IsSynth=1`, `JucePlugin_WantsMidiInput=1`, `JucePlugin_Vst3Category="Instrument"`, `JucePlugin_VSTCategory=kPlugCategSynth`, `JucePlugin_AUMainType='aumu'` (was incorrectly set to effect)
+- **Backward compatibility**: Old `.mvpreset` files without metadata attributes load fine with defaults (category="Init", author="MultiphaseAudio", description="", tags="")
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
 ## Next Session
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).

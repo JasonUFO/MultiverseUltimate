@@ -7,7 +7,8 @@ class PresetBrowserPanel : public juce::Component,
                            public juce::ListBoxModel,
                            public juce::Button::Listener,
                            public juce::ComboBox::Listener,
-                           public juce::TextEditor::Listener
+                           public juce::TextEditor::Listener,
+                           private juce::Timer
 {
 public:
     explicit PresetBrowserPanel(PluginProcessor& p);
@@ -19,6 +20,7 @@ public:
     int  getNumRows() override;
     void paintListBoxItem(int row, juce::Graphics&, int w, int h, bool selected) override;
     void listBoxItemDoubleClicked(int row, const juce::MouseEvent&) override;
+    void listBoxItemClicked(int row, const juce::MouseEvent&) override;
 
     // Button::Listener
     void buttonClicked(juce::Button*) override;
@@ -33,36 +35,46 @@ public:
     void textEditorFocusLost(juce::TextEditor&) override;
 
     void refresh();
+    void focusSearchEditor();
+
+    // Current preset index (for header navigation sync)
+    int getSelectedPresetIndex() const;
+
+    // Tag filter management
+    void addTagFilter(const juce::String& tag);
+    void removeTagFilter(const juce::String& tag);
+    void clearTagFilters();
+    juce::StringArray getActiveTagFilters() const { return activeTagFilters; }
+
+    // Auto-preview
+    bool isAutoPreviewEnabled() const { return autoPreviewEnabled; }
 
 private:
     PluginProcessor& processorRef;
 
+    // Favorite colors
+    static const juce::Colour favColors[8];
+
     // Search
     juce::TextEditor searchEditor;
 
-    // Categories (vertical pill tabs)
-    juce::TextButton catAll   { "All"    };
-    juce::TextButton catInit  { "Init"   };
-    juce::TextButton catBass  { "Bass"   };
-    juce::TextButton catLead  { "Lead"   };
-    juce::TextButton catPad   { "Pad"    };
-    juce::TextButton catDrums{ "Drums"  };
-    juce::TextButton catFX    { "FX"     };
+    // Categories (vertical pill tabs) — includes virtual "Favorites"
+    juce::TextButton catAll      { "All"    };
+    juce::TextButton catInit    { "Init"   };
+    juce::TextButton catBass    { "Bass"   };
+    juce::TextButton catLead    { "Lead"   };
+    juce::TextButton catPad     { "Pad"    };
+    juce::TextButton catDrums   { "Drums"  };
+    juce::TextButton catFX      { "FX"     };
+    juce::TextButton catFavorites { "Favs" };
     juce::Array<juce::TextButton*> categoryButtons;
 
-    // Bank selector
-    juce::ComboBox   bankSelector;
-
-    // Name + Save
-    juce::Label      nameLabel  { {}, "Name:" };
-    juce::TextEditor nameEditor;
-    juce::TextButton saveButton  { "Save"   };
-
-    // Action buttons
-    juce::TextButton loadButton  { "Load"   };
-    juce::TextButton deleteButton{ "Delete" };
-    juce::TextButton importButton{ "Import" };
-    juce::TextButton exportButton{ "Export" };
+    // Action buttons (compact icon buttons in search bar)
+    juce::TextButton saveButton    { "Save"   };
+    juce::TextButton importButton  { "Import" };
+    juce::TextButton exportButton  { "Export" };
+    juce::ToggleButton autoPreviewButton { "Preview" };
+    bool autoPreviewEnabled = true;
 
     // Preset list
     juce::ListBox    presetList  { "presets", this };
@@ -70,8 +82,23 @@ private:
     // Count label
     juce::Label       countLabel;
 
+    // Tag filter
+    juce::StringArray activeTagFilters;
+    juce::Component   tagFilterArea;  // container for tag pills
+
+    // Metadata detail strip
+    juce::Label authorLabel;
+    juce::Label descriptionLabel;
+    juce::Label tagsLabel;
+
     // Filtered preset indices
     juce::Array<int> filteredPresetIndices;
+
+    // Auto-preview timer state
+    int lastPreviewedRow = -1;
+
+    // Timer for auto-preview
+    void timerCallback() override;
 
     void rebuildFilter();
     void setActiveCategory(juce::TextButton* cat);
@@ -80,6 +107,9 @@ private:
     void deleteSelectedPreset();
     void importPreset();
     void exportPreset();
+    void updateMetadataStrip();
+    void showSaveDialog();
+    void showRightClickMenu(int row);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetBrowserPanel)
 };

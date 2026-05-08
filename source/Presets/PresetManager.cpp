@@ -7,8 +7,10 @@ PresetManager::PresetManager()
     presetsDirectory = juce::File::getSpecialLocation(juce::File::userHomeDirectory)
                            .getChildFile("Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate");
     presetsDirectory.createDirectory();
+    favoritesFile = presetsDirectory.getChildFile("favorites.json");
     createFactoryPresetsIfNeeded();
     scanPresetsDirectory();
+    loadFavorites();
 }
 
 juce::StringArray PresetManager::getBankNames() const
@@ -57,7 +59,7 @@ void PresetManager::loadPreset(const juce::String& path)
     juce::File file(path);
     if (!file.existsAsFile())
         return;
-    
+
     auto xml = juce::XmlDocument::parse(file);
     if (xml != nullptr)
     {
@@ -114,7 +116,7 @@ void PresetManager::previousPreset()
 {
     if (!presets.empty())
     {
-        currentPresetIndex = (currentPresetIndex - 1 + (int)presets.size()) % presets.size();
+        currentPresetIndex = (currentPresetIndex - 1 + (int)presets.size()) % (int)presets.size();
     }
 }
 
@@ -123,7 +125,7 @@ void PresetManager::saveState(const juce::String& name, const juce::MemoryBlock&
     auto bankDir = getBankDirectory();
     bankDir.createDirectory();
 
-    // Determine category subfolder from current preset if loading from XML
+    // Determine category from the XML root attribute
     juce::String category = "Init";
     auto tempFile = bankDir.getChildFile("_temp_.mvpreset");
     tempFile.replaceWithData(state.getData(), state.getSize());
@@ -203,7 +205,254 @@ void PresetManager::scanPresetsDirectory()
         presetFiles.add(f);
         presetNames.add(f.getFileNameWithoutExtension());
     }
+
+    // Build metadata cache
+    scanPresetMetadata();
+    buildTagIndex();
 }
+
+void PresetManager::scanPresetMetadata()
+{
+    presetMeta.clear();
+    presetMeta.resize(presetFiles.size());
+
+    static const juce::StringArray validCategories { "Init", "Bass", "Lead", "Pad", "Drums", "FX" };
+
+    for (int i = 0; i < presetFiles.size(); ++i)
+    {
+        auto& m = presetMeta[i];
+        m.index = i;
+        m.name = presetNames[i];
+
+        // Default category from directory name
+        auto parentName = presetFiles[i].getParentDirectory().getFileName();
+        m.category = validCategories.contains(parentName) ? parentName : juce::String("Init");
+        m.author = "MultiphaseAudio";
+
+        // Parse XML for metadata (only root element attributes)
+        if (auto xml = juce::XmlDocument::parse(presetFiles[i]))
+        {
+            juce::String xmlCat = xml->getStringAttribute("category", "");
+            if (validCategories.contains(xmlCat))
+                m.category = xmlCat;
+
+            juce::String xmlAuthor = xml->getStringAttribute("author", "");
+            if (xmlAuthor.isNotEmpty())
+                m.author = xmlAuthor;
+
+            m.description = xml->getStringAttribute("description", "");
+
+            // Parse tags from attribute
+            juce::String tagsStr = xml->getStringAttribute("tags", "");
+            if (tagsStr.isNotEmpty())
+            {
+                auto parts = juce::StringArray::fromTokens(tagsStr, ",", "");
+                for (auto& p : parts)
+                {
+                    p = p.trim().toLowerCase();
+                    if (p.isNotEmpty() && !m.tags.contains(p))
+                        m.tags.add(p);
+                }
+            }
+
+            // Extract #hashtags from description
+            if (m.description.contains("#"))
+            {
+                auto words = juce::StringArray::fromTokens(m.description, " ,.;:!?\n\r\t", "'");
+                for (auto& w : words)
+                {
+                    if (w.startsWith("#") && w.length() > 1)
+                    {
+                        auto tag = w.substring(1).toLowerCase();
+                        if (tag.isNotEmpty() && !m.tags.contains(tag))
+                            m.tags.add(tag);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void PresetManager::buildTagIndex()
+{
+    tagIndex.clear();
+    for (int i = 0; i < (int)presetMeta.size(); ++i)
+    {
+        for (const auto& tag : presetMeta[i].tags)
+        {
+            tagIndex[tag].push_back(i);
+        }
+    }
+}
+
+const PresetManager::PresetMetadata& PresetManager::getPresetMetadata(int index) const
+{
+    if (index >= 0 && index < (int)presetMeta.size())
+        return presetMeta[index];
+    static const PresetMetadata empty;
+    return empty;
+}
+
+juce::StringArray PresetManager::getAllTags() const
+{
+    juce::StringArray result;
+    for (const auto& entry : tagIndex)
+        result.add(entry.first);
+    result.sortNatural();
+    return result;
+}
+
+//==============================================================================
+// Favorites
+
+void PresetManager::loadFavorites()
+{
+    favorites.clear();
+    if (!favoritesFile.existsAsFile())
+        return;
+
+    auto json = juce::JSON::parse(favoritesFile.loadFileAsString());
+    if (auto* obj = json.getDynamicObject())
+    {
+        auto entries = obj->getProperty("entries");
+        if (auto* entriesObj = entries.getDynamicObject())
+        {
+            for (const auto& key : entriesObj->getProperties())
+            {
+                auto value = entriesObj->getProperty(key.name);
+                if (auto* entry = value.getDynamicObject())
+                {
+                    FavoriteEntry fe;
+                    fe.colorIndex = (int)entry->getProperty("color");
+                    fe.timestamp = entry->getProperty("added").toString();
+                    if (fe.colorIndex >= 0 && fe.colorIndex < NUM_FAV_COLORS)
+                        favorites[key.name.toString()] = fe;
+                }
+            }
+        }
+    }
+}
+
+void PresetManager::saveFavorites()
+{
+    auto* root = new juce::DynamicObject();
+    root->setProperty("version", 1);
+
+    auto* entries = new juce::DynamicObject();
+    for (const auto& [path, entry] : favorites)
+    {
+        auto* e = new juce::DynamicObject();
+        e->setProperty("color", entry.colorIndex);
+        e->setProperty("added", entry.timestamp);
+        entries->setProperty(path, e);
+    }
+    root->setProperty("entries", entries);
+
+    juce::String jsonText = juce::JSON::toString(juce::var(root), false);
+    favoritesFile.replaceWithText(jsonText);
+}
+
+bool PresetManager::isFavorite(int presetIndex) const
+{
+    return getFavoriteColor(presetIndex) >= 0;
+}
+
+int PresetManager::getFavoriteColor(int presetIndex) const
+{
+    auto relPath = getRelativePresetPath(presetIndex);
+    if (relPath.isEmpty())
+        return -1;
+    auto it = favorites.find(relPath);
+    return (it != favorites.end()) ? it->second.colorIndex : -1;
+}
+
+void PresetManager::setFavorite(int presetIndex, int colorIndex)
+{
+    auto relPath = getRelativePresetPath(presetIndex);
+    if (relPath.isEmpty())
+        return;
+
+    if (colorIndex < 0 || colorIndex >= NUM_FAV_COLORS)
+    {
+        favorites.erase(relPath);
+    }
+    else
+    {
+        FavoriteEntry fe;
+        fe.colorIndex = colorIndex;
+        juce::Time now = juce::Time::getCurrentTime();
+        fe.timestamp = now.toISO8601(true);
+        favorites[relPath] = fe;
+    }
+    saveFavorites();
+}
+
+juce::Array<int> PresetManager::getFavoritesIndices() const
+{
+    juce::Array<int> result;
+    for (int i = 0; i < presetFiles.size(); ++i)
+    {
+        if (isFavorite(i))
+            result.add(i);
+    }
+    return result;
+}
+
+juce::String PresetManager::getRelativePresetPath(int index) const
+{
+    if (index < 0 || index >= presetFiles.size())
+        return {};
+    return presetFiles[index].getRelativePathFrom(presetsDirectory);
+}
+
+//==============================================================================
+// History
+
+void PresetManager::pushHistory(int presetIndex)
+{
+    // Truncate forward history
+    if (historyPosition >= 0 && historyPosition < (int)historyStack.size())
+        historyStack.resize(historyPosition + 1);
+
+    // Don't push duplicates at the same position
+    if (!historyStack.empty() && historyStack.back() == presetIndex)
+        return;
+
+    historyStack.push_back(presetIndex);
+    if ((int)historyStack.size() > MAX_HISTORY)
+        historyStack.erase(historyStack.begin());
+
+    historyPosition = (int)historyStack.size() - 1;
+}
+
+bool PresetManager::canGoBack() const
+{
+    return historyPosition > 0;
+}
+
+bool PresetManager::canGoForward() const
+{
+    return historyPosition >= 0 && historyPosition < (int)historyStack.size() - 1;
+}
+
+int PresetManager::goBack()
+{
+    if (!canGoBack())
+        return currentPresetIndex;
+    historyPosition--;
+    return historyStack[historyPosition];
+}
+
+int PresetManager::goForward()
+{
+    if (!canGoForward())
+        return currentPresetIndex;
+    historyPosition++;
+    return historyStack[historyPosition];
+}
+
+//==============================================================================
+// Import/Export
 
 void PresetManager::importPreset(const juce::File& sourceFile)
 {
@@ -215,10 +464,11 @@ void PresetManager::importPreset(const juce::File& sourceFile)
 
     juce::String category = "Init";
     if (auto xml = juce::XmlDocument::parse(sourceFile))
-        category = xml->getStringAttribute("category", "Init");
-
-    if (!juce::StringArray({ "Init", "Bass", "Lead", "Pad", "Drums", "FX" }).contains(category))
-        category = "Init";
+    {
+        juce::String xmlCat = xml->getStringAttribute("category", "");
+        if (juce::StringArray({ "Init", "Bass", "Lead", "Pad", "Drums", "FX" }).contains(xmlCat))
+            category = xmlCat;
+    }
 
     auto catDir = bankDir.getChildFile(category);
     catDir.createDirectory();
@@ -236,6 +486,8 @@ void PresetManager::exportPreset(int index, const juce::File& destFile)
 
 juce::String PresetManager::getPresetCategory(int index) const
 {
+    if (index >= 0 && index < (int)presetMeta.size())
+        return presetMeta[index].category;
     if (index < 0 || index >= presetFiles.size())
         return "Init";
     auto parentName = presetFiles[index].getParentDirectory().getFileName();

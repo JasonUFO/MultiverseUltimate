@@ -15,16 +15,26 @@ public:
     
     juce::String getAuthor() const;
     void setAuthor(const juce::String& author);
-    
+
+    juce::String getDescription() const;
+    void setDescription(const juce::String& desc);
+
+    juce::StringArray getTags() const;
+    void setTags(const juce::StringArray& t);
+    juce::String getTagsString() const;
+    void setTagsFromString(const juce::String& commaSeparated);
+
     void setParameter(int index, float value);
     float getParameter(int index) const;
-    
+
     void serialize(juce::XmlElement& xml) const;
     bool deserialize(const juce::XmlElement& xml);
-    
+
 private:
     juce::String name = "Init";
     juce::String category = "Basic";
     juce::String author = "MultiphaseAudio";
+    juce::String description;
+    juce::StringArray tags;
     std::vector<float> parameters;
 };
