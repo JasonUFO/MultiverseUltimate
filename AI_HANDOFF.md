@@ -70,6 +70,11 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 ## What Is Broken / Unconnected
 - None (WavetableEditor FFT button is a placeholder — just calls normalizeFrame; real FFT not yet implemented)
 
+## Plugin Classification (CRITICAL)
+- **Projucer bug:** `--resave` resets `JucePluginDefines.h` to effect defaults (IsSynth=0, Vst3Category="Fx", AUMainType='aufx') and writes `type=aufx` in `Info-AU.plist`
+- **Fix:** `Scripts/fix_instrument_classification.sh` patches both files; runs as Xcode build phase + must be run manually after Projucer `--resave`
+- **Correct values:** IsSynth=1, WantsMidiInput=1, VSTCategory=kPlugCategSynth, Vst3Category="Instrument", AUMainType='aumu', Info-AU.plist type=aumu
+
 ---
 
 ## Completed Phases

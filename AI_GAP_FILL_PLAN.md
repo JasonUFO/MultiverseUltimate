@@ -83,7 +83,7 @@
 
 ## Phase8: Testing & Validation (Ongoing)
 - Test all features in Logic Pro/Ableton Live
-- Run `auval -v aufx MvUl MpAu` for AU validation
+- Run `auval -v aumu MvUl MpAu` for AU validation
 - Verify state persistence for all new parameters
 - Profile CPU usage for voice limiting/oversampling
 
@@ -107,20 +107,34 @@
 - CHORD/STRUM neumorphic section card in SynthPanel (Classic mode only, hidden in FM)
 - MPE-aware: chord mode bypassed when MPE enabled
 
-### 9.3 Performance View (Next)
-**Goal:** Full-screen overlay showing 8 large macro knobs + optional XY pad.
-**Architecture (proposed):**
-- New `PerformancePanel` component; "PERF" toggle button in header shows/hides as full overlay
-- 8 NeuKnobs wired to macro1–macro8 APVTS params (same as MacroPanel)
-- Optional XY pad: X→macro1, Y→macro2 (or user-assignable)
-- No new DSP; purely UI
+### 9.3 Performance View ✅ COMPLETE (2026-05-05)
+- "Perf" tab with 8 large macro knobs + BPM readout
+- XY pad (macro1 X, macro2 Y) with neumorphic card
+- Build verified: VST3 + AU ✅
 
-### 9.4 Programmatic Preset Generation (Future)
-**Goal:** Ship 100+ named factory presets across Bass/Lead/Pad/Drums/FX categories.
-**Architecture (proposed):**
-- Standalone C++ tool or in-plugin "Generate Presets" dev button
-- Randomize within musical parameter ranges per category (e.g. Bass: low cutoff, high sustain)
-- Save as `.mvpreset` files to `~/Library/Audio/Presets/MultiphaseAudio/MultiverseUltimate/`
+### 9.4 Factory Preset Library ✅ COMPLETE (2026-05-05)
+- 100 programmatic presets across 6 categories via FactoryPresets.h/.cpp
+- Later expanded to 204 presets across 8 categories (2026-05-08)
+- Build verified: VST3 + AU ✅
+
+### 9.5 UI Overhaul ✅ COMPLETE (2026-05-08)
+- Phase 1: MultiverseFlatTheme (flat, clean, Nexus 5-inspired)
+- Phase 2: 3-column layout (left sidebar, center tabs, right FX strip, bottom bar with macros+keyboard)
+- Phase 3: Librarian panel with collapsible sections, bookmarks, character tags
+- Phase 4: Quick FX strip (Filter Mod, Amp Mod, Delay, Reverb, Main Filter)
+- Phase 5: Visual routing page (ROU tab)
+- Build verified: VST3 + AU ✅
+
+### 9.6 Preset Browser 2.0 ✅ COMPLETE (2026-05-08)
+- Metadata, 8-color favorites, #hashtags, auto-preview, back/forward history, save dialog, right-click menu
+- Plugin classification fix: Instrument (not Effect) enforced via fix script
+- Build verified: VST3 + AU ✅
+
+### 9.7 Feature Expansion ✅ COMPLETE (2026-05-08)
+- Factory presets 100→204 (8 categories)
+- Drag-drop modulation assignment (LFO → knob)
+- Sampler timestretch (WSOLA)
+- Build verified: VST3 + AU ✅
 
 ---
 

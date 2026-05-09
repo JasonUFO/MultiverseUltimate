@@ -1,7 +1,7 @@
 # MultiverseUltimate — AI RULES
 
 ## Current Phase
-**Post-Feature-Expansion** — Factory presets (204), drag-drop mod assignment, and sampler timestretch shipped. Next: performance optimization, more presets, polish.
+**Post-Feature-Expansion** — All gap-fill phases (1–9) and UI overhaul (1–5) shipped. Plugin classification fix applied. Next: performance optimization, more presets, polish.
 
 ---
 
@@ -23,6 +23,8 @@
 - New effects follow the `Effect` base class pattern
 - New stereo effects: use `effect[2]` (L/R instances)
 - After editing `.jucer`, run Projucer `--resave` before building
+- After **every** Projucer `--resave`, run `Scripts/fix_instrument_classification.sh` — Projucer resets plugin classification to "effect" defaults; the script enforces Instrument/Synth classification. A build phase runs it automatically, but always verify after resave.
+- `Builds/` directory is gitignored — Xcode project changes (build phases, etc.) don't persist in git. The fix script compensates for this.
 
 ---
 

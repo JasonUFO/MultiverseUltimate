@@ -719,6 +719,18 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 - **SamplerEngine** — `timestretchEnabled` serialized in getState/setState
 - Build verified ✅
 
+## Completed (Plugin Classification Fix — 2026-05-09)
+
+**Problem:** Cubase classified plugin as Effect instead of Instrument (second time this happened). Projucer `--resave` resets `JucePluginDefines.h` to effect defaults and writes `type=aufx` in `Info-AU.plist`, despite `pluginIsSynth` in `.jucer` characteristics.
+
+**Fix:**
+- `Scripts/fix_instrument_classification.sh` — patches both `JucePluginDefines.h` (IsSynth=1, WantsMidiInput=1, VSTCategory=kPlugCategSynth, Vst3Category="Instrument", AUMainType='aumu') and `Info-AU.plist` (type=aumu)
+- Added as pre-compile Run Script build phase in all 3 Xcode targets (Shared Code, AU, VST3)
+- AI_RULES.md updated: mandatory post-resave step to run the script
+- Feedback memory saved: Projucer bug, not user error — verify after every resave
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
 ## Next Session
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).
