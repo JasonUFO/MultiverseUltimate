@@ -731,6 +731,38 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 **Build verified:** VST3 + AU both build and install successfully ✅
 
+## Completed (UI Overhaul — Avenger-Style Redesign Phase 1) (2026-05-09)
+
+- **Knob redesign** — `MultiverseFlatTheme::drawRotarySlider()` rewritten from chunky filled-disc style to sleek thin-ring arc style:
+  - Removed: filled disc background (`bgRaised` fillEllipse), indicator line from center, center dot
+  - Added: subtle 0.5px outer ring outline in `bgDeep.withAlpha(0.6f)`, clean arc (270° sweep), small 7px tip dot
+  - Arc radius: 0.72, track width: 2.0px (was 2.5px)
+- **SynthLookAndFeel removed** — `SynthPanel.h` no longer has `SynthLookAndFeel` class; `SynthPanel` uses global `MultiverseFlatTheme` directly
+- **EnvelopeDisplay** (`Source/Synth/EnvelopeDisplay.h`) — NEW FILE: ADSR curve visualizer
+  - Inherits `juce::Component` + `juce::Timer` (15 Hz polling)
+  - `setSliders()` takes 4 slider pointers for ADSR
+  - `paint()` draws dark background with border, ADSR curve as cyan filled path with 1.8px stroke, segment labels (A/D/S/R)
+  - `timerCallback()` reads slider values and triggers repaint
+- **FilterDisplay** (`Source/Synth/FilterDisplay.h`) — NEW FILE: filter response curve visualizer
+  - Inherits `juce::Component` + `juce::Timer` (20 Hz polling)
+  - `setProcessor(PluginProcessor*)` for APVTS parameter access
+  - `setFilterType(int)` for LP/HP/BP/Notch
+  - `paint()` draws dark background, grid lines, frequency labels, filter response curve with cyan fill and stroke, filter type label
+  - `computeResponse(freq, sr)` implements simplified biquad response calculation for all 4 filter types
+  - `timerCallback()` reads filterCutoff, filterResonance, filterType from APVTS and repaints on change
+- **Layout restructuring in SynthPanel**:
+  - `synthDisplay` moved to top of panel (120px height, was 90px at bottom)
+  - `oscDisplay` given explicit bounds (48px, was not visible)
+  - ENV section changed from 130px single-row to 160px two-column (EnvelopeDisplay left, knobs right)
+  - Filter section changed to two-column layout (FilterDisplay left 180px, knobs right)
+  - `envelopeDisplay` and `filterDisplay` visibility toggled based on mode (shown in Classic, hidden in FM)
+- **Font deprecation fixes** — 3 instances of `juce::Font(height, juce::Font::plain)` → `juce::Font(juce::FontOptions{}.withHeight(height))` in MultiverseFlatTheme.cpp
+- **Avenger 2 research** — 5-phase redesign plan documented at `/Users/jason/.claude/plans/elegant-stargazing-journal.md`
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
 ## Next Session
+
+**Phase 2 — Tab-Based Oscillator System**: Replace 8-oscillator strip layout with color-coded tab bar; single active oscillator detail panel; collapsed tab view for inactive oscillators.
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).

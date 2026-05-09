@@ -4,9 +4,9 @@
 // Palette
 const juce::Colour MultiverseFlatTheme::bgVoid      { 0xFF0F1014 };
 const juce::Colour MultiverseFlatTheme::bgBase      { 0xFF15171C };
-const juce::Colour MultiverseFlatTheme::bgRaised    { 0xFF1E2028 };
+const juce::Colour MultiverseFlatTheme::bgRaised    { 0xFF262930 };
 const juce::Colour MultiverseFlatTheme::bgDeep      { 0xFF111318 };
-const juce::Colour MultiverseFlatTheme::bgHover     { 0xFF262830 };
+const juce::Colour MultiverseFlatTheme::bgHover     { 0xFF323540 };
 
 const juce::Colour MultiverseFlatTheme::accentCyan  { 0xFF00D4FF };
 const juce::Colour MultiverseFlatTheme::accentPink  { 0xFFFF2A6D };
@@ -20,13 +20,13 @@ const juce::Colour MultiverseFlatTheme::neonPink     { accentPink };
 const juce::Colour MultiverseFlatTheme::neonPurple   { accentPurple };
 const juce::Colour MultiverseFlatTheme::neonGreen    { accentGreen };
 
-const juce::Colour MultiverseFlatTheme::borderLight { 0xFF2A2D38 };
+const juce::Colour MultiverseFlatTheme::borderLight { 0xFF404558 };
 const juce::Colour MultiverseFlatTheme::borderActive{ accentCyan };
 
-const juce::Colour MultiverseFlatTheme::textPrimary   { 0xFFE8E8F0 };
-const juce::Colour MultiverseFlatTheme::textSecondary { 0xFF7A8090 };
-const juce::Colour MultiverseFlatTheme::textMuted     { 0xFF404550 };
-const juce::Colour MultiverseFlatTheme::textLabel     { 0xFF5A6280 };
+const juce::Colour MultiverseFlatTheme::textPrimary   { 0xFFF0F0F8 };
+const juce::Colour MultiverseFlatTheme::textSecondary { 0xFF9098A8 };
+const juce::Colour MultiverseFlatTheme::textMuted     { 0xFF556070 };
+const juce::Colour MultiverseFlatTheme::textLabel     { 0xFF7080A0 };
 
 //==============================================================================
 MultiverseFlatTheme::MultiverseFlatTheme()
@@ -129,7 +129,7 @@ void MultiverseFlatTheme::drawCard (juce::Graphics& g,
     g.setColour (bgRaised);
     g.fillRoundedRectangle (bounds, cornerRadius);
     g.setColour (isActive ? borderActive : borderLight);
-    g.drawRoundedRectangle (bounds.reduced (0.5f), cornerRadius, 1.0f);
+    g.drawRoundedRectangle (bounds.reduced (0.5f), cornerRadius, 1.5f);
 }
 
 //==============================================================================
@@ -144,18 +144,14 @@ void MultiverseFlatTheme::drawRotarySlider (juce::Graphics& g,
 
     const float cx = x + w / 2.0f;
     const float cy = y + h / 2.0f;
-    auto discBounds = juce::Rectangle<float> (cx - radius, cy - radius,
-                                               radius * 2.0f, radius * 2.0f);
 
-    // --- Flat disc ---
-    g.setColour (bgRaised);
-    g.fillEllipse (discBounds);
-    g.setColour (borderLight);
-    g.drawEllipse (discBounds, 1.0f);
+    // Subtle outer ring outline
+    g.setColour (bgDeep.withAlpha (0.6f));
+    g.drawEllipse (cx - radius, cy - radius, radius * 2.0f, radius * 2.0f, 0.5f);
 
-    // --- Arc groove ---
-    const float arcRadius  = radius * 0.70f;
-    const float trackWidth = 2.5f;
+    // Arc groove (track)
+    const float arcRadius  = radius * 0.72f;
+    const float trackWidth = 2.0f;
     {
         juce::Path groove;
         groove.addCentredArc (cx, cy, arcRadius, arcRadius, 0.0f,
@@ -165,7 +161,7 @@ void MultiverseFlatTheme::drawRotarySlider (juce::Graphics& g,
             juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
     }
 
-    // --- Fill arc ---
+    // Fill arc + tip dot
     const juce::Colour arcColour = slider.findColour (juce::Slider::rotarySliderFillColourId);
     const float currentAngle = startAngle + sliderPos * (endAngle - startAngle);
     if (sliderPos > 0.001f)
@@ -177,26 +173,11 @@ void MultiverseFlatTheme::drawRotarySlider (juce::Graphics& g,
         g.strokePath (fillArc, juce::PathStrokeType (trackWidth,
             juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
-        // Tip dot (small, clean, no glow)
         const float tipX = cx + arcRadius * std::sin (currentAngle);
         const float tipY = cy - arcRadius * std::cos (currentAngle);
         g.setColour (arcColour);
-        g.fillEllipse (tipX - 3.0f, tipY - 3.0f, 6.0f, 6.0f);
+        g.fillEllipse (tipX - 3.5f, tipY - 3.5f, 7.0f, 7.0f);
     }
-
-    // --- Indicator line from center ---
-    {
-        const float lineLen = arcRadius - trackWidth - 2.0f;
-        const float px = cx + lineLen * std::sin (currentAngle);
-        const float py = cy - lineLen * std::cos (currentAngle);
-        g.setColour (textSecondary.withAlpha (0.7f));
-        g.drawLine (cx, cy, px, py, 1.0f);
-    }
-
-    // --- Center dot ---
-    const float dotR = 2.0f;
-    g.setColour (sliderPos > 0.001f ? arcColour.withAlpha (0.6f) : bgDeep);
-    g.fillEllipse (cx - dotR, cy - dotR, dotR * 2.0f, dotR * 2.0f);
 }
 
 //==============================================================================
@@ -303,7 +284,7 @@ void MultiverseFlatTheme::drawToggleButton (juce::Graphics& g, juce::ToggleButto
 
     // Label text
     g.setColour (on ? textPrimary : textSecondary);
-    g.setFont (juce::Font (11.0f, juce::Font::plain));
+    g.setFont (juce::Font (juce::FontOptions{}.withHeight (11.0f)));
     const int textX = (int)(dotX + dotSize + 5.0f);
     g.drawFittedText (button.getButtonText(),
                       textX, 0, (int)(bounds.getRight()) - textX - 4, (int)bounds.getHeight(),
@@ -343,7 +324,7 @@ void MultiverseFlatTheme::drawButtonText (juce::Graphics& g, juce::TextButton& b
     const bool active = isDown || button.getToggleState();
     g.setColour (active ? accentCyan
                         : (highlight ? textPrimary : textSecondary));
-    g.setFont (juce::Font (11.0f, juce::Font::plain));
+    g.setFont (juce::Font (juce::FontOptions{}.withHeight (11.0f)));
     g.drawFittedText (button.getButtonText(), button.getLocalBounds(),
                       juce::Justification::centred, 1);
 }
@@ -406,7 +387,7 @@ void MultiverseFlatTheme::drawTabButton (juce::TabBarButton& button, juce::Graph
         g.fillRoundedRectangle (bounds.reduced (2.0f, 0.0f), 4.0f);
     }
 
-    g.setFont (juce::Font (11.0f, juce::Font::plain));
+    g.setFont (juce::Font (juce::FontOptions{}.withHeight (11.0f)));
     g.setColour (front  ? accentCyan
                : mouseOver ? textPrimary
                            : textSecondary);
@@ -477,7 +458,7 @@ void MultiverseFlatTheme::drawPopupMenuItem (juce::Graphics& g,
     const juce::Colour col = textColour ? *textColour
                                         : (isActive ? textPrimary : textMuted);
     g.setColour (col);
-    g.setFont (juce::Font (12.0f, juce::Font::plain));
+    g.setFont (juce::Font (juce::FontOptions{}.withHeight (12.0f)));
 
     auto textArea = area.toFloat().reduced (8.0f, 0.0f);
 
@@ -505,7 +486,7 @@ void MultiverseFlatTheme::drawPopupMenuItem (juce::Graphics& g,
     if (!shortcut.isEmpty())
     {
         g.setColour (textMuted);
-        g.setFont (juce::Font (10.0f));
+        g.setFont (juce::Font (juce::FontOptions{}.withHeight (10.0f)));
         g.drawText (shortcut, area.reduced (8, 0), juce::Justification::centredRight, true);
     }
 }

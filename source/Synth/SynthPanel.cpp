@@ -5,8 +5,6 @@
 SynthPanel::SynthPanel(PluginProcessor& p)
     : processorRef(p), synthEngine(p.getSynthEngine())
 {
-    setLookAndFeel(&synthLookAndFeel);
-
     // Mode selector
     setupLabel(modeLabel, "MODE");
     addAndMakeVisible(modeLabel);
@@ -208,6 +206,8 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     addAndMakeVisible(lfoDisplay);
     synthDisplay.setProcessor(&processorRef);
     addAndMakeVisible(synthDisplay);
+    filterDisplay.setProcessor(&processorRef);
+    addAndMakeVisible(filterDisplay);
 
     // Preset buttons
     savePresetButton.onClick = [this]
@@ -264,6 +264,10 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     addAndMakeVisible(decaySlider);   addAndMakeVisible(decayLabel);
     addAndMakeVisible(sustainSlider); addAndMakeVisible(sustainLabel);
     addAndMakeVisible(releaseSlider); addAndMakeVisible(releaseLabel);
+
+    // Envelope display
+    addAndMakeVisible(envelopeDisplay);
+    envelopeDisplay.setSliders(&attackSlider, &decaySlider, &sustainSlider, &releaseSlider);
 
     // Filter
     setupSlider(cutoffSlider,    20.0, 20000.0, 20000.0, 0.3);
@@ -669,8 +673,10 @@ void SynthPanel::updateVisibility()
     decayLabel.setVisible(!isFM);   decaySlider.setVisible(!isFM);
     sustainLabel.setVisible(!isFM); sustainSlider.setVisible(!isFM);
     releaseLabel.setVisible(!isFM); releaseSlider.setVisible(!isFM);
+    envelopeDisplay.setVisible(!isFM);
 
     cutoffLabel.setVisible(!isFM);        cutoffSlider.setVisible(!isFM);
+    filterDisplay.setVisible(!isFM);
     resonanceLabel.setVisible(!isFM);     resonanceSlider.setVisible(!isFM);
     oversamplingLabel.setVisible(!isFM);  oversamplingSelector.setVisible(!isFM);
     filterTypeLabel.setVisible(!isFM);    filterTypeSelector.setVisible(!isFM);
@@ -787,6 +793,10 @@ void SynthPanel::resized()
     }
     area.removeFromTop(10);
 
+    // Scope/spectrum display (prominent, near top)
+    synthDisplay.setBounds(area.removeFromTop(120));
+    area.removeFromTop(8);
+
     if (isFM)
     {
         fmSectionRect = area.withHeight(46 + 8 + 4 * (16 + 60 + 16 + 8));
@@ -843,6 +853,9 @@ void SynthPanel::resized()
             btnRow.removeFromLeft(4);
             removeOscButton.setBounds(btnRow.removeFromLeft(60));
         }
+
+        // Waveform preview display
+        oscDisplay.setBounds(oscSectionRect.removeFromTop(48).reduced(8, 4));
 
         // Layout strips in rows of 4
         auto oscArea = oscSectionRect;
@@ -969,10 +982,18 @@ void SynthPanel::resized()
         }
         area.removeFromTop(8);
 
-        // FILTER section
+        // FILTER section (with curve display)
         filterSectionRect = area.removeFromTop(185);
         {
-            auto inner   = filterSectionRect.reduced(8).withTrimmedTop(18);
+            auto inner = filterSectionRect.reduced(8).withTrimmedTop(18);
+
+            // Left: filter curve display
+            auto filterDisplayArea = inner.removeFromLeft(juce::jmin(180, inner.getWidth() / 3));
+            filterDisplay.setBounds(filterDisplayArea.reduced(4));
+
+            inner.removeFromLeft(8);
+
+            // Right: filter knobs + controls
             auto knobRow = inner.removeFromTop(knobSz + labelH);
             auto placeKnob = [&](juce::Slider& s, juce::Label& l)
             {
@@ -998,10 +1019,16 @@ void SynthPanel::resized()
         }
         area.removeFromTop(8);
 
-        // ENV section
-        envSectionRect = area.removeFromTop(130);
+        // ENV section (with visualizer)
+        envSectionRect = area.removeFromTop(160);
         {
-            auto inner   = envSectionRect.reduced(8).withTrimmedTop(18);
+            auto inner = envSectionRect.reduced(8).withTrimmedTop(18);
+
+            // Left: envelope display
+            auto envDisplayArea = inner.removeFromLeft(juce::jmin(200, inner.getWidth() / 2));
+            envelopeDisplay.setBounds(envDisplayArea.reduced(4));
+
+            // Right: ADSR knobs
             auto knobRow = inner;
             auto placeKnob = [&](juce::Slider& s, juce::Label& l)
             {
@@ -1039,8 +1066,5 @@ void SynthPanel::resized()
             chordStrumLabel.setBounds(strumCol.removeFromTop(labelH));
         }
         area.removeFromTop(8);
-
-        // Waveform / spectrum display
-        synthDisplay.setBounds(area.removeFromTop(90));
     }
 }

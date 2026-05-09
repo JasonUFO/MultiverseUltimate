@@ -3,64 +3,11 @@
 #include "SynthEngine.h"
 #include "../NeuKnob.h"
 #include "SynthDisplay.h"
+#include "EnvelopeDisplay.h"
+#include "FilterDisplay.h"
 #include "WavetableEditor.h"
 
 class PluginProcessor;
-
-//==============================================================================
-class SynthLookAndFeel : public juce::LookAndFeel_V4
-{
-public:
-    SynthLookAndFeel()
-    {
-        setColour(juce::Slider::rotarySliderFillColourId,    juce::Colour(0xff4fc3f7));
-        setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colour(0xff1a2c36));
-        setColour(juce::Slider::textBoxTextColourId,         juce::Colour(0xffb0bec5));
-        setColour(juce::Slider::textBoxBackgroundColourId,   juce::Colours::transparentBlack);
-        setColour(juce::Slider::textBoxOutlineColourId,      juce::Colours::transparentBlack);
-        setColour(juce::Label::textColourId,                 juce::Colour(0xff90a4ae));
-    }
-
-    void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
-                          float sliderPos, float rotaryStartAngle, float rotaryEndAngle,
-                          juce::Slider&) override
-    {
-        const float r  = juce::jmin(width * 0.5f, height * 0.5f) - 4.0f;
-        const float cx = x + width  * 0.5f;
-        const float cy = y + height * 0.5f;
-
-        juce::ColourGradient grad(juce::Colour(0xff37474f), cx, cy - r,
-                                  juce::Colour(0xff162028), cx, cy + r, false);
-        g.setGradientFill(grad);
-        g.fillEllipse(cx - r, cy - r, r * 2.0f, r * 2.0f);
-
-        g.setColour(juce::Colour(0xff546e7a));
-        g.drawEllipse(cx - r, cy - r, r * 2.0f, r * 2.0f, 1.0f);
-
-        const float tr = r - 6.0f;
-        const float tw = 4.0f;
-
-        juce::Path track;
-        track.addCentredArc(cx, cy, tr, tr, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
-        g.setColour(juce::Colour(0xff1a2e3a));
-        g.strokePath(track, juce::PathStrokeType(tw, juce::PathStrokeType::curved,
-                                                 juce::PathStrokeType::rounded));
-
-        const float toAngle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-        juce::Path arc;
-        arc.addCentredArc(cx, cy, tr, tr, 0.0f, rotaryStartAngle, toAngle, true);
-        g.setColour(juce::Colour(0xff4fc3f7));
-        g.strokePath(arc, juce::PathStrokeType(tw, juce::PathStrokeType::curved,
-                                               juce::PathStrokeType::rounded));
-
-        juce::Path ptr;
-        ptr.startNewSubPath(0.0f, -(r - 6.0f));
-        ptr.lineTo(0.0f, -(r - 6.0f) * 0.45f);
-        ptr.applyTransform(juce::AffineTransform::rotation(toAngle).translated(cx, cy));
-        g.setColour(juce::Colours::white);
-        g.strokePath(ptr, juce::PathStrokeType(2.0f));
-    }
-};
 
 //==============================================================================
 class OscDisplay : public juce::Component
@@ -188,7 +135,7 @@ class SynthPanel : public juce::Component
 {
 public:
     explicit SynthPanel(PluginProcessor& p);
-    ~SynthPanel() override { setLookAndFeel(nullptr); }
+    ~SynthPanel() override = default;
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -196,8 +143,6 @@ public:
 private:
     PluginProcessor& processorRef;
     SynthEngine&     synthEngine;
-
-    SynthLookAndFeel synthLookAndFeel;
 
     // Header
     juce::Label      modeLabel, waveformLabel;
@@ -209,6 +154,8 @@ private:
     OscDisplay   oscDisplay;
     LFODisplay   lfoDisplay;
     SynthDisplay synthDisplay;
+    EnvelopeDisplay envelopeDisplay;
+    FilterDisplay filterDisplay;
 
     // Section rects: set in resized(), used in paint()
     juce::Rectangle<int> oscSectionRect, unisonSectionRect, filterSectionRect, envSectionRect;
