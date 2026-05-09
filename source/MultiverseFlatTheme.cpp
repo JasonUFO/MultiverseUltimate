@@ -357,7 +357,7 @@ void MultiverseFlatTheme::drawComboBox (juce::Graphics& g, int width, int height
 void MultiverseFlatTheme::drawTabAreaBehindFrontButton (juce::TabbedButtonBar& /*bar*/,
                                                           juce::Graphics& g, int w, int h)
 {
-    g.setColour (bgRaised);
+    g.setColour (bgDeep);
     g.fillRect (0, 0, w, h);
     // Bottom separator
     g.setColour (borderLight);
@@ -372,7 +372,7 @@ void MultiverseFlatTheme::drawTabButton (juce::TabBarButton& button, juce::Graph
 
     if (front)
     {
-        // Active tab: slightly raised background + accent bottom line
+        // Active tab: raised background + accent bottom line
         g.setColour (bgBase);
         g.fillRoundedRectangle (bounds.reduced (2.0f, 0.0f), 4.0f);
         // Bottom accent line
@@ -382,9 +382,12 @@ void MultiverseFlatTheme::drawTabButton (juce::TabBarButton& button, juce::Graph
     }
     else
     {
-        // Inactive tab: flat
-        g.setColour (mouseOver ? bgHover : bgRaised);
+        // Inactive tab: clearly visible against dark bar
+        g.setColour (mouseOver ? bgHover : bgRaised.withAlpha (0.9f));
         g.fillRoundedRectangle (bounds.reduced (2.0f, 0.0f), 4.0f);
+        // Border for separation
+        g.setColour (borderLight);
+        g.drawRoundedRectangle (bounds.reduced (2.0f, 0.0f), 4.0f, 0.8f);
     }
 
     g.setFont (juce::Font (juce::FontOptions{}.withHeight (11.0f)));
@@ -511,4 +514,35 @@ void MultiverseFlatTheme::drawScrollbar (juce::Graphics& g, juce::ScrollBar& /*b
 
     g.setColour (accentCyan.withAlpha (isMouseOver ? 0.5f : 0.3f));
     g.fillRoundedRectangle (thumb, 2.0f);
+}
+
+//==============================================================================
+// Section divider line
+void MultiverseFlatTheme::drawDivider (juce::Graphics& g, float y, float x1, float x2)
+{
+    g.setColour (borderLight.withAlpha (Metrics::dividerAlpha));
+    g.drawHorizontalLine (static_cast<int>(y), x1, x2);
+}
+
+//==============================================================================
+// Font getters
+juce::Font MultiverseFlatTheme::headerFont()
+{
+    return juce::Font (juce::FontOptions{}.withHeight (Metrics::fontHeader).withStyle ("Bold"));
+}
+
+juce::Font MultiverseFlatTheme::labelFont()
+{
+    return juce::Font (juce::FontOptions{}.withHeight (Metrics::fontLabel));
+}
+
+juce::Font MultiverseFlatTheme::valueFont()
+{
+    return juce::Font (juce::FontOptions{}.withHeight (Metrics::fontValue)
+                        .withName (juce::Font::getDefaultMonospacedFontName()));
+}
+
+juce::Font MultiverseFlatTheme::titleFont()
+{
+    return juce::Font (juce::FontOptions{}.withHeight (Metrics::fontTitle).withStyle ("Bold"));
 }

@@ -356,7 +356,7 @@ void SynthEngine::setNoiseOscColor(float hz)
 
 void SynthEngine::setOscCount(int n)
 {
-    oscCount = juce::jlimit(1, 8, n);
+    oscCount = juce::jlimit(1, 4, n);
     for (auto& vi : voices)
         vi.voice.setActiveOscs(oscCount);
 }

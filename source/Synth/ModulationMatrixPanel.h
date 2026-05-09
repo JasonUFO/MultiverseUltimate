@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "ModulationMatrix.h"
 #include "../NeuKnob.h"
+#include "../MultiverseFlatTheme.h"
 
 class ModulationMatrixPanel : public juce::Component,
                                 public juce::Timer

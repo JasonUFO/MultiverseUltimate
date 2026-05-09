@@ -125,6 +125,7 @@
         <FILE id="Gg0025" name="WavetableEditor.cpp"       compile="1" resource="0" file="source/Synth/WavetableEditor.cpp"/>
         <FILE id="Gg0026" name="LFOShapeEditor.h"          compile="0" resource="0" file="source/Synth/LFOShapeEditor.h"/>
         <FILE id="Gg0027" name="LFOShapeEditor.cpp"        compile="1" resource="0" file="source/Synth/LFOShapeEditor.cpp"/>
+        <FILE id="Gg0028" name="SignalFlowBar.h"           compile="0" resource="0" file="source/Synth/SignalFlowBar.h"/>
       </GROUP>
       <GROUP id="GrpLyr" name="Layers">
         <FILE id="Ly0001" name="LayerEngine.h"   compile="0" resource="0" file="source/Layers/LayerEngine.h"/>

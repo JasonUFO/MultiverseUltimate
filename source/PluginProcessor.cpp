@@ -280,10 +280,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
             juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f));
     }
 
-    // Active oscillator count (1–8, default 3)
+    // Active oscillator count (1–4, default 3)
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         juce::ParameterID{"oscCount", 1}, "Oscillator Count",
-        juce::StringArray{"1", "2", "3", "4", "5", "6", "7", "8"}, 2));
+        juce::StringArray{"1", "2", "3", "4"}, 2));
 
     // Unison parameters
     layout.add(std::make_unique<juce::AudioParameterChoice>(
@@ -650,6 +650,13 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     }
 
     keyboardState.processNextMidiBuffer(midiMessages, 0, buffer.getNumSamples(), true);
+
+    // Merge UI-generated MIDI (pitch bend, mod wheel from on-screen controls)
+    {
+        juce::ScopedLock sl(uiMidiLock);
+        midiMessages.addEvents(uiMidiBuffer, 0, buffer.getNumSamples(), 0);
+        uiMidiBuffer.clear();
+    }
 
     // Preview note handling (message thread writes atomics, audio thread acts)
     {

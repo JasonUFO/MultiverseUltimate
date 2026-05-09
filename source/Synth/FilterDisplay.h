@@ -41,7 +41,7 @@ public:
             g.drawHorizontalLine(juce::roundToInt(oy + t * h), ox, ox + w);
 
         // Frequency labels
-        g.setFont(juce::Font(juce::FontOptions{}.withHeight(7.5f)));
+        g.setFont(MultiverseFlatTheme::labelFont());
         g.setColour(MultiverseFlatTheme::textMuted.withAlpha(0.5f));
         const char* freqLabels[] = {"100", "1k", "10k"};
         for (int i = 0; i < 3; ++i)
@@ -89,7 +89,7 @@ public:
 
         // Filter type label
         g.setColour(MultiverseFlatTheme::accentCyan.withAlpha(0.7f));
-        g.setFont(juce::Font(juce::FontOptions{}.withHeight(8.0f)));
+        g.setFont(MultiverseFlatTheme::headerFont());
         const char* typeNames[] = {"LP", "HP", "BP", "NOTCH"};
         if (filterType >= 0 && filterType <= 3)
             g.drawText(typeNames[filterType], juce::Rectangle<int>((int)ox + 4, (int)oy + 2, 30, 12),

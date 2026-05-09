@@ -16,7 +16,26 @@
 //==============================================================================
 // [BEGIN_USER_CODE_SECTION]
 
-// (You can add your own code in this section, and the Projucer will not overwrite it)
+// Force Instrument/Synth classification — Projucer --resave resets these to
+// effect defaults. Undef first to avoid -Wmacro-redefined warnings from the
+// -D flags in GCC_PREPROCESSOR_DEFINITIONS, then redefine with correct values.
+// Do NOT define JucePlugin_Vst3Category here — JUCE's juce_VST3ModuleInfo.h
+// has auto-logic that sets it to kInstrumentSynth ("Instrument|Synth") when
+// IsSynth=1, which is the correct VST3 category string. A plain "Instrument"
+// string or Projucer's "Fx" would both be wrong.
+#undef  JucePlugin_IsSynth
+#define JucePlugin_IsSynth            1
+#undef  JucePlugin_WantsMidiInput
+#define JucePlugin_WantsMidiInput     1
+#undef  JucePlugin_VSTCategory
+#define JucePlugin_VSTCategory        kPlugCategSynth
+#undef  JucePlugin_AUMainType
+#define JucePlugin_AUMainType         'aumu'
+// Include JucePluginDefines.h here (inside preserved user section), then
+// #undef Vst3Category so JUCE's auto-logic in juce_VST3ModuleInfo.h can set
+// the correct "Instrument|Synth" value instead of Projucer's wrong string.
+#include "JucePluginDefines.h"
+#undef  JucePlugin_Vst3Category
 
 // [END_USER_CODE_SECTION]
 

@@ -153,14 +153,14 @@ void SynthDisplay::paint(juce::Graphics& g)
 
             // Note label
             g.setColour(inTune ? MultiverseFlatTheme::neonGreen : MultiverseFlatTheme::textPrimary);
-            g.setFont(juce::FontOptions(9.0f).withStyle("Bold"));
+            g.setFont(MultiverseFlatTheme::headerFont());
             g.drawText(juce::String(noteName) + juce::String(octave),
                        (int)tunerRect.getX(), (int)tunerRect.getY(), 26, (int)tunerH,
                        juce::Justification::centredLeft, false);
 
             // Hz readout
             g.setColour(MultiverseFlatTheme::textMuted);
-            g.setFont(juce::FontOptions(7.5f));
+            g.setFont(MultiverseFlatTheme::valueFont());
             g.drawText(juce::String((int)tunerHz) + "Hz",
                        (int)(barX + barW + 2.0f), (int)tunerRect.getY(), 36, (int)tunerH,
                        juce::Justification::centredLeft, false);
@@ -169,7 +169,7 @@ void SynthDisplay::paint(juce::Graphics& g)
         {
             // No signal
             g.setColour(MultiverseFlatTheme::textMuted.withAlpha(0.35f));
-            g.setFont(juce::FontOptions(7.5f));
+            g.setFont(MultiverseFlatTheme::labelFont());
             g.drawText("---", (int)tunerRect.getX(), (int)tunerRect.getY(),
                        (int)tunerRect.getWidth(), (int)tunerH,
                        juce::Justification::centredLeft, false);
@@ -204,7 +204,7 @@ void SynthDisplay::paint(juce::Graphics& g)
                                                 juce::PathStrokeType::rounded));
 
         g.setColour(MultiverseFlatTheme::textMuted);
-        g.setFont(juce::Font(8.0f));
+        g.setFont(MultiverseFlatTheme::labelFont());
         g.drawText("OSC", (int)scopeArea.getX(), (int)scopeArea.getY(), 24, 10,
                    juce::Justification::centredLeft, false);
     }
@@ -248,7 +248,7 @@ void SynthDisplay::paint(juce::Graphics& g)
         }
 
         g.setColour(MultiverseFlatTheme::textMuted);
-        g.setFont(juce::Font(8.0f));
+        g.setFont(MultiverseFlatTheme::labelFont());
         g.drawText("FFT", (int)specArea.getX(), (int)specArea.getY(), 22, 10,
                    juce::Justification::centredLeft, false);
     }

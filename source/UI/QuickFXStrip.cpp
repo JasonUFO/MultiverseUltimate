@@ -1,4 +1,5 @@
 #include "QuickFXStrip.h"
+#include "../MultiverseFlatTheme.h"
 #include "../PluginProcessor.h"
 
 QuickFXStrip::QuickFXStrip(PluginProcessor& p) : proc(p)
@@ -50,7 +51,7 @@ QuickFXStrip::QuickFXStrip(PluginProcessor& p) : proc(p)
     mfTypeAttach = std::make_unique<ComboAttach>(apvts, "mainFilterType", mfTypeCombo);
 
     // Section headers
-    const auto hdrFont = juce::Font(juce::FontOptions{}.withHeight(9.0f));
+    const auto hdrFont = MultiverseFlatTheme::headerFont();
     auto setupHeader = [&](juce::Label& lbl)
     {
         lbl.setFont(hdrFont);
@@ -75,7 +76,7 @@ void QuickFXStrip::setupKnob(KnobGroup& g, const juce::String& paramID, const ju
     g.knob.init(proc, paramID);
 
     g.label.setText(shortName, juce::dontSendNotification);
-    g.label.setFont(juce::Font(juce::FontOptions{}.withHeight(8.0f)));
+    g.label.setFont(MultiverseFlatTheme::labelFont());
     g.label.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
     g.label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(g.label);

@@ -42,7 +42,7 @@ void EffectChainStrip::paint(juce::Graphics& g)
     g.fillAll(MultiverseFlatTheme::bgBase);
 
     g.setColour(MultiverseFlatTheme::textSecondary.withAlpha(0.7f));
-    g.setFont(juce::Font(9.5f));
+    g.setFont(MultiverseFlatTheme::labelFont());
     g.drawText("EFFECT CHAIN  \xe2\x80\x94  drag tiles to reorder",
                getLocalBounds().removeFromTop(15).reduced(6, 0),
                juce::Justification::centredLeft);
@@ -61,12 +61,12 @@ void EffectChainStrip::paint(juce::Graphics& g)
         g.fillRoundedRectangle(tile.toFloat(), 5.f);
 
         g.setColour(juce::Colours::white.withAlpha(isSource ? 0.45f : 0.90f));
-        g.setFont(juce::Font(10.f, juce::Font::bold));
+        g.setFont(MultiverseFlatTheme::headerFont());
         g.drawFittedText(effectName(id), tile, juce::Justification::centred, 1);
 
         // Step number
         g.setColour(MultiverseFlatTheme::textMuted);
-        g.setFont(juce::Font(7.5f));
+        g.setFont(MultiverseFlatTheme::labelFont());
         g.drawText(juce::String(i + 1), tile.withTrimmedBottom(tile.getHeight() - 10).translated(3, 1),
                    juce::Justification::topLeft);
     }
@@ -402,11 +402,11 @@ void EffectsPanel::paint(juce::Graphics& g)
 
 void EffectsPanel::resized()
 {
-    auto area = getLocalBounds().reduced(16);
+    auto area = getLocalBounds().reduced(MultiverseFlatTheme::Metrics::outerMargin);
     const int knobSz  = 80;
     const int labelH  = 18;
     const int sectionH = labelH + knobSz + labelH; // 116 px
-    const int gap      = 10;
+    const int gap      = MultiverseFlatTheme::Metrics::sectionGap;
 
     // Chain strip at top
     chainStrip.setBounds(area.removeFromTop(56));

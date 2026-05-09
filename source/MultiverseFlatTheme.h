@@ -81,5 +81,31 @@ public:
     static void drawCard (juce::Graphics&, juce::Rectangle<float>,
                           float cornerRadius, bool isActive = false);
 
+    // Section divider line
+    static void drawDivider (juce::Graphics& g, float y, float x1, float x2);
+
+    // Font getters (single source of truth for the design system)
+    static juce::Font headerFont();   // 12pt bold — section headers, panel titles
+    static juce::Font labelFont();    // 10pt plain — parameter labels, axis labels
+    static juce::Font valueFont();    // 11pt mono — knob values, readouts
+    static juce::Font titleFont();    // 14pt bold — large panel headings
+
+    // Design system constants
+    struct Metrics
+    {
+        static constexpr float fontHeader    = 12.0f;
+        static constexpr float fontLabel      = 10.0f;
+        static constexpr float fontValue      = 11.0f;
+        static constexpr float fontTitle      = 14.0f;
+
+        static constexpr int outerMargin      = 10;
+        static constexpr int sectionPadding   = 10;
+        static constexpr int sectionGap       = 10;
+        static constexpr int smallGap          = 5;
+        static constexpr int sectionHeaderH   = 20;
+
+        static constexpr float dividerAlpha    = 0.6f;
+    };
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MultiverseFlatTheme)
 };

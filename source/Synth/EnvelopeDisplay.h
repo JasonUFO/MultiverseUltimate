@@ -80,7 +80,7 @@ public:
             juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
         // Segment labels
-        g.setFont (juce::Font (juce::FontOptions{}.withHeight (8.0f)));
+        g.setFont (MultiverseFlatTheme::labelFont());
         g.setColour (MultiverseFlatTheme::textMuted);
 
         const float labelY = oy + h + 2.0f;

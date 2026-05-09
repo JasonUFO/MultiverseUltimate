@@ -16,7 +16,7 @@ GranularPanel::GranularPanel (PluginProcessor& p) : proc(p)
     fileLabel.setText (proc.granularEngine.getSourceFilePath().isEmpty()
                        ? "(built-in default)" : proc.granularEngine.getSourceFilePath(),
                        juce::dontSendNotification);
-    fileLabel.setFont (juce::Font (11.0f, juce::Font::plain));
+    fileLabel.setFont (MultiverseFlatTheme::labelFont());
     fileLabel.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
     fileLabel.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (fileLabel);
@@ -80,7 +80,7 @@ GranularPanel::GranularPanel (PluginProcessor& p) : proc(p)
                      &attackLabel, &decayLabel, &sustainLabel, &releaseLabel })
         setupLabel (*l);
 
-    envelopeHeader.setFont (juce::Font (12.0f, juce::Font::bold));
+    envelopeHeader.setFont (MultiverseFlatTheme::headerFont());
     envelopeHeader.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
     envelopeHeader.setJustificationType (juce::Justification::centred);
     addAndMakeVisible (envelopeHeader);
@@ -98,7 +98,7 @@ void GranularPanel::setupSlider (NeuKnob& s, const juce::String& paramID,
 
 void GranularPanel::setupLabel (juce::Label& l)
 {
-    l.setFont (juce::Font (11.0f, juce::Font::plain));
+    l.setFont (MultiverseFlatTheme::labelFont());
     l.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
     l.setJustificationType (juce::Justification::centred);
     addAndMakeVisible (l);
@@ -119,8 +119,9 @@ void GranularPanel::paint (juce::Graphics& g)
         g.drawRoundedRectangle(sourceSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
         // Section title
         g.setColour(MultiverseFlatTheme::textLabel);
-        g.setFont(juce::Font(10.0f, juce::Font::bold));
+        g.setFont(MultiverseFlatTheme::headerFont());
         g.drawText("SOURCE", sourceSectionRect.getX() + 8, sourceSectionRect.getY() + 5, 100, 14, juce::Justification::centredLeft);
+        MultiverseFlatTheme::drawDivider(g, static_cast<float>(sourceSectionRect.getY() + 18), static_cast<float>(sourceSectionRect.getX() + 8), static_cast<float>(sourceSectionRect.getRight() - 8));
     }
 
     if (grainSectionRect.getHeight() > 0)
@@ -132,8 +133,9 @@ void GranularPanel::paint (juce::Graphics& g)
         g.drawRoundedRectangle(grainSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
         // Section title
         g.setColour(MultiverseFlatTheme::textLabel);
-        g.setFont(juce::Font(10.0f, juce::Font::bold));
+        g.setFont(MultiverseFlatTheme::headerFont());
         g.drawText("GRAIN", grainSectionRect.getX() + 8, grainSectionRect.getY() + 5, 100, 14, juce::Justification::centredLeft);
+        MultiverseFlatTheme::drawDivider(g, static_cast<float>(grainSectionRect.getY() + 18), static_cast<float>(grainSectionRect.getX() + 8), static_cast<float>(grainSectionRect.getRight() - 8));
     }
 
     if (envelopeSectionRect.getHeight() > 0)
@@ -145,8 +147,9 @@ void GranularPanel::paint (juce::Graphics& g)
         g.drawRoundedRectangle(envelopeSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
         // Section title
         g.setColour(MultiverseFlatTheme::textLabel);
-        g.setFont(juce::Font(10.0f, juce::Font::bold));
+        g.setFont(MultiverseFlatTheme::headerFont());
         g.drawText("VOICE ENVELOPE", envelopeSectionRect.getX() + 8, envelopeSectionRect.getY() + 5, 140, 14, juce::Justification::centredLeft);
+        MultiverseFlatTheme::drawDivider(g, static_cast<float>(envelopeSectionRect.getY() + 18), static_cast<float>(envelopeSectionRect.getX() + 8), static_cast<float>(envelopeSectionRect.getRight() - 8));
     }
 }
 

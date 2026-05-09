@@ -1,4 +1,5 @@
 #include "PerformancePanel.h"
+#include "../MultiverseFlatTheme.h"
 #include "../PluginProcessor.h"
 
 //==============================================================================
@@ -20,7 +21,7 @@ void PerformancePanel::XYPad::paint(juce::Graphics& g)
 
     // Title
     g.setColour(MultiverseFlatTheme::textLabel);
-    g.setFont(juce::Font(9.0f, juce::Font::bold));
+    g.setFont(MultiverseFlatTheme::headerFont());
     g.drawText("XY PAD  (MACRO 1 \xc3\x97 MACRO 2)",
                (int)b.getX() + 10, (int)b.getY() + 6, 200, 14,
                juce::Justification::centredLeft);
@@ -46,7 +47,7 @@ void PerformancePanel::XYPad::paint(juce::Graphics& g)
 
     // Axis labels
     g.setColour(MultiverseFlatTheme::textLabel);
-    g.setFont(juce::Font(9.0f));
+    g.setFont(MultiverseFlatTheme::labelFont());
     g.drawText("M1 \xe2\x86\x92", (int)inner.getX(), (int)inner.getBottom() + 1, 40, 12,
                juce::Justification::centredLeft);
     g.saveState();
@@ -142,12 +143,12 @@ PerformancePanel::PerformancePanel(PluginProcessor& p)
     titleLabel.setText("PERFORMANCE VIEW", juce::dontSendNotification);
     titleLabel.setJustificationType(juce::Justification::centredLeft);
     titleLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textLabel);
-    titleLabel.setFont(juce::Font(11.0f, juce::Font::bold));
+    titleLabel.setFont(MultiverseFlatTheme::headerFont());
     addAndMakeVisible(titleLabel);
 
     bpmLabel.setJustificationType(juce::Justification::centredRight);
     bpmLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::accentBlue);
-    bpmLabel.setFont(juce::Font(13.0f, juce::Font::bold));
+    bpmLabel.setFont(MultiverseFlatTheme::titleFont());
     addAndMakeVisible(bpmLabel);
 
     for (int i = 0; i < MacroManager::NUM_MACROS; ++i)
@@ -165,7 +166,7 @@ PerformancePanel::PerformancePanel(PluginProcessor& p)
 
         grp.nameLabel.setText(mgr.getName(i), juce::dontSendNotification);
         grp.nameLabel.setJustificationType(juce::Justification::centred);
-        grp.nameLabel.setFont(juce::Font(13.0f, juce::Font::bold));
+        grp.nameLabel.setFont(MultiverseFlatTheme::titleFont());
         grp.nameLabel.setEditable(false, true);
         grp.nameLabel.setColour(juce::Label::textColourId, juce::Colours::white);
         grp.nameLabel.setTooltip("Double-click to rename this macro");
@@ -205,7 +206,7 @@ void PerformancePanel::paint(juce::Graphics& g)
         g.setColour(MultiverseFlatTheme::bgRaised);
         g.fillRoundedRectangle(macroCardRect.toFloat(), 10.0f);
         g.setColour(MultiverseFlatTheme::textLabel);
-        g.setFont(juce::Font(9.0f, juce::Font::bold));
+        g.setFont(MultiverseFlatTheme::headerFont());
         g.drawText("MACROS",
                    macroCardRect.getX() + 10, macroCardRect.getY() + 6, 100, 13,
                    juce::Justification::centredLeft);
@@ -214,7 +215,7 @@ void PerformancePanel::paint(juce::Graphics& g)
 
 void PerformancePanel::resized()
 {
-    auto area = getLocalBounds().reduced(10);
+    auto area = getLocalBounds().reduced(MultiverseFlatTheme::Metrics::outerMargin);
 
     // Info strip
     infoCardRect = area.removeFromTop(34);

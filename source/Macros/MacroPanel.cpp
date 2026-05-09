@@ -22,7 +22,7 @@ MacroPanel::MacroPanel(PluginProcessor& p) : proc(p)
 
         g.nameLabel.setText(mgr.getName(i), juce::dontSendNotification);
         g.nameLabel.setJustificationType(juce::Justification::centred);
-        g.nameLabel.setFont(juce::Font(12.0f, juce::Font::bold));
+        g.nameLabel.setFont(MultiverseFlatTheme::headerFont());
         g.nameLabel.setEditable(false, true);
         g.nameLabel.setColour(juce::Label::textColourId, juce::Colours::white);
         g.nameLabel.setTooltip("Double-click to rename this macro");
@@ -64,20 +64,20 @@ void MacroPanel::paint(juce::Graphics& g)
 
         // Section title
         g.setColour(MultiverseFlatTheme::textLabel);
-        g.setFont(juce::Font(10.0f, juce::Font::bold));
+        g.setFont(MultiverseFlatTheme::headerFont());
         g.drawText("MACRO CONTROLS", macroSectionRect.getX() + 8, macroSectionRect.getY() + 5, 200, 14, juce::Justification::centredLeft);
     }
 
     // Instruction text
     g.setColour(juce::Colours::white.withAlpha(0.6f));
-    g.setFont(juce::Font(11.0f, juce::Font::bold));
+    g.setFont(MultiverseFlatTheme::headerFont());
     g.drawText("right-click any knob/slider to assign it to a macro",
                macroSectionRect.removeFromTop(28).withTrimmedLeft(8), juce::Justification::centredLeft, false);
 }
 
 void MacroPanel::resized()
 {
-    auto area = getLocalBounds().reduced(10);
+    auto area = getLocalBounds().reduced(MultiverseFlatTheme::Metrics::outerMargin);
     area.removeFromTop(30);
 
     // Macro section card wraps all macro knobs

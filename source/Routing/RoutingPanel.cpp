@@ -1,4 +1,5 @@
 #include "RoutingPanel.h"
+#include "../MultiverseFlatTheme.h"
 #include "../PluginProcessor.h"
 #include "../Layers/LayerManager.h"
 #include "../Layers/LayerEngine.h"
@@ -13,7 +14,7 @@ RoutingPanel::LayerBlock::LayerBlock(int idx, PluginProcessor& p)
     nameLabel.setText("Layer " + juce::String(idx + 1), juce::dontSendNotification);
     nameLabel.setJustificationType(juce::Justification::centredLeft);
     nameLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textPrimary);
-    nameLabel.setFont(juce::Font(11.0f, juce::Font::bold));
+    nameLabel.setFont(MultiverseFlatTheme::headerFont());
     addAndMakeVisible(nameLabel);
 
     engineSelector.addItem("Off",      1);
@@ -84,7 +85,7 @@ void RoutingPanel::LayerBlock::paint(juce::Graphics& g)
     if (busIdx > 0)
     {
         g.setColour(MultiverseFlatTheme::accentAmber);
-        g.setFont(juce::Font(8.0f));
+        g.setFont(MultiverseFlatTheme::labelFont());
         g.drawText("B" + juce::String(busIdx),
                    bounds.withTrimmedLeft(bounds.getWidth() - 24).withTrimmedTop(2),
                    juce::Justification::topRight);
@@ -142,7 +143,7 @@ RoutingPanel::DrumsSummaryBlock::DrumsSummaryBlock(PluginProcessor& p) : proc(p)
     infoLabel.setText("DRUMS \xe2\x80\x94 8 tracks", juce::dontSendNotification);
     infoLabel.setJustificationType(juce::Justification::centredLeft);
     infoLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textPrimary);
-    infoLabel.setFont(juce::Font(11.0f, juce::Font::bold));
+    infoLabel.setFont(MultiverseFlatTheme::headerFont());
     addAndMakeVisible(infoLabel);
 
     editButton.setButtonText("Edit");
@@ -213,7 +214,7 @@ void RoutingPanel::ChainStrip::paint(juce::Graphics& g)
         g.fillRoundedRectangle(tile.toFloat(), 4.f);
 
         g.setColour(juce::Colours::white.withAlpha(isSource ? 0.45f : 0.90f));
-        g.setFont(juce::Font(9.f, juce::Font::bold));
+        g.setFont(MultiverseFlatTheme::headerFont());
         g.drawFittedText(effectName(id), tile, juce::Justification::centred, 1);
 
         // Arrow between tiles
@@ -296,19 +297,19 @@ RoutingPanel::RoutingPanel(PluginProcessor& p)
     auxDelayLabel.setText("Delay", juce::dontSendNotification);
     auxDelayLabel.setJustificationType(juce::Justification::centred);
     auxDelayLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
-    auxDelayLabel.setFont(juce::Font(9.0f));
+    auxDelayLabel.setFont(MultiverseFlatTheme::labelFont());
     addAndMakeVisible(auxDelayLabel);
 
     auxReverbLabel.setText("Reverb", juce::dontSendNotification);
     auxReverbLabel.setJustificationType(juce::Justification::centred);
     auxReverbLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
-    auxReverbLabel.setFont(juce::Font(9.0f));
+    auxReverbLabel.setFont(MultiverseFlatTheme::labelFont());
     addAndMakeVisible(auxReverbLabel);
 
     auxSectionLabel.setText("AUX SENDS", juce::dontSendNotification);
     auxSectionLabel.setJustificationType(juce::Justification::centredLeft);
     auxSectionLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
-    auxSectionLabel.setFont(juce::Font(10.0f, juce::Font::bold));
+    auxSectionLabel.setFont(MultiverseFlatTheme::headerFont());
     addAndMakeVisible(auxSectionLabel);
 
     startTimerHz(10);
@@ -326,7 +327,7 @@ void RoutingPanel::paint(juce::Graphics& g)
 
     // Section headers
     g.setColour(MultiverseFlatTheme::textSecondary);
-    g.setFont(juce::Font(10.0f, juce::Font::bold));
+    g.setFont(MultiverseFlatTheme::headerFont());
 
     g.drawText("GENERATORS", generatorsRect.removeFromTop(16).reduced(4, 0),
                juce::Justification::topLeft);
@@ -477,7 +478,7 @@ void RoutingPanel::drawConnectionLines(juce::Graphics& g)
 
     // Output label
     g.setColour(MultiverseFlatTheme::textPrimary);
-    g.setFont(juce::Font(12.0f, juce::Font::bold));
+    g.setFont(MultiverseFlatTheme::titleFont());
     g.drawText("\xe2\x86\x92 OUTPUT", outputRect.reduced(4, 0),
                juce::Justification::centredLeft);
 }

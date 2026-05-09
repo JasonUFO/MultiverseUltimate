@@ -15,15 +15,16 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       routingPanel (p),
       tabs (juce::TabbedButtonBar::TabsAtTop),
       librarianPanel (p),
-      bottomBar (p),
-      quickFXStrip (p)
+      modBar (p)
 {
     setLookAndFeel (&mvTheme);
 
     setupTabs();
 
-    // Preset browser — always visible in left sidebar
+    // Add PRE tab for librarian
     addAndMakeVisible (librarianPanel);
+
+    // Librarian panel (added to PRE tab in setupTabs)
 
     // Preset navigation (header)
     prevPresetButton.addListener (this);
@@ -33,7 +34,7 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     forwardButton.addListener (this);
 
     presetNameLabel.setJustificationType (juce::Justification::centred);
-    presetNameLabel.setFont (juce::Font (12.0f, juce::Font::bold));
+    presetNameLabel.setFont (MultiverseFlatTheme::titleFont());
     presetNameLabel.setColour (juce::Label::textColourId, juce::Colours::white);
     presetNameLabel.setColour (juce::Label::backgroundColourId, MultiverseFlatTheme::bgDeep);
     presetNameLabel.setColour (juce::Label::outlineColourId, MultiverseFlatTheme::accentBlue.withAlpha (0.3f));
@@ -81,11 +82,14 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     fxModeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         p.apvts, "fxModeEnabled", fxModeButton);
 
-    // Bottom bar and right strip
-    addAndMakeVisible (bottomBar);
-    addAndMakeVisible (quickFXStrip);
+    // Mod bar (ENV/LFO/MACRO/QFX/KEY sub-tabs)
+    addAndMakeVisible (modBar);
 
     addAndMakeVisible (tabs);
+
+    // Mod-drag overlay (always on top for connection lines)
+    addAndMakeVisible (modDragOverlay);
+    modDragOverlay.setInterceptsMouseClicks (false, false);
 
     // Routing panel tab-switch callback
     routingPanel.onSwitchToTab = [this] (int index)
@@ -105,6 +109,7 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::setupTabs()
 {
+    tabs.addTab ("PRE",  MultiverseFlatTheme::bgBase, &librarianPanel,        false);
     tabs.addTab ("SYN",  MultiverseFlatTheme::bgBase, &synthPanel,            false);
     tabs.addTab ("DRM",  MultiverseFlatTheme::bgBase, &drumSequencerPanel,    false);
     tabs.addTab ("MOD",  MultiverseFlatTheme::bgBase, &modulationMatrixPanel, false);
@@ -141,19 +146,16 @@ void PluginEditor::resized()
     favoriteButton.setBounds  (center.removeFromLeft (28).reduced (2, 4));
     forwardButton.setBounds   (center.removeFromLeft (28).reduced (2, 4));
 
-    // Bottom bar: 88px across center + right strip
-    auto bottomArea = area.removeFromBottom (88);
-    bottomBar.setBounds (area.getX(), bottomArea.getY(),
-                         area.getWidth() + 200, 88);
+    // Mod bar: 160px at bottom, full width
+    auto bottomArea = area.removeFromBottom (ModBar::MOD_BAR_H);
+    modBar.setBounds (bottomArea);
 
-    // Left sidebar: 280px
-    librarianPanel.setBounds (area.removeFromLeft (280));
-
-    // Right FX strip: 200px
-    quickFXStrip.setBounds (area.removeFromRight (200));
-
-    // Tabs fill remaining center area
+    // Tabs fill remaining center area (full width, no right strip)
     tabs.setBounds (area);
+
+    // Mod-drag overlay covers full editor (always on top)
+    modDragOverlay.setBounds (getLocalBounds());
+    modDragOverlay.toFront (false);
 }
 
 void PluginEditor::buttonClicked (juce::Button* button)

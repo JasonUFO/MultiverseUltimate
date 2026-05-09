@@ -1,6 +1,7 @@
 #include "ModulationMatrixPanel.h"
 #include "LFOShapeEditor.h"
 #include "../MultiverseFlatTheme.h"
+#include "../NeuKnob.h"
 #include "../PluginProcessor.h"
 
 namespace {
@@ -34,8 +35,9 @@ ModulationMatrixPanel::LFORow::LFORow(int index, juce::AudioProcessorValueTreeSt
     const juce::String idx = juce::String(index + 1);
 
     label.setText("LFO " + idx, juce::dontSendNotification);
-    label.setFont(juce::Font(11.0f, juce::Font::bold));
-    label.setColour(juce::Label::textColourId, MultiverseFlatTheme::accentBlue);
+    label.setFont(MultiverseFlatTheme::headerFont());
+    label.setColour(juce::Label::textColourId, NeuKnob::getModSourceColour(
+        static_cast<ModSourceType>(index < 4 ? index : index + 11)));
     label.setJustificationType(juce::Justification::centredLeft);
 
     rateSlider.setSliderStyle(juce::Slider::LinearHorizontal);
@@ -216,7 +218,7 @@ ModulationMatrixPanel::ModulationMatrixPanel(PluginProcessor& p, ModulationMatri
     : processorRef(p), matrix(m)
 {
     titleLabel.setText("Modulation Matrix", juce::dontSendNotification);
-    titleLabel.setFont(juce::Font(16.0f, juce::Font::bold));
+    titleLabel.setFont(MultiverseFlatTheme::titleFont());
     titleLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textPrimary);
     addAndMakeVisible(titleLabel);
 
@@ -252,7 +254,7 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
     // LFO section header
     const int lfoSectionTop = HEADER_H;
     g.setColour(MultiverseFlatTheme::textSecondary);
-    g.setFont(juce::Font(10.5f, juce::Font::bold));
+    g.setFont(MultiverseFlatTheme::headerFont());
     g.drawText("LFO BANKS", PADDING, lfoSectionTop, 80, LFO_HDR_H, juce::Justification::centredLeft);
 
     // Thin separator line under LFO section
@@ -276,7 +278,7 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
     const int connHeaderY = lfoSectionBottom + 4;
     const int rowLeft = PADDING + 2;
     g.setColour(MultiverseFlatTheme::textSecondary);
-    g.setFont(juce::Font(11.0f));
+    g.setFont(MultiverseFlatTheme::labelFont());
     g.drawText("SOURCE", rowLeft,                                           connHeaderY, SRC_W, COL_HDR_H, juce::Justification::centredLeft);
     g.drawText("TARGET", rowLeft + SRC_W + INNER_GAP,                      connHeaderY, TGT_W, COL_HDR_H, juce::Justification::centredLeft);
     g.drawText("AMOUNT", rowLeft + SRC_W + INNER_GAP + TGT_W + INNER_GAP, connHeaderY, 80,   COL_HDR_H, juce::Justification::centredLeft);
@@ -296,7 +298,7 @@ void ModulationMatrixPanel::paint(juce::Graphics& g)
     if (rows.empty())
     {
         g.setColour(MultiverseFlatTheme::textMuted);
-        g.setFont(13.0f);
+        g.setFont(MultiverseFlatTheme::valueFont());
         g.drawText("No connections — press + to add one",
                    getLocalBounds().withTop(lfoSectionBottom + COL_HDR_H + 24),
                    juce::Justification::centredTop);

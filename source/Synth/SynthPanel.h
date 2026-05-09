@@ -2,7 +2,7 @@
 #include <JuceHeader.h>
 #include "SynthEngine.h"
 #include "../NeuKnob.h"
-#include "SynthDisplay.h"
+#include "../MultiverseFlatTheme.h"
 #include "EnvelopeDisplay.h"
 #include "FilterDisplay.h"
 #include "WavetableEditor.h"
@@ -33,6 +33,8 @@ public:
         const float ox = b.getX();
         const float cy = b.getY() + h * 0.5f;
         const int   N  = static_cast<int>(w);
+
+        if (N < 4) return;
 
         juce::Path path;
         for (int i = 0; i < N; ++i)
@@ -73,64 +75,6 @@ private:
 };
 
 //==============================================================================
-class LFODisplay : public juce::Component, private juce::Timer
-{
-public:
-    LFODisplay()  { startTimerHz(30); }
-    ~LFODisplay() override { stopTimer(); }
-
-    void timerCallback() override
-    {
-        phase = std::fmod(phase + 1.5f / 30.0f, 1.0f);
-        repaint();
-    }
-
-    void paint(juce::Graphics& g) override
-    {
-        auto b = getLocalBounds().toFloat().reduced(2.0f);
-        g.setColour(juce::Colour(0xff0a1820));
-        g.fillRoundedRectangle(b, 4.0f);
-        g.setColour(juce::Colour(0xff2a3d47));
-        g.drawRoundedRectangle(b, 4.0f, 1.0f);
-
-        g.setColour(juce::Colour(0xff607d8b));
-        g.setFont(juce::Font(9.0f, juce::Font::bold));
-        g.drawText("LFO", (int)b.getX(), (int)b.getY(), 28, (int)b.getHeight(),
-                   juce::Justification::centred);
-
-        auto wave = b.withTrimmedLeft(30.0f);
-        const float w  = wave.getWidth();
-        const float h  = wave.getHeight();
-        const float ox = wave.getX();
-        const float cy = wave.getY() + h * 0.5f;
-        const int   N  = static_cast<int>(w);
-
-        juce::Path path;
-        for (int i = 0; i < N; ++i)
-        {
-            const float t  = i / float(N - 1);
-            const float ph = std::fmod(phase + t * 2.0f, 1.0f);
-            const float y  = std::sin(ph * juce::MathConstants<float>::twoPi);
-            const float px = ox + t * w;
-            const float py = cy - y * h * 0.38f;
-            if (i == 0) path.startNewSubPath(px, py);
-            else        path.lineTo(px, py);
-        }
-        g.setColour(juce::Colour(0xff80cbc4));
-        g.strokePath(path, juce::PathStrokeType(1.5f));
-
-        const float dt  = std::fmod(phase * 0.5f, 1.0f);
-        const float dotX = ox + dt * w;
-        const float dotY = cy - std::sin(phase * juce::MathConstants<float>::twoPi) * h * 0.38f;
-        g.setColour(juce::Colour(0xffe0f7fa));
-        g.fillEllipse(dotX - 3.0f, dotY - 3.0f, 6.0f, 6.0f);
-    }
-
-private:
-    float phase = 0.0f;
-};
-
-//==============================================================================
 class SynthPanel : public juce::Component
 {
 public:
@@ -145,24 +89,29 @@ private:
     SynthEngine&     synthEngine;
 
     // Header
-    juce::Label      modeLabel, waveformLabel;
-    juce::ComboBox   modeSelector, waveformSelector;
+    juce::Label      modeLabel;
+    juce::ComboBox   modeSelector;
     juce::TextButton savePresetButton { "Save" };
     juce::TextButton loadPresetButton { "Load" };
 
-    // Classic-mode visualisations
-    OscDisplay   oscDisplay;
-    LFODisplay   lfoDisplay;
-    SynthDisplay synthDisplay;
+    // Per-oscillator waveform displays
+    std::array<OscDisplay, 8> oscDisplays;
+
+    // Envelope and filter displays (still in their sections)
     EnvelopeDisplay envelopeDisplay;
     FilterDisplay filterDisplay;
 
     // Section rects: set in resized(), used in paint()
-    juce::Rectangle<int> oscSectionRect, unisonSectionRect, filterSectionRect, envSectionRect;
+    juce::Rectangle<int> oscSectionRect, subNoiseSectionRect, unisonSectionRect;
+    juce::Rectangle<int> filterSectionRect, envSectionRect;
     juce::Rectangle<int> fmSectionRect, voiceSectionRect;
     juce::Rectangle<int> modeBadgeRect;
 
-    // 8 Oscillator strips (first 3 active by default; +/- buttons adjust count)
+    // OSC count buttons (replaces OscTabBar)
+    juce::TextButton addOscButton   { "+" };
+    juce::TextButton removeOscButton { "\xe2\x88\x92" }; // −
+
+    // 8 Oscillator strips (all active ones shown simultaneously)
     struct OscControls
     {
         juce::Label        sectionLabel;
@@ -188,8 +137,6 @@ private:
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>    shapeAmtAttach, selfOscAttach, phaseDistAttach;
     };
     std::array<OscControls, 8> oscControls;
-    juce::TextButton addOscButton { "+ OSC" };
-    juce::TextButton removeOscButton { "- OSC" };
 
     // Envelope
     juce::Label  envSectionLabel;
@@ -246,7 +193,6 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>   unisonDetuneAttach, unisonWidthAttach;
 
     // Sub oscillator section
-    juce::Rectangle<int> subNoiseSectionRect;
     juce::ToggleButton subOscEnableButton, noiseOscEnableButton;
     NeuKnob subOscLevelSlider, noiseOscLevelSlider, noiseOscColorSlider;
     juce::ComboBox subOscWaveSelector;
@@ -280,6 +226,114 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>   chordEnableAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> chordShapeAttach;
     std::unique_ptr<SliderAttachment>                                        chordStrumAttach;
+
+    // Readout bar — persistent parameter name + value display
+    class ReadoutBar : public juce::Component, private juce::Timer
+    {
+    public:
+        ReadoutBar() { startTimerHz(30); }
+        ~ReadoutBar() override { stopTimer(); }
+
+        void paint(juce::Graphics& g) override
+        {
+            auto b = getLocalBounds().toFloat();
+            g.setColour(MultiverseFlatTheme::bgDeep);
+            g.fillRoundedRectangle(b, 4.0f);
+            g.setColour(MultiverseFlatTheme::borderLight);
+            g.drawRoundedRectangle(b, 4.0f, 1.0f);
+
+            if (paramName.isNotEmpty())
+            {
+                g.setColour(MultiverseFlatTheme::accentCyan);
+                g.setFont(MultiverseFlatTheme::headerFont());
+                g.drawText(paramName, b.toNearestInt().reduced(8, 0),
+                           juce::Justification::centredLeft, false);
+
+                g.setColour(MultiverseFlatTheme::textPrimary);
+                g.setFont(MultiverseFlatTheme::valueFont());
+                g.drawText(paramValue, b.toNearestInt().reduced(8, 0),
+                           juce::Justification::centredRight, false);
+            }
+            else
+            {
+                g.setColour(MultiverseFlatTheme::textMuted);
+                g.setFont(MultiverseFlatTheme::labelFont());
+                g.drawText("Hover a knob to see its value", b.toNearestInt(),
+                           juce::Justification::centred, false);
+            }
+        }
+
+        void setInfo(const juce::String& name, const juce::String& value)
+        {
+            if (name != paramName || value != paramValue)
+            {
+                paramName = name;
+                paramValue = value;
+                repaint();
+            }
+        }
+
+    private:
+        juce::String paramName, paramValue;
+
+        void timerCallback() override
+        {
+            auto mousePos = juce::Desktop::getInstance().getMainMouseSource().getScreenPosition();
+            auto* topComp = getTopLevelComponent();
+            if (topComp == nullptr) return;
+            auto localPos = topComp->getLocalPoint(nullptr, mousePos);
+            auto* comp = topComp->getComponentAt(localPos);
+
+            NeuKnob* knob = nullptr;
+            while (comp != nullptr)
+            {
+                knob = dynamic_cast<NeuKnob*>(comp);
+                if (knob != nullptr) break;
+                auto* mls = dynamic_cast<MidiLearnSlider*>(comp);
+                if (mls != nullptr)
+                {
+                    if (mls->getParamID().isNotEmpty())
+                    {
+                        setInfo(formatParamName(mls->getParamID()),
+                                mls->getTextFromValue(mls->getValue()));
+                        return;
+                    }
+                    break;
+                }
+                comp = comp->getParentComponent();
+            }
+
+            if (knob != nullptr && knob->getParamID().isNotEmpty())
+            {
+                setInfo(formatParamName(knob->getParamID()),
+                        knob->getTextFromValue(knob->getValue()));
+            }
+            else
+            {
+                setInfo("", "");
+            }
+        }
+
+        static juce::String formatParamName(const juce::String& pid)
+        {
+            juce::String result;
+            for (int i = 0; i < pid.length(); ++i)
+            {
+                const auto c = pid[i];
+                if (i > 0 && c >= 'A' && c <= 'Z')
+                    result += ' ';
+                result += c;
+            }
+            result = result.replace("osc ", "OSC ");
+            result = result.replace("fm Op", "FM Op");
+            return result.trim();
+        }
+    };
+
+    ReadoutBar readoutBar;
+
+    // Static accent colours for oscillator strips (same as OscTabBar used)
+    static const juce::Colour oscColours[8];
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SynthPanel)
 };

@@ -34,6 +34,9 @@ private:
 protected:
     // Accessors for subclass NeuKnob
     PluginProcessor* getProcessor() const { return proc; }
+
+public:
+    // Public read-only access to parameter ID (used by readout bar and drag-drop)
     const juce::String& getParamID() const { return paramID; }
 
     void timerCallback() override;

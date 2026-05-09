@@ -2,6 +2,17 @@
 #include "../MultiverseFlatTheme.h"
 #include "../PluginProcessor.h"
 
+const juce::Colour SynthPanel::oscColours[8] = {
+    MultiverseFlatTheme::accentCyan,
+    MultiverseFlatTheme::accentPink,
+    MultiverseFlatTheme::accentPurple,
+    MultiverseFlatTheme::accentGreen,
+    MultiverseFlatTheme::accentAmber,
+    MultiverseFlatTheme::accentCyan,
+    MultiverseFlatTheme::accentPink,
+    MultiverseFlatTheme::accentPurple
+};
+
 SynthPanel::SynthPanel(PluginProcessor& p)
     : processorRef(p), synthEngine(p.getSynthEngine())
 {
@@ -21,9 +32,43 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     };
     addAndMakeVisible(modeSelector);
 
-    // 8 Oscillator strips
+    // OSC count buttons
+    addOscButton.setTooltip("Add an oscillator (max 4)");
+    removeOscButton.setTooltip("Remove an oscillator (min 1)");
+    addOscButton.onClick = [this]()
+    {
+        auto* param = processorRef.apvts.getParameter("oscCount");
+        if (param)
+        {
+            const int current = juce::roundToInt(param->getValue() * 3.0f);
+            if (current < 3)
+                param->setValueNotifyingHost((current + 1) / 3.0f);
+        }
+        updateVisibility();
+        resized();
+    };
+    removeOscButton.onClick = [this]()
+    {
+        auto* param = processorRef.apvts.getParameter("oscCount");
+        if (param)
+        {
+            const int current = juce::roundToInt(param->getValue() * 3.0f);
+            if (current > 0)
+                param->setValueNotifyingHost((current - 1) / 3.0f);
+        }
+        updateVisibility();
+        resized();
+    };
+    addAndMakeVisible(addOscButton);
+    addAndMakeVisible(removeOscButton);
+
+    // 8 Oscillator strips — all active ones are visible simultaneously
     for (int osc = 0; osc < 8; ++osc)
     {
+        // Per-osc waveform display
+        oscDisplays[osc].setWaveform(processorRef.baseWaveform);
+        addChildComponent(oscDisplays[osc]);
+
         auto& c = oscControls[osc];
         const juce::String pfx = "Osc " + juce::String(osc + 1);
         setupLabel(c.sectionLabel, pfx);
@@ -107,7 +152,7 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         c.phaseDistSlider.init(processorRef, paramPrefix + "PhaseDist");
 
         setupLabel(c.wtFileLabel, "no file");
-        c.wtFileLabel.setFont(juce::Font(9.0f));
+        c.wtFileLabel.setFont(MultiverseFlatTheme::labelFont());
         addChildComponent(c.loadWTButton);
         addChildComponent(c.editWTButton);
         addChildComponent(c.wtFileLabel);
@@ -127,7 +172,7 @@ SynthPanel::SynthPanel(PluginProcessor& p)
 
             auto* ed = wavetableEditors[osc].get();
             if (ed->isVisible()) { ed->setVisible(false); return; }
-            ed->setBounds(getLocalBounds().reduced(16));
+            ed->setBounds(getLocalBounds().reduced(MultiverseFlatTheme::Metrics::outerMargin));
             ed->setVisible(true);
             ed->toFront(false);
         };
@@ -152,62 +197,26 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         };
     }
 
-    // Add/Remove OSC buttons
-    addOscButton.onClick = [this]()
+    // Type change listeners — update waveform display and visibility
+    for (int osc = 0; osc < 8; ++osc)
     {
-        auto* param = processorRef.apvts.getParameter("oscCount");
-        if (param)
+        oscControls[osc].typeSelector.onChange = [this]()
         {
-            const int current = juce::roundToInt(param->getValue() * 7.0f); // 0-7 → count-1
-            if (current < 7)
-                param->setValueNotifyingHost((current + 1) / 7.0f);
-        }
-        updateVisibility();
-        resized();
-    };
-    removeOscButton.onClick = [this]()
-    {
-        auto* param = processorRef.apvts.getParameter("oscCount");
-        if (param)
+            updateVisibility();
+            resized();
+        };
+        // Waveform selector updates osc display
+        oscControls[osc].waveformSelector.onChange = [this, osc]()
         {
-            const int current = juce::roundToInt(param->getValue() * 7.0f);
-            if (current > 0)
-                param->setValueNotifyingHost((current - 1) / 7.0f);
-        }
-        updateVisibility();
-        resized();
-    };
-    addAndMakeVisible(addOscButton);
-    addAndMakeVisible(removeOscButton);
+            const auto wf = static_cast<WaveformType>(oscControls[osc].waveformSelector.getSelectedId() - 1);
+            oscDisplays[osc].setWaveform(wf);
+        };
+    }
 
-    // Waveform selector (legacy, hidden in 3-osc mode)
-    setupLabel(waveformLabel, "WAVEFORM");
-    addAndMakeVisible(waveformLabel);
-    waveformSelector.addItem("Sine",     1);
-    waveformSelector.addItem("Saw",      2);
-    waveformSelector.addItem("Square",   3);
-    waveformSelector.addItem("Triangle", 4);
-    waveformSelector.addItem("Noise",    5);
-    waveformSelector.setSelectedId(2, juce::dontSendNotification);
-    waveformSelector.onChange = [this]
-    {
-        const auto wf = static_cast<WaveformType>(waveformSelector.getSelectedId() - 1);
-        processorRef.baseWaveform = wf;
-        oscDisplay.setWaveform(wf);
-        // Legacy: also update Osc 1 classic waveform
-        auto& c = oscControls[0];
-        c.waveformSelector.setSelectedId(waveformSelector.getSelectedId(), juce::dontSendNotification);
-    };
-    addAndMakeVisible(waveformSelector);
-
-    // Visualisations
-    oscDisplay.setWaveform(processorRef.baseWaveform);
-    addAndMakeVisible(oscDisplay);
-    addAndMakeVisible(lfoDisplay);
-    synthDisplay.setProcessor(&processorRef);
-    addAndMakeVisible(synthDisplay);
+    // Visualisations (filter and envelope displays remain in their sections)
     filterDisplay.setProcessor(&processorRef);
     addAndMakeVisible(filterDisplay);
+    addAndMakeVisible(envelopeDisplay);
 
     // Preset buttons
     savePresetButton.onClick = [this]
@@ -309,7 +318,6 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     filterTypeSelector.setSelectedId(1, juce::dontSendNotification);
     filterTypeSelector.setTooltip("Filter topology: Low-pass, High-pass, Band-pass, or Notch");
     addAndMakeVisible(filterTypeSelector);
-    // APVTS attachments
     auto& apvts = processorRef.apvts;
     filterTypeAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
         apvts, "filterType", filterTypeSelector);
@@ -319,7 +327,7 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     releaseAttach   = std::make_unique<SliderAttachment>(apvts, "release",         releaseSlider);
     cutoffAttach    = std::make_unique<SliderAttachment>(apvts, "filterCutoff",    cutoffSlider);
     resonanceAttach = std::make_unique<SliderAttachment>(apvts, "filterResonance", resonanceSlider);
-    
+
     // Unison controls
     setupLabel(unisonVoicesLabel, "VOICES");
     setupLabel(unisonDetuneLabel, "DETUNE");
@@ -434,7 +442,7 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         setupSlider(c.attackSlider,   0.001, 5.0,  0.01, 0.4);
         setupSlider(c.decaySlider,    0.001, 5.0,  0.1,  0.4);
         setupSlider(c.sustainSlider,  0.0,   1.0,  0.7);
-        setupSlider(c.releaseSlider,  0.001, 10.0, 0.3,  0.4);
+        setupSlider(c.releaseSlider, 0.001, 10.0, 0.3,  0.4);
 
         setupLabel(c.ratioLabel,    "Ratio");
         setupLabel(c.levelLabel,    "Level");
@@ -460,8 +468,7 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         c.decayAttach    = std::make_unique<SliderAttachment>(apvts, pfx + "Decay",    c.decaySlider);
         c.sustainAttach  = std::make_unique<SliderAttachment>(apvts, pfx + "Sustain",  c.sustainSlider);
         c.releaseAttach  = std::make_unique<SliderAttachment>(apvts, pfx + "Release",  c.releaseSlider);
-        
-        // Initialize MidiLearnSliders for FM operator
+
         c.ratioSlider.init(processorRef, pfx + "Ratio");
         c.levelSlider.init(processorRef, pfx + "Level");
         c.feedbackSlider.init(processorRef, pfx + "Feedback");
@@ -505,16 +512,15 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         apvts, "portaAlways", portaAlwaysButton);
 
     mpeButton.setButtonText("MPE");
-    mpeButton.setTooltip("Enable MPE: per-note pitch bend (±48 st), pressure, and slide from expressive controllers");
+    mpeButton.setTooltip("Enable MPE: per-note pitch bend, pressure, and slide from expressive controllers");
     addAndMakeVisible(mpeButton);
     mpeAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         apvts, "mpeEnabled", mpeButton);
 
     // Tooltips
-    modeSelector.setTooltip      ("Synthesis mode: Classic (subtractive) for 3 oscillators, or FM");
-    waveformSelector.setTooltip  ("Legacy oscillator waveform selector");
-    savePresetButton.setTooltip  ("Save current state to a preset file");
-    loadPresetButton.setTooltip  ("Load a previously saved preset file");
+    modeSelector.setTooltip("Synthesis mode: Classic (subtractive) or FM");
+    savePresetButton.setTooltip("Save current state to a preset file");
+    loadPresetButton.setTooltip("Load a previously saved preset file");
 
     for (int osc = 0; osc < 8; ++osc)
     {
@@ -530,15 +536,14 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         c.selfOscSlider.setTooltip  (pfx + "Self-oscillation feedback (0–100%)");
         c.phaseDistSlider.setTooltip(pfx + "Phase distortion amount (0–100%)");
     }
-    addOscButton.setTooltip   ("Add an oscillator (max 8)");
-    removeOscButton.setTooltip("Remove the last oscillator (min 1)");
+
     attackSlider.setTooltip      ("Envelope Attack: time to reach full volume (1ms–5s)");
     decaySlider.setTooltip       ("Envelope Decay: time to fall to sustain level (1ms–5s)");
     sustainSlider.setTooltip     ("Envelope Sustain: held volume level (0–100%)");
     releaseSlider.setTooltip     ("Envelope Release: time to silence after note-off (1ms–10s)");
-    cutoffSlider.setTooltip      ("Filter Cutoff: frequency where filtering begins (20Hz–20kHz). Lower = darker sound.");
+    cutoffSlider.setTooltip      ("Filter Cutoff: frequency where filtering begins (20Hz–20kHz)");
     resonanceSlider.setTooltip   ("Filter Resonance: emphasis at cutoff. High values add a ringing tone.");
-    oversamplingSelector.setTooltip("Filter Oversampling: Off / 2x / 4x / Auto (Auto enables 2× above 5kHz)");
+    oversamplingSelector.setTooltip("Filter Oversampling: Off / 2x / 4x / Auto");
     algorithmSelector.setTooltip ("FM Algorithm: operator routing topology (1–8)");
     for (int op = 0; op < 4; ++op)
     {
@@ -550,7 +555,7 @@ SynthPanel::SynthPanel(PluginProcessor& p)
         c.attackSlider.setTooltip  (pfx + "Operator envelope Attack (1ms–5s)");
         c.decaySlider.setTooltip   (pfx + "Operator envelope Decay (1ms–5s)");
         c.sustainSlider.setTooltip (pfx + "Operator envelope Sustain level (0–100%)");
-        c.releaseSlider.setTooltip (pfx + "Operator envelope Release (1ms–10s)");
+        c.releaseSlider.setTooltip(pfx + "Operator envelope Release (1ms–10s)");
     }
 
     // Chord/Strum mode
@@ -590,6 +595,9 @@ SynthPanel::SynthPanel(PluginProcessor& p)
     setupLabel(chordStrumLabel, "STRUM");
     addAndMakeVisible(chordStrumLabel);
 
+    // Readout bar
+    addAndMakeVisible(readoutBar);
+
     updateVisibility();
 }
 
@@ -619,8 +627,9 @@ void SynthPanel::drawSection(juce::Graphics& g, juce::Rectangle<int> r,
     g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
     g.drawRoundedRectangle(r.toFloat().reduced(0.5f), cr, 1.0f);
     g.setColour(MultiverseFlatTheme::textLabel);
-    g.setFont(juce::Font(10.0f, juce::Font::bold));
+    g.setFont(MultiverseFlatTheme::headerFont());
     g.drawText(title, r.getX() + 8, r.getY() + 5, 100, 14, juce::Justification::centredLeft);
+    MultiverseFlatTheme::drawDivider(g, static_cast<float>(r.getY() + 18), static_cast<float>(r.getX() + 8), static_cast<float>(r.getRight() - 8));
 }
 
 //==============================================================================
@@ -628,41 +637,45 @@ void SynthPanel::updateVisibility()
 {
     const bool isFM = (modeSelector.getSelectedId() == 2);
 
-    waveformLabel.setVisible(!isFM);
-    waveformSelector.setVisible(!isFM);
-    oscDisplay.setVisible(!isFM);
-    lfoDisplay.setVisible(false);
-    synthDisplay.setVisible(!isFM);
-
-    // 8 Osc controls visibility (only show up to oscCount active strips)
+    // OSC section — all active oscillators visible
     const int activeOscCount = static_cast<int>(*processorRef.apvts.getRawParameterValue("oscCount")) + 1;
+
     for (int i = 0; i < 8; ++i)
     {
         auto& c = oscControls[i];
-        const bool active = (!isFM) && (i < activeOscCount);
-        const bool isWavetable  = c.typeSelector.getSelectedId() == 2;
-        const bool isPhaseDist  = c.typeSelector.getSelectedId() == 4;
-        const bool hasShaping   = active && (c.shapeTypeSelector.getSelectedId() > 1);
-        c.sectionLabel.setVisible(active);
-        c.typeSelector.setVisible(active);
-        c.levelLabel.setVisible(active);    c.levelSlider.setVisible(active);
-        c.detuneLabel.setVisible(active);   c.detuneSlider.setVisible(active);
-        c.waveformSelector.setVisible(active && !isWavetable);
-        c.wavePosLabel.setVisible(active && isWavetable);
-        c.wavePosSlider.setVisible(active && isWavetable);
-        c.loadWTButton.setVisible(active && isWavetable);
-        c.editWTButton.setVisible(active && isWavetable);
-        c.wtFileLabel.setVisible(active && isWavetable);
-        c.shapeTypeSelector.setVisible(active);
-        c.shapeAmtLabel.setVisible(active && hasShaping);
-        c.shapeAmtSlider.setVisible(active && hasShaping);
-        c.selfOscLabel.setVisible(active);
-        c.selfOscSlider.setVisible(active);
-        c.phaseDistLabel.setVisible(active && isPhaseDist);
-        c.phaseDistSlider.setVisible(active && isPhaseDist);
+        const bool isActive = (!isFM) && (i < activeOscCount);
+        const bool isWavetable  = isActive && c.typeSelector.getSelectedId() == 2;
+        const bool isPhaseDist  = isActive && c.typeSelector.getSelectedId() == 4;
+        const bool hasShaping   = isActive && c.typeSelector.getSelectedId() > 1;
+
+        c.sectionLabel.setVisible(isActive);
+        c.typeSelector.setVisible(isActive);
+        c.levelSlider.setVisible(isActive);    c.levelLabel.setVisible(isActive);
+        c.detuneSlider.setVisible(isActive);   c.detuneLabel.setVisible(isActive);
+        c.waveformSelector.setVisible(isActive && !isWavetable);
+        c.wavePosSlider.setVisible(isActive && isWavetable);
+        c.wavePosLabel.setVisible(isActive && isWavetable);
+        c.loadWTButton.setVisible(isActive && isWavetable);
+        c.editWTButton.setVisible(isActive && isWavetable);
+        c.wtFileLabel.setVisible(isActive && isWavetable);
+        c.shapeTypeSelector.setVisible(isActive);
+        c.shapeAmtSlider.setVisible(isActive && hasShaping);
+        c.shapeAmtLabel.setVisible(isActive && hasShaping);
+        c.selfOscSlider.setVisible(isActive);
+        c.selfOscLabel.setVisible(isActive);
+        c.phaseDistSlider.setVisible(isActive && isPhaseDist);
+        c.phaseDistLabel.setVisible(isActive && isPhaseDist);
+
+        // Per-osc waveform display
+        oscDisplays[i].setVisible(isActive);
     }
+
+    // +/- OSC buttons
     addOscButton.setVisible(!isFM);
     removeOscButton.setVisible(!isFM);
+
+    // Mode badge shows osc count
+    modeSelector.setVisible(true);
 
     unisonVoicesLabel.setVisible(!isFM); unisonVoicesBox.setVisible(!isFM);
     unisonDetuneLabel.setVisible(!isFM); unisonDetuneSlider.setVisible(!isFM);
@@ -709,6 +722,9 @@ void SynthPanel::updateVisibility()
     chordShapeSelector.setVisible(!isFM);
     chordStrumLabel.setVisible(!isFM);
     chordStrumSlider.setVisible(!isFM);
+
+    savePresetButton.setVisible(true);
+    loadPresetButton.setVisible(true);
 }
 
 //==============================================================================
@@ -726,6 +742,19 @@ void SynthPanel::paint(juce::Graphics& g)
         drawSection(g, filterSectionRect,   "FILTER");
         drawSection(g, envSectionRect,      "ENV");
         drawSection(g, chordSectionRect,    "CHORD / STRUM");
+
+        // Accent lines at top of each osc strip
+        const int activeOscCount = static_cast<int>(*processorRef.apvts.getRawParameterValue("oscCount")) + 1;
+        const int gap = 6;
+        const int stripW = (oscSectionRect.getWidth() - 16 - (activeOscCount - 1) * gap) / activeOscCount;
+        for (int i = 0; i < activeOscCount; ++i)
+        {
+            const auto col = oscColours[i];
+            const int x = oscSectionRect.getX() + 8 + i * (stripW + gap);
+            auto accentRect = juce::Rectangle<float>(x, oscSectionRect.getY() + 2, stripW, 2.0f);
+            g.setColour(col);
+            g.fillRect(accentRect);
+        }
     }
     else
     {
@@ -745,14 +774,14 @@ void SynthPanel::paint(juce::Graphics& g)
     g.setColour(badgeCol);
     g.drawRoundedRectangle(modeBadgeRect.toFloat(), 4.0f, 1.0f);
     g.setColour(badgeCol);
-    g.setFont(juce::Font(10.0f, juce::Font::bold));
+    g.setFont(MultiverseFlatTheme::headerFont());
     g.drawText(isFM ? "FM" : "CLASSIC", modeBadgeRect, juce::Justification::centred);
 }
 
 //==============================================================================
 void SynthPanel::resized()
 {
-    auto area = getLocalBounds().reduced(16);
+    auto area = getLocalBounds().reduced(MultiverseFlatTheme::Metrics::outerMargin);
     const bool isFM = (modeSelector.getSelectedId() == 2);
 
     // Header
@@ -791,11 +820,7 @@ void SynthPanel::resized()
         portamentoLabel.setBounds(portaCol.removeFromTop(18));
         portamentoSlider.setBounds(portaCol.removeFromTop(26));
     }
-    area.removeFromTop(10);
-
-    // Scope/spectrum display (prominent, near top)
-    synthDisplay.setBounds(area.removeFromTop(120));
-    area.removeFromTop(8);
+    area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
     if (isFM)
     {
@@ -805,7 +830,7 @@ void SynthPanel::resized()
         auto algRow = fmArea.removeFromTop(46);
         algorithmLabel.setBounds(algRow.removeFromTop(18));
         algorithmSelector.setBounds(algRow.removeFromTop(26));
-        fmArea.removeFromTop(8);
+        fmArea.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         const int opKnobW  = 60;
         const int opLabelH = 16;
@@ -822,7 +847,7 @@ void SynthPanel::resized()
                 auto col = knobs.removeFromLeft(opKnobW);
                 s.setBounds(col.removeFromTop(opKnobW));
                 l.setBounds(col.removeFromTop(opLabelH));
-                knobs.removeFromLeft(4);
+                knobs.removeFromLeft(MultiverseFlatTheme::Metrics::smallGap);
             };
             place(c.ratioSlider,    c.ratioLabel);
             place(c.levelSlider,    c.levelLabel);
@@ -831,96 +856,113 @@ void SynthPanel::resized()
             place(c.decaySlider,    c.decayLabel);
             place(c.sustainSlider,  c.sustainLabel);
             place(c.releaseSlider,  c.releaseLabel);
-            fmArea.removeFromTop(8);
+            fmArea.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
         }
-        area.removeFromTop(fmSectionRect.getHeight() + 8);
+        area.removeFromTop(fmSectionRect.getHeight() + MultiverseFlatTheme::Metrics::sectionGap);
     }
     else
     {
-        const int knobSz = 70;
-        const int labelH = 18;
+        const int knobSz = 80;
+        const int labelH  = 18;
+        const int gap      = 6;
 
-        // OSC strips (1–8, up to 2 rows of 4)
+        // OSC section: all oscillators in a horizontal row
         const int activeOscCount = static_cast<int>(*processorRef.apvts.getRawParameterValue("oscCount")) + 1;
-        const int numRows = (activeOscCount > 4) ? 2 : 1;
-        const int perRowHeight = 220;
-        oscSectionRect = area.removeFromTop(numRows * perRowHeight + 20);
+        // Calculate height based on content
+        const int oscSectionH = 280;
+        oscSectionRect = area.removeFromTop(oscSectionH);
 
-        // Add/Remove buttons row at top of OSC section
         {
-            auto btnRow = oscSectionRect.removeFromTop(20).reduced(8, 0);
-            addOscButton.setBounds(btnRow.removeFromLeft(60));
-            btnRow.removeFromLeft(4);
-            removeOscButton.setBounds(btnRow.removeFromLeft(60));
-        }
+            auto oscInner = oscSectionRect.reduced(8).withTrimmedTop(20);
 
-        // Waveform preview display
-        oscDisplay.setBounds(oscSectionRect.removeFromTop(48).reduced(8, 4));
+            // + / - buttons row (compact, right-aligned)
+            auto btnRow = oscInner.removeFromTop(22);
+            addOscButton.setBounds(btnRow.removeFromRight(24).reduced(1, 2));
+            btnRow.removeFromRight(4);
+            removeOscButton.setBounds(btnRow.removeFromRight(24).reduced(1, 2));
 
-        // Layout strips in rows of 4
-        auto oscArea = oscSectionRect;
-        for (int row = 0; row < numRows; ++row)
-        {
-            const int rowStart = row * 4;
-            const int rowEnd   = juce::jmin(rowStart + 4, activeOscCount);
-            const int count    = rowEnd - rowStart;
-            if (count <= 0) break;
+            // Strip width calculation
+            const int totalWidth = oscInner.getWidth();
+            const int stripW = (totalWidth - (activeOscCount - 1) * gap) / activeOscCount;
 
-            auto rowRect = oscArea.removeFromTop(perRowHeight);
-            auto inner   = rowRect.reduced(8).withTrimmedTop(8);
-            const int stripW = inner.getWidth() / count;
-
-            for (int i = rowStart; i < rowEnd; ++i)
+            // Layout each oscillator strip
+            int xPos = oscInner.getX();
+            for (int i = 0; i < activeOscCount; ++i)
             {
-                auto strip = inner.removeFromLeft(stripW).reduced(4, 0);
                 auto& c = oscControls[i];
-                c.sectionLabel.setBounds(strip.removeFromTop(16));
-                c.typeSelector.setBounds(strip.removeFromTop(26));
-                strip.removeFromTop(4);
-
-                auto knobArea = strip;
                 const bool isWavetable = c.typeSelector.getSelectedId() == 2;
                 const bool isPhaseDist = c.typeSelector.getSelectedId() == 4;
-                const bool hasShape    = c.shapeTypeSelector.getSelectedId() > 1;
+                const bool hasShaping   = c.typeSelector.getSelectedId() > 1;
 
-                auto placeKnob = [&](juce::Component& comp, juce::Label& lbl)
+                auto strip = oscInner.withLeft(xPos).withWidth(stripW);
+
+                // Waveform display (compact)
+                oscDisplays[i].setBounds(strip.removeFromTop(32));
+                strip.removeFromTop(4);
+
+                // Type selector
+                c.typeSelector.setBounds(strip.removeFromTop(22));
+                strip.removeFromTop(4);
+
+                // Level + Detune knobs (+ WavePos if Wavetable)
                 {
-                    auto col = knobArea.removeFromTop(knobSz + labelH);
-                    comp.setBounds(col.removeFromTop(knobSz));
-                    lbl.setBounds(col.removeFromTop(labelH));
-                    knobArea.removeFromTop(2);
-                };
-                placeKnob(c.levelSlider, c.levelLabel);
-                placeKnob(c.detuneSlider, c.detuneLabel);
-                if (isWavetable)
-                    placeKnob(c.wavePosSlider, c.wavePosLabel);
-                else
-                    c.waveformSelector.setBounds(knobArea.removeFromTop(26));
-                if (isPhaseDist)
-                    placeKnob(c.phaseDistSlider, c.phaseDistLabel);
-
-                // Shape row
-                auto shapeRow = knobArea.removeFromTop(26);
-                c.shapeTypeSelector.setBounds(shapeRow.removeFromLeft(shapeRow.getWidth() * 3 / 5));
-                if (hasShape)
-                    placeKnob(c.shapeAmtSlider, c.shapeAmtLabel);
-                placeKnob(c.selfOscSlider, c.selfOscLabel);
-
-                if (isWavetable)
-                {
-                    auto btnRow = knobArea.removeFromTop(20);
-                    c.loadWTButton.setBounds(btnRow.removeFromLeft(60));
-                    btnRow.removeFromLeft(4);
-                    c.editWTButton.setBounds(btnRow.removeFromLeft(56));
-                    btnRow.removeFromLeft(4);
-                    c.wtFileLabel.setBounds(btnRow);
+                    auto knobRow = strip.removeFromTop(knobSz + labelH);
+                    auto placeKnob = [&](juce::Component& comp, juce::Label& lbl)
+                    {
+                        auto col = knobRow.removeFromLeft(knobSz);
+                        comp.setBounds(col.removeFromTop(knobSz));
+                        lbl.setBounds(col.removeFromTop(labelH));
+                        knobRow.removeFromLeft(8);
+                    };
+                    placeKnob(c.levelSlider, c.levelLabel);
+                    placeKnob(c.detuneSlider, c.detuneLabel);
+                    if (isWavetable)
+                        placeKnob(c.wavePosSlider, c.wavePosLabel);
                 }
+
+                strip.removeFromTop(4);
+
+                // Waveform selector (Classic mode only) or WavePos label
+                if (!isWavetable)
+                    c.waveformSelector.setBounds(strip.removeFromTop(22).withSizeKeepingCentre(72, 22));
+
+                // Shape type combo
+                c.shapeTypeSelector.setBounds(strip.removeFromTop(22).withSizeKeepingCentre(72, 22));
+                strip.removeFromTop(4);
+
+                // Shape amount, Self-osc, PhaseDist knobs
+                {
+                    auto knobRow = strip.removeFromTop(knobSz + labelH);
+                    auto placeKnob = [&](juce::Component& comp, juce::Label& lbl)
+                    {
+                        auto col = knobRow.removeFromLeft(knobSz);
+                        comp.setBounds(col.removeFromTop(knobSz));
+                        lbl.setBounds(col.removeFromTop(labelH));
+                        knobRow.removeFromLeft(8);
+                    };
+                    if (hasShaping)
+                        placeKnob(c.shapeAmtSlider, c.shapeAmtLabel);
+                    placeKnob(c.selfOscSlider, c.selfOscLabel);
+                    if (isPhaseDist)
+                        placeKnob(c.phaseDistSlider, c.phaseDistLabel);
+                }
+
+                // Wavetable buttons (if applicable)
+                if (isWavetable)
+                {
+                    auto wtRow = strip.removeFromTop(20);
+                    c.loadWTButton.setBounds(wtRow.removeFromLeft(56));
+                    wtRow.removeFromLeft(4);
+                    c.editWTButton.setBounds(wtRow.removeFromLeft(52));
+                }
+
+                xPos += stripW + gap;
             }
         }
-        area.removeFromTop(8);
+        area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         // SUB / NOISE section
-        subNoiseSectionRect = area.removeFromTop(126);
+        subNoiseSectionRect = area.removeFromTop(110);
         {
             auto inner = subNoiseSectionRect.reduced(8).withTrimmedTop(18);
             const int halfW = inner.getWidth() / 2;
@@ -932,7 +974,7 @@ void SynthPanel::resized()
             subOscEnableButton.setBounds(subCtrlRow.removeFromLeft(40));
             subCtrlRow.removeFromLeft(6);
             subOscWaveSelector.setBounds(subCtrlRow.removeFromLeft(90));
-            subArea.removeFromTop(4);
+            subArea.removeFromTop(MultiverseFlatTheme::Metrics::smallGap);
             auto subKnobArea = subArea.removeFromTop(knobSz + labelH);
             subOscLevelSlider.setBounds(subKnobArea.removeFromTop(knobSz));
             subOscLevelLabel.setBounds(subKnobArea.removeFromTop(labelH));
@@ -942,7 +984,7 @@ void SynthPanel::resized()
             noiseOscLabel.setBounds(noiseArea.removeFromTop(labelH));
             auto noiseCtrlRow = noiseArea.removeFromTop(26);
             noiseOscEnableButton.setBounds(noiseCtrlRow.removeFromLeft(40));
-            noiseArea.removeFromTop(4);
+            noiseArea.removeFromTop(MultiverseFlatTheme::Metrics::smallGap);
             auto noiseKnobRow = noiseArea.removeFromTop(knobSz + labelH);
             auto placeNK = [&](NeuKnob& s, juce::Label& l)
             {
@@ -954,10 +996,10 @@ void SynthPanel::resized()
             placeNK(noiseOscLevelSlider, noiseOscLevelLabel);
             placeNK(noiseOscColorSlider, noiseOscColorLabel);
         }
-        area.removeFromTop(8);
+        area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         // UNISON section
-        unisonSectionRect = area.removeFromTop(120);
+        unisonSectionRect = area.removeFromTop(110);
         {
             auto inner = unisonSectionRect.reduced(8).withTrimmedTop(18);
             // Voices ComboBox (labeled)
@@ -980,10 +1022,10 @@ void SynthPanel::resized()
             unisonSpreadLabel.setBounds(spreadCol.removeFromBottom(labelH));
             unisonSpreadSelector.setBounds(spreadCol.reduced(0, 4));
         }
-        area.removeFromTop(8);
+        area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         // FILTER section (with curve display)
-        filterSectionRect = area.removeFromTop(185);
+        filterSectionRect = area.removeFromTop(170);
         {
             auto inner = filterSectionRect.reduced(8).withTrimmedTop(18);
 
@@ -1005,22 +1047,22 @@ void SynthPanel::resized()
             placeKnob(cutoffSlider,    cutoffLabel);
             placeKnob(resonanceSlider, resonanceLabel);
 
-            inner.removeFromTop(4);
+            inner.removeFromTop(MultiverseFlatTheme::Metrics::smallGap);
             auto typeRow = inner.removeFromTop(28);
             filterTypeLabel.setBounds(typeRow.removeFromLeft(36));
             typeRow.removeFromLeft(6);
             filterTypeSelector.setBounds(typeRow.removeFromLeft(90));
 
-            inner.removeFromTop(4);
+            inner.removeFromTop(MultiverseFlatTheme::Metrics::smallGap);
             auto osRow = inner.removeFromTop(28);
             oversamplingLabel.setBounds(osRow.removeFromLeft(30));
             osRow.removeFromLeft(6);
             oversamplingSelector.setBounds(osRow.removeFromLeft(90));
         }
-        area.removeFromTop(8);
+        area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         // ENV section (with visualizer)
-        envSectionRect = area.removeFromTop(160);
+        envSectionRect = area.removeFromTop(150);
         {
             auto inner = envSectionRect.reduced(8).withTrimmedTop(18);
 
@@ -1042,10 +1084,10 @@ void SynthPanel::resized()
             placeKnob(sustainSlider, sustainLabel);
             placeKnob(releaseSlider, releaseLabel);
         }
-        area.removeFromTop(8);
+        area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         // CHORD / STRUM section
-        chordSectionRect = area.removeFromTop(100);
+        chordSectionRect = area.removeFromTop(90);
         {
             auto inner = chordSectionRect.reduced(8).withTrimmedTop(18);
 
@@ -1065,6 +1107,9 @@ void SynthPanel::resized()
             chordStrumSlider.setBounds(strumCol.removeFromTop(knobSz));
             chordStrumLabel.setBounds(strumCol.removeFromTop(labelH));
         }
-        area.removeFromTop(8);
+        area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
     }
+
+    // Readout bar at the very bottom
+    readoutBar.setBounds(area.removeFromBottom(28));
 }

@@ -95,7 +95,7 @@ struct PresetData {
     }
     // Set all 8 osc APVTS params + SynthParams osc data from the oscs array
     void applyOscs() {
-        set("oscCount", nCh(oscCount - 1, 8));
+        set("oscCount", nCh(oscCount - 1, 4));
         for (int i = 0; i < 8; ++i)
             setOscApvts(i, oscs[i]);
     }
@@ -216,7 +216,7 @@ static std::map<juce::String, float> buildDefaults()
         m[s + "SelfOsc"]   = 0.0f;
         m[s + "PhaseDist"] = 0.5f;
     }
-    m["oscCount"] = nCh(2, 8); // index 2 = 3 oscs
+    m["oscCount"] = nCh(2, 4); // index 2 = 3 oscs (max 4)
 
     // Unison (off by default)
     m["unisonVoices"]     = 0.0f;

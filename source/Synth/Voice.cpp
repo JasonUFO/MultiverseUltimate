@@ -85,7 +85,7 @@ void Voice::setSampleRate(float sr)
 
 void Voice::setActiveOscs(int n)
 {
-    activeOscs = juce::jlimit(1, 8, n);
+    activeOscs = juce::jlimit(1, 4, n);
 }
 
 void Voice::setOscillatorType(int index, OscillatorType t)

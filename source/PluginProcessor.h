@@ -183,6 +183,10 @@ public:
     // Built-in keyboard — UI writes MIDI into this state, processBlock injects it into the buffer
     juce::MidiKeyboardState keyboardState;
 
+    // UI-generated MIDI (pitch bend, mod wheel) — merged into processBlock MIDI
+    juce::MidiBuffer uiMidiBuffer;
+    juce::CriticalSection uiMidiLock;
+
     // Chord/Strum mode — pre-allocated, no heap alloc in processBlock
     static constexpr int MAX_PENDING_NOTES = 64;
     static constexpr int MAX_ACTIVE_CHORDS = 32;

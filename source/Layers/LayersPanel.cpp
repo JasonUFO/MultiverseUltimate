@@ -153,8 +153,9 @@ void LayersPanel::drawSection(juce::Graphics& g, juce::Rectangle<int> r, const j
     g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
     g.drawRoundedRectangle(r.toFloat().reduced(0.5f), cr, 1.0f);
     g.setColour(MultiverseFlatTheme::textLabel);
-    g.setFont(juce::Font(10.0f, juce::Font::bold));
+    g.setFont(MultiverseFlatTheme::headerFont());
     g.drawText(title, r.getX() + 8, r.getY() + 5, 100, 14, juce::Justification::centredLeft);
+    MultiverseFlatTheme::drawDivider(g, static_cast<float>(r.getY() + 18), static_cast<float>(r.getX() + 8), static_cast<float>(r.getRight() - 8));
 }
 
 void LayersPanel::resized()

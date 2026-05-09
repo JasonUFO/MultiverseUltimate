@@ -1,12 +1,16 @@
 #pragma once
 #include "MidiLearnSlider.h"
 #include "MultiverseFlatTheme.h"
+#include "Synth/ModulationMatrix.h"
 
-// Extends MidiLearnSlider (MIDI learn + macro badge) with two visual extras:
+// Extends MidiLearnSlider (MIDI learn + macro badge) with visual extras:
 //   1. Value pill — rounded rect above the knob showing the current value
 //      while the mouse is over or dragging.
 //   2. Amber arc — when assigned to a macro the fill arc switches from
 //      accentBlue to accentAmber so macro-linked knobs are instantly obvious.
+//   3. Per-source modulation arcs — colored arcs around the knob, one per
+//      modulation connection, showing source type and depth.
+//   4. Drag-over glow — highlights the knob when a mod source is dragged over it.
 //
 // Safe to use as a drop-in for linear sliders too; the pill only renders
 // for Rotary styles and the amber arc works for any style.
@@ -19,15 +23,29 @@ public:
 
     void paint (juce::Graphics& g) override;
 
+    // Returns the accent colour for a modulation source type.
+    static juce::Colour getModSourceColour (ModSourceType type);
+
+    // Global mod-drag state: all knobs glow when a mod source is being dragged
+    static bool isModDragActive() { return modDragActive; }
+    static ModSourceType getModDragSource() { return modDragSource; }
+
     // DragAndDropTarget
     bool isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails&) override;
     void itemDragEnter(const juce::DragAndDropTarget::SourceDetails&) override;
     void itemDragExit(const juce::DragAndDropTarget::SourceDetails&) override;
     void itemDropped(const juce::DragAndDropTarget::SourceDetails&) override;
 
+    // Access the incoming drag source colour (for external rendering).
+    juce::Colour getDragSourceColour() const { return dragSourceColour; }
+
 private:
     bool lastMacroState = false;
     bool isDragOver = false;
+    juce::Colour dragSourceColour;
+
+    static bool modDragActive;
+    static ModSourceType modDragSource;
 
     struct ArcTimer : juce::Timer
     {

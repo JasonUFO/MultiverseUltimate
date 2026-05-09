@@ -60,12 +60,14 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - Preset system (XML) with Factory/User banks ✅
 - State-of-the-art preset browser: 8-color favorites, #hashtags, auto-preview, metadata detail strip, back/forward history, save dialog, right-click context menu ✅
 - Flat UI theme (`MultiverseFlatTheme`) — clean Nexus 5-inspired design, no neumorphic shadows ✅
+- **ModBar** (`Source/UI/BottomBar.h/.cpp`) — 160px bottom modulation bar with 7 sub-tabs: ENV1/ENV2/ENV3 (ADSR + display), LFO1-8 (bank selector + Rate/Shape/Sync + waveform preview + DRAW button), MACRO (8 knobs + name/value), QFX (Filter/Amp mod + Delay + Reverb + Main Filter), KEY (pitch/mod wheels + keyboard) ✅
 - NeuKnob (`Source/NeuKnob.h/.cpp`) — value pill on hover/drag, amber arc when macro-assigned ✅
 - SynthDisplay (`Source/Synth/SynthDisplay.h/.cpp`) — real-time oscilloscope (left) + FFT spectrum (right), 30 Hz, lock-free FIFO ✅
 - WavetableEditor (`Source/Synth/WavetableEditor.h/.cpp`) — draw/edit wavetable frames, formula gen, import ✅
 - LFOShapeEditor (`Source/Synth/LFOShapeEditor.h/.cpp`) — drawable custom LFO shapes; pencil/line tools, fill buttons, normalize; launched as CallOutBox from DRAW button in each LFO row ✅
 - LayerManager (`Source/Layers/`) — 8 independent layers (Synth/Granular/Sampler), MIDI + audio + state ✅
 - RoutingPanel (`Source/Routing/RoutingPanel.h/.cpp`) — "ROU" tab: signal flow graph with 8 LayerBlocks (engine type/mute/solo/bus/level bar), Drums summary, drag-reorder ChainStrip, aux send knobs, connection lines, tab-switch callbacks ✅
+- SignalFlowBar (`Source/Synth/SignalFlowBar.h`) — compact horizontal signal-flow strip showing OSC→SUB→FLT→SHP→ENV→AMP→OUT with active highlighting (10 Hz timer polls APVTS), hidden in FM mode ✅
 
 ## What Is Broken / Unconnected
 - None (WavetableEditor FFT button is a placeholder — just calls normalizeFrame; real FFT not yet implemented)
@@ -121,20 +123,26 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Preset Browser 2.0 | `PresetManager` extended with metadata cache, 8-color favorites JSON, tag index, back/forward history; `PresetBrowserPanel` redesigned — 280px, category pills, tag filter, auto-preview, save dialog, right-click context menu; header navigation bar (prev/next/name/fav/back/forward); all 100 factory presets have author/description/tags metadata |
 | Plugin Classification | `JucePluginDefines.h` corrected: IsSynth=1, WantsMidiInput=1, Vst3Category="Instrument", AUMainType='aumu' (was incorrectly set to effect) |
 | UI-9 | **COMPLETE** — Phase 2 Layout Restructure: permanent left sidebar (280px PresetBrowserPanel), right FX strip (200px QuickFXStrip placeholder), bottom bar (88px BottomBar: 8 macros + keyboard), compact header with ☰ menu; 10 tabs with 3-letter abbreviations (SYN/DRM/MOD/SMP/SEQ/ARP/FX/GRN/LYR/PRF); MAC tab removed |
+| Serum-UI-1 | **COMPLETE** — Serum 2-Style Phase 1: ModBar replaces BottomBar + QuickFXStrip; 160px bottom modulation bar with 7 sub-tabs (ENV1/2/3, LFO1-8, MACRO, QFX, KEY); all ENV/LFO/MACRO/QFX/KEY controls functional; layout: 32px header + tabs (full width) + 160px ModBar |
 | UI-10 | **COMPLETE** — Phase 5 Visual Routing: RoutingPanel ("ROU" tab, 11th); 8× LayerBlock (engine type/mute/solo/bus/level bar); DrumsSummaryBlock; ChainStrip (drag-reorder effect chain); Aux send knobs (auxSendDelay/auxSendReverb); connection lines color-coded by bus/solo/mute; tab-switch callback to LYR/DRM tabs |
 
 ## Next Steps
 
-### Post-Gap Feature Roadmap (Current Focus)
-All gap-fill phases (0–7) complete. Now in competitive feature expansion.
-**Priority order:**
-1. ~~Drawable LFO Shapes~~ ✅ (2026-05-05)
-2. ~~Chord/Strum Mode~~ ✅ (2026-05-05)
-3. ~~Performance View~~ ✅ (2026-05-05)
-4. ~~Programmatic preset generation~~ ✅ (2026-05-05) — 100 factory presets, 6 categories
-5. ~~Preset browser 2.0~~ ✅ (2026-05-08) — metadata, favorites, tags, auto-preview, history, save dialog
+### Serum 2-Style UI Redesign (Current Focus)
+6-phase redesign to match Serum 2's layout, adapting for Multiverse's unique features (granular, drum sequencer, sampler, layers, etc.).
+**Plan:** `/Users/jason/.claude/plans/sparkling-wiggling-orbit.md`
+- ~~Phase 1: ModBar~~ ✅ (2026-05-09) — BottomBar + QuickFXStrip → 160px ModBar with ENV/LFO/MACRO/QFX/KEY sub-tabs
+- **Phase 2: Header Redesign** — 36px header, clickable preset name → overlay, visible scale/quality/FX mode
+- **Phase 3: Two-tier Tab System** — Primary (OSC/FX/MOD/GLOBAL) + secondary (DRM/GRN/SMP/LYR/SEQ/ARP/ROU), remove right FX strip, new GlobalPanel
+- **Phase 4: Modulation Restructure** — LFO banks move from MOD panel to ModBar LFO sub-tab; MOD panel shows only connections; ENV2/3 wired in ModBar
+- **Phase 5: Preset Overlay** — LibrarianPanel as overlay triggered by clicking preset name; remove PRE tab
+- **Phase 6: Theme Polish** — Primary/secondary tab styles, sub-tab buttons, overlay backdrop, visual polish
 
-**Next:** UI Overhaul Phase 5 — Visual Routing (ROU tab: signal flow graph page with generator→layer→FX blocks, draggable connections)
+### Post-Gap Feature Roadmap (Deferred)
+All gap-fill phases (0–7) complete. Competitive feature expansion paused for UI redesign.
+**Priority order:**
+
+**Next:** UI Overhaul Phase 5 — Theme Polish (font hierarchy, macro readout, consistent spacing, divider lines, color-coded modulation)
 
 **Deferred (need decisions or Projucer GUI action):**
 - 7.2 Standalone mode — enable in Projucer GUI (File Formats → Standalone Plugin)
@@ -167,6 +175,12 @@ All gap-fill phases (0–7) complete. Now in competitive feature expansion.
 | C++ standard | C++17 |
 | JUCE version | 8.x |
 | macOS target | 10.13+ |
+| Default window size | 1200×800 |
+| Min window size | 800×533 |
+| Max window size | 1920×1280 |
+| Header height | 32px (36px after Phase 2) |
+| ModBar height | 160px (7 sub-tabs: ENV1/2/3, LFO, MACRO, QFX, KEY) |
+| Layout | Header (32px) → Tabs (full width) → ModBar (160px at bottom) |
 
 ---
 
@@ -178,6 +192,9 @@ All gap-fill phases (0–7) complete. Now in competitive feature expansion.
 - `juce::TextEditor::caretColourId` does not exist in JUCE 8 — do not use it.
 - `juce::TableHeaderComponent::separatorColourId` does not exist in JUCE 8 — do not use it.
 - `MultiverseFlatTheme` (`Source/MultiverseFlatTheme.h/.cpp`) is the global LookAndFeel installed in `PluginEditor`. Flat palette constants (`bgBase`, `bgRaised`, `bgDeep`, `accentCyan`, `accentPink`, etc.) are `static const` members — include `MultiverseFlatTheme.h` to access them from panels. Backward-compat aliases: `accentBlue`→`accentCyan`, `neonCyan`→`accentCyan`, `neonPink`→`accentPink`, `neonPurple`→`accentPurple`, `neonGreen`→`accentGreen`.
+- `ModBar` (`Source/UI/BottomBar.h/.cpp`) replaces the old `BottomBar` + `QuickFXStrip`. Class is `ModBar` (file is still `BottomBar.h/.cpp` for Projucer compatibility). Contains 7 sub-panels: `EnvSubPanel` (ADSR + EnvelopeDisplay for ENV1/2/3), `LFOSubPanel` (8-bank selector + Rate/Shape/Sync + DRAW), `MacroSubPanel` (8 macros + names + values), `QuickFXSubPanel` (Filter/Amp mod, Delay, Reverb, Main Filter), `KeyboardSubPanel` (pitch/mod wheels + MIDI keyboard). LFO sub-panel rebuilds APVTS attachments on bank switch.
+- `QuickFXStrip` is no longer a separate component — its controls are in `QuickFXSubPanel` inside `ModBar`.
+- `BottomBar` class no longer exists — renamed to `ModBar`. PitchWheel and ModWheel classes still exist as standalone components inside `BottomBar.h`.
 - `MultiverseFlatTheme::drawCard()` is `public static` — callable from panel paint() for flat section card borders (bgRaised fill + borderLight/borderActive stroke). Replaces old `drawNeumorphicRect()`.
 - `CyberpunkTheme.h/.cpp` still exist in the project but are NO LONGER used by any panel. They can be safely deleted when convenient.
 - `ModulationMatrix::getActiveConnectionsForTarget()` returns by value (thread-safety fix — do not change to ref/pointer).

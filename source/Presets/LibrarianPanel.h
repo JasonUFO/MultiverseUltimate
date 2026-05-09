@@ -156,7 +156,7 @@ private:
     juce::TextButton favFilterButton { "\xe2\x99\xa5" }; // ♥
 
     // Auto-preview
-    juce::ToggleButton autoPreviewButton { "\xe2\x99\xab" }; // ♫
+    juce::ToggleButton autoPreviewButton { "Auto" };
     bool autoPreviewEnabled = true;
 
     // Preset list (custom scrollable component with viewport)

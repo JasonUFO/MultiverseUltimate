@@ -3,9 +3,43 @@
 #include "Synth/ModulationMatrix.h"
 #include "PluginProcessor.h"
 
+bool NeuKnob::modDragActive = false;
+ModSourceType NeuKnob::modDragSource = ModSourceType::LFO1;
+
+juce::Colour NeuKnob::getModSourceColour(ModSourceType type)
+{
+    static const juce::Colour palette[] = {
+        MultiverseFlatTheme::accentCyan,    // LFO1
+        MultiverseFlatTheme::accentPink,    // LFO2
+        MultiverseFlatTheme::accentPurple,  // LFO3
+        MultiverseFlatTheme::accentGreen,   // LFO4
+        MultiverseFlatTheme::accentAmber,   // Envelope
+        MultiverseFlatTheme::accentCyan,    // Velocity
+        MultiverseFlatTheme::accentPurple,  // NoteNumber
+        MultiverseFlatTheme::accentPink,    // Aftertouch
+        MultiverseFlatTheme::accentGreen,   // ModWheel
+        MultiverseFlatTheme::accentAmber,   // PitchBend
+        MultiverseFlatTheme::accentPurple,  // Random
+        MultiverseFlatTheme::accentCyan,    // EnvelopeFollower
+        MultiverseFlatTheme::accentGreen,   // MPEPressure
+        MultiverseFlatTheme::accentAmber,   // MPESlide
+        MultiverseFlatTheme::accentPink,    // SequencerStep
+        MultiverseFlatTheme::accentAmber,  // LFO5
+        MultiverseFlatTheme::accentCyan,    // LFO6
+        MultiverseFlatTheme::accentPink,    // LFO7
+        MultiverseFlatTheme::accentPurple,  // LFO8
+        MultiverseFlatTheme::accentGreen,  // Envelope2
+        MultiverseFlatTheme::accentAmber   // Envelope3
+    };
+    const int idx = static_cast<int>(type);
+    if (idx >= 0 && idx < 21)
+        return palette[idx];
+    return MultiverseFlatTheme::accentCyan;
+}
+
 NeuKnob::NeuKnob()
 {
-    arcTimer.startTimerHz (10);
+    arcTimer.startTimerHz(10);
 }
 
 NeuKnob::~NeuKnob()
@@ -20,14 +54,14 @@ void NeuKnob::arcTimerTick()
 
     lastMacroState = assigned;
     if (assigned)
-        setColour (juce::Slider::rotarySliderFillColourId, MultiverseFlatTheme::accentAmber);
+        setColour(juce::Slider::rotarySliderFillColourId, MultiverseFlatTheme::accentAmber);
     else
-        removeColour (juce::Slider::rotarySliderFillColourId);
+        removeColour(juce::Slider::rotarySliderFillColourId);
 }
 
-void NeuKnob::paint (juce::Graphics& g)
+void NeuKnob::paint(juce::Graphics& g)
 {
-    MidiLearnSlider::paint (g);
+    MidiLearnSlider::paint(g);
 
     const auto style = getSliderStyle();
     const bool isRotary = (style == juce::Slider::Rotary ||
@@ -37,7 +71,7 @@ void NeuKnob::paint (juce::Graphics& g)
 
     if (!isRotary) return;
 
-    // Modulation depth arc — pink outer arc showing total mod depth
+    // Per-source modulation arcs — each source gets its own coloured arc
     if (getParamID().isNotEmpty() && getProcessor() != nullptr)
     {
         auto mapping = paramIDToModTarget(getParamID());
@@ -45,61 +79,94 @@ void NeuKnob::paint (juce::Graphics& g)
         {
             auto& matrix = getProcessor()->getModulationMatrix();
             auto connections = matrix.getActiveConnectionsForTarget(mapping->target, mapping->targetIndex);
-            float totalDepth = 0.0f;
-            for (const auto& c : connections)
-                totalDepth += std::abs(c.amount);
 
-            if (totalDepth > 0.001f)
+            if (!connections.empty())
             {
                 const float cx = getWidth() * 0.5f;
                 const float cy = getHeight() * 0.5f;
-                const float radius = std::min(getWidth(), getHeight()) * 0.42f;
-                const float lineW = 3.0f;
-
                 const float startAngle = juce::MathConstants<float>::pi * 1.25f;
                 const float endAngle   = juce::MathConstants<float>::pi * 2.75f;
                 const float range      = endAngle - startAngle;
-                const float modEnd     = startAngle + range * juce::jmin(totalDepth, 1.0f);
 
-                g.setColour(MultiverseFlatTheme::accentPink.withAlpha(0.6f));
-                g.drawEllipse(cx - radius - lineW, cy - radius - lineW,
-                              (radius + lineW) * 2.0f, (radius + lineW) * 2.0f, lineW);
+                // Draw each connection as a coloured arc at increasing radii
+                const float baseRadius = std::min(getWidth(), getHeight()) * 0.42f;
+                const float arcSpacing = 3.0f;
+                const float lineWidth  = 2.5f;
 
-                juce::Path modArc;
-                modArc.addArc(cx - radius - lineW, cy - radius - lineW,
-                              (radius + lineW) * 2.0f, (radius + lineW) * 2.0f,
-                              startAngle, modEnd, true);
-                g.strokePath(modArc, juce::PathStrokeType(lineW));
+                for (size_t i = 0; i < connections.size(); ++i)
+                {
+                    const auto& conn = connections[static_cast<int>(i)];
+                    const float depth = std::abs(conn.amount);
+                    if (depth < 0.001f) continue;
+
+                    const float radius = baseRadius + i * arcSpacing;
+                    const float modEnd = startAngle + range * juce::jmin(depth, 1.0f);
+                    const juce::Colour srcColour = getModSourceColour(conn.source);
+
+                    // Background track arc (dimmed)
+                    g.setColour(srcColour.withAlpha(0.15f));
+                    g.drawEllipse(cx - radius - lineWidth * 0.5f,
+                                  cy - radius - lineWidth * 0.5f,
+                                  (radius + lineWidth * 0.5f) * 2.0f,
+                                  (radius + lineWidth * 0.5f) * 2.0f,
+                                  lineWidth);
+
+                    // Active modulation arc
+                    juce::Path modArc;
+                    modArc.addArc(cx - radius - lineWidth * 0.5f,
+                                  cy - radius - lineWidth * 0.5f,
+                                  (radius + lineWidth * 0.5f) * 2.0f,
+                                  (radius + lineWidth * 0.5f) * 2.0f,
+                                  startAngle, modEnd, true);
+                    g.setColour(srcColour.withAlpha(0.7f));
+                    g.strokePath(modArc, juce::PathStrokeType(lineWidth));
+                }
             }
         }
     }
 
-    // Drag-over highlight ring
+    // Drag-over highlight ring — uses source colour if available
     if (isDragOver)
     {
         const float cx = getWidth() * 0.5f;
         const float cy = getHeight() * 0.5f;
         const float radius = std::min(getWidth(), getHeight()) * 0.46f;
-        g.setColour(MultiverseFlatTheme::accentCyan.withAlpha(0.5f));
+        const juce::Colour hlColour = dragSourceColour.isTransparent()
+            ? MultiverseFlatTheme::accentCyan : dragSourceColour;
+        g.setColour(hlColour.withAlpha(0.5f));
         g.drawRoundedRectangle(juce::Rectangle<float>(cx - radius, cy - radius, radius * 2, radius * 2), radius * 0.3f, 2.5f);
+    }
+    else if (modDragActive && getParamID().isNotEmpty() && getProcessor() != nullptr)
+    {
+        // Global mod-drag active: highlight all valid drop targets with a subtle glow
+        auto mapping = paramIDToModTarget(getParamID());
+        if (mapping.has_value())
+        {
+            const float cx = getWidth() * 0.5f;
+            const float cy = getHeight() * 0.5f;
+            const float radius = std::min(getWidth(), getHeight()) * 0.46f;
+            const juce::Colour srcColour = getModSourceColour(modDragSource);
+            g.setColour(srcColour.withAlpha(0.18f));
+            g.drawRoundedRectangle(juce::Rectangle<float>(cx - radius, cy - radius, radius * 2, radius * 2), radius * 0.3f, 1.5f);
+        }
     }
 
     if (!(isMouseOver() || isMouseButtonDown())) return;
 
-    const juce::String text = getTextFromValue (getValue());
-    g.setFont (juce::Font (juce::FontOptions{}.withHeight (9.0f)));
-    const float pillW = std::max (40.0f, (float) text.length() * 5.8f + 14.0f);
+    const juce::String text = getTextFromValue(getValue());
+    g.setFont(juce::Font(juce::FontOptions{}.withHeight(9.0f)));
+    const float pillW = std::max(40.0f, (float) text.length() * 5.8f + 14.0f);
     const float pillH = 15.0f;
     const float pillX = (getWidth()  - pillW) * 0.5f;
     const float pillY = 2.0f;
 
-    auto pill = juce::Rectangle<float> (pillX, pillY, pillW, pillH);
-    g.setColour (MultiverseFlatTheme::bgDeep);
-    g.fillRoundedRectangle (pill, pillH * 0.5f);
-    g.setColour (MultiverseFlatTheme::accentBlue.withAlpha (0.5f));
-    g.drawRoundedRectangle (pill, pillH * 0.5f, 1.0f);
-    g.setColour (MultiverseFlatTheme::textPrimary);
-    g.drawText (text, pill.toNearestInt(), juce::Justification::centred, false);
+    auto pill = juce::Rectangle<float>(pillX, pillY, pillW, pillH);
+    g.setColour(MultiverseFlatTheme::bgDeep);
+    g.fillRoundedRectangle(pill, pillH * 0.5f);
+    g.setColour(MultiverseFlatTheme::accentBlue.withAlpha(0.5f));
+    g.drawRoundedRectangle(pill, pillH * 0.5f, 1.0f);
+    g.setColour(MultiverseFlatTheme::textPrimary);
+    g.drawText(text, pill.toNearestInt(), juce::Justification::centred, false);
 }
 
 bool NeuKnob::isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails& details)
@@ -107,26 +174,41 @@ bool NeuKnob::isInterestedInDragSource(const juce::DragAndDropTarget::SourceDeta
     return details.description.toString().startsWith("modsrc:");
 }
 
-void NeuKnob::itemDragEnter(const juce::DragAndDropTarget::SourceDetails&)
+void NeuKnob::itemDragEnter(const juce::DragAndDropTarget::SourceDetails& details)
 {
     isDragOver = true;
+    // Set global mod-drag state so all knobs can show highlight
+    auto desc = details.description.toString();
+    if (desc.startsWith("modsrc:"))
+    {
+        int sourceInt = desc.substring(7).upToFirstOccurrenceOf(":", false, false).getIntValue();
+        auto source = static_cast<ModSourceType>(sourceInt);
+        modDragActive = true;
+        modDragSource = source;
+        dragSourceColour = getModSourceColour(source);
+    }
     repaint();
 }
 
 void NeuKnob::itemDragExit(const juce::DragAndDropTarget::SourceDetails&)
 {
     isDragOver = false;
+    dragSourceColour = juce::Colour();
+    modDragActive = false;
     repaint();
 }
 
 void NeuKnob::itemDropped(const juce::DragAndDropTarget::SourceDetails& details)
 {
     isDragOver = false;
+    dragSourceColour = juce::Colour();
+    modDragActive = false;
     repaint();
 
     auto desc = details.description.toString();
     if (!desc.startsWith("modsrc:")) return;
-    int sourceInt = desc.substring(7).getIntValue();
+    int sourceInt = desc.substring(7).upToFirstOccurrenceOf(":", false, false).getIntValue();
+    if (sourceInt == 0 && desc.substring(7) != "0") sourceInt = desc.substring(7).getIntValue();
     auto source = static_cast<ModSourceType>(sourceInt);
 
     if (getParamID().isEmpty() || getProcessor() == nullptr) return;

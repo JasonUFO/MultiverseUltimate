@@ -15,8 +15,8 @@
 #include "Layers/LayersPanel.h"
 #include "Performance/PerformancePanel.h"
 #include "UI/BottomBar.h"
-#include "UI/QuickFXStrip.h"
 #include "Routing/RoutingPanel.h"
+#include "NeuKnob.h"
 
 class PluginEditor : public juce::AudioProcessorEditor,
                      public juce::DragAndDropContainer,
@@ -50,14 +50,11 @@ private:
     RoutingPanel          routingPanel;
     juce::TabbedComponent tabs;
 
-    // Librarian panel (permanent left sidebar)
+    // Librarian panel (PRE tab)
     LibrarianPanel librarianPanel;
 
-    // Bottom bar (macros + keyboard)
-    BottomBar           bottomBar;
-
-    // Right FX strip (placeholder for Phase 4)
-    QuickFXStrip         quickFXStrip;
+    // Bottom modulation bar (ENV/LFO/MACRO/QFX/KEY sub-tabs)
+    ModBar                modBar;
 
     // Preset navigation (header)
     juce::TextButton   prevPresetButton  { "<" };
@@ -97,6 +94,67 @@ private:
     bool midiLearnActive = false;
     juce::Component::SafePointer<juce::ComboBox> midiLearnCallout;
     void showMidiLearnCallout();
+
+    // Mod-drag overlay — draws connection line during modulation drag
+    class ModDragOverlay : public juce::Component, private juce::Timer
+    {
+    public:
+        ModDragOverlay() { startTimerHz(30); }
+        ~ModDragOverlay() override { stopTimer(); }
+        void paint(juce::Graphics& g) override
+        {
+            if (lineStart.isOrigin() && lineEnd.isOrigin()) return;
+            const juce::Colour srcCol = NeuKnob::isModDragActive()
+                ? NeuKnob::getModSourceColour(NeuKnob::getModDragSource())
+                : MultiverseFlatTheme::accentCyan;
+            // Glow line
+            g.setColour(srcCol.withAlpha(0.15f));
+            g.drawLine(lineStart.x, lineStart.y, lineEnd.x, lineEnd.y, 6.0f);
+            // Core line
+            g.setColour(srcCol.withAlpha(0.8f));
+            g.drawLine(lineStart.x, lineStart.y, lineEnd.x, lineEnd.y, 2.0f);
+            // End dot
+            g.fillEllipse(lineEnd.x - 4.0f, lineEnd.y - 4.0f, 8.0f, 8.0f);
+        }
+        void timerCallback() override
+        {
+            const bool wasActive = wasDragActive;
+            wasDragActive = NeuKnob::isModDragActive();
+
+            if (!wasDragActive)
+            {
+                if (!NeuKnob::isModDragActive())
+                {
+                    if (!(lineStart.isOrigin() && lineEnd.isOrigin()))
+                    {
+                        lineStart = lineEnd = juce::Point<float>();
+                        repaint();
+                    }
+                    return;
+                }
+                // Drag just started — capture start position from mouse
+                auto mouseSrc = juce::Desktop::getInstance().getMainMouseSource();
+                auto screenPos = mouseSrc.getScreenPosition();
+                lineStart = getLocalPoint(nullptr, screenPos).toFloat();
+            }
+
+            if (NeuKnob::isModDragActive())
+            {
+                auto mouseSrc = juce::Desktop::getInstance().getMainMouseSource();
+                auto screenPos = mouseSrc.getScreenPosition();
+                lineEnd = getLocalPoint(nullptr, screenPos).toFloat();
+                repaint();
+            }
+            else
+            {
+                lineStart = lineEnd = juce::Point<float>();
+                repaint();
+            }
+        }
+        juce::Point<float> lineStart, lineEnd;
+        bool wasDragActive = false;
+    };
+    ModDragOverlay modDragOverlay;
 
     void setupTabs();
 

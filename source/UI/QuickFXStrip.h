@@ -18,11 +18,11 @@ public:
 private:
     PluginProcessor& proc;
 
-    static constexpr int KNOB_SZ = 28;
-    static constexpr int LABEL_H = 12;
-    static constexpr int TOGGLE_H = 18;
-    static constexpr int COMBO_H = 20;
-    static constexpr int SECTION_GAP = 6;
+    static constexpr int KNOB_SZ = 36;
+    static constexpr int LABEL_H = 14;
+    static constexpr int TOGGLE_H = 20;
+    static constexpr int COMBO_H = 24;
+    static constexpr int SECTION_GAP = 8;
 
     using SliderAttach = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ButtonAttach = juce::AudioProcessorValueTreeState::ButtonAttachment;

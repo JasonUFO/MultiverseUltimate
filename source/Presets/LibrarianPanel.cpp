@@ -399,7 +399,7 @@ void LibrarianPresetList::drawSectionHeader(juce::Graphics& g,
     g.fillRect(bounds);
 
     g.setColour(textSecondary);
-    g.setFont(juce::Font(juce::FontOptions{}.withHeight(11.0f)));
+    g.setFont(MultiverseFlatTheme::headerFont());
     g.drawText(title, bounds.getX() + 6, bounds.getY(), bounds.getWidth() - 20, bounds.getHeight(),
         juce::Justification::centredLeft);
 
@@ -426,7 +426,7 @@ void LibrarianPresetList::drawSubSectionHeader(juce::Graphics& g,
     g.fillRect(bounds);
 
     g.setColour(textMuted);
-    g.setFont(juce::Font(juce::FontOptions{}.withHeight(10.0f)));
+    g.setFont(MultiverseFlatTheme::labelFont());
     g.drawText(title, bounds.getX() + 6, bounds.getY(), bounds.getWidth() - 14, bounds.getHeight(),
         juce::Justification::centredLeft);
 
@@ -484,14 +484,14 @@ void LibrarianPresetList::drawPresetRow(juce::Graphics& g,
     // Preset name
     juce::String name = (presetIndex >= 0 && presetIndex < allNames.size()) ? allNames[presetIndex] : juce::String{};
     g.setColour(selected ? textPrimary : textSecondary);
-    g.setFont(juce::Font(juce::FontOptions{}.withHeight(12.0f)));
+    g.setFont(MultiverseFlatTheme::titleFont());
     g.drawText(name, bounds.getX() + indent + 16, bounds.getY(), bounds.getWidth() - indent - 70, bounds.getHeight(),
         juce::Justification::centredLeft);
 
     // Category (right-aligned)
     const auto& meta = pm.getPresetMetadata(presetIndex);
     g.setColour(textMuted);
-    g.setFont(juce::Font(juce::FontOptions{}.withHeight(9.0f)));
+    g.setFont(MultiverseFlatTheme::labelFont());
     g.drawText(meta.category, bounds.getWidth() - 56, bounds.getY(), 46, bounds.getHeight(),
         juce::Justification::centredRight);
 }
@@ -520,7 +520,7 @@ LibrarianPanel::LibrarianPanel(PluginProcessor& p)
 
     // Search editor
     searchEditor.setTextToShowWhenEmpty("Search... #tag", textMuted);
-    searchEditor.setFont(juce::Font(juce::FontOptions{}.withHeight(12.0f)));
+    searchEditor.setFont(MultiverseFlatTheme::titleFont());
     searchEditor.addListener(this);
     addAndMakeVisible(searchEditor);
 
@@ -587,22 +587,22 @@ LibrarianPanel::LibrarianPanel(PluginProcessor& p)
     addAndMakeVisible(tagFilterArea);
 
     // Metadata detail strip
-    authorLabel.setFont(juce::Font(juce::FontOptions{}.withHeight(10.0f)));
+    authorLabel.setFont(MultiverseFlatTheme::labelFont());
     authorLabel.setColour(juce::Label::textColourId, textSecondary);
     authorLabel.setJustificationType(juce::Justification::centredLeft);
     addAndMakeVisible(authorLabel);
 
-    descriptionLabel.setFont(juce::Font(juce::FontOptions{}.withHeight(10.0f)));
+    descriptionLabel.setFont(MultiverseFlatTheme::labelFont());
     descriptionLabel.setColour(juce::Label::textColourId, textSecondary);
     descriptionLabel.setJustificationType(juce::Justification::centredLeft);
     addAndMakeVisible(descriptionLabel);
 
-    tagsLabel.setFont(juce::Font(juce::FontOptions{}.withHeight(10.0f)));
+    tagsLabel.setFont(MultiverseFlatTheme::labelFont());
     tagsLabel.setColour(juce::Label::textColourId, accentCyan);
     tagsLabel.setJustificationType(juce::Justification::centredLeft);
     addAndMakeVisible(tagsLabel);
 
-    charactersLabel.setFont(juce::Font(juce::FontOptions{}.withHeight(10.0f)));
+    charactersLabel.setFont(MultiverseFlatTheme::labelFont());
     charactersLabel.setColour(juce::Label::textColourId, accentAmber);
     charactersLabel.setJustificationType(juce::Justification::centredRight);
     addAndMakeVisible(charactersLabel);
@@ -971,7 +971,7 @@ void LibrarianPanel::showSaveDialog()
 
     auto* nameEd = new juce::TextEditor();
     nameEd->setTextToShowWhenEmpty("Preset name...", textMuted);
-    nameEd->setFont(juce::Font(juce::FontOptions{}.withHeight(13.0f)));
+    nameEd->setFont(MultiverseFlatTheme::titleFont());
     nameEd->setBounds(70, 10, 220, 24);
     dialog->addAndMakeVisible(nameEd);
 
@@ -999,7 +999,7 @@ void LibrarianPanel::showSaveDialog()
     auto* tagsEd = new juce::TextEditor();
     tagsEd->setText(processorRef.currentPresetTags);
     tagsEd->setTextToShowWhenEmpty("acid, warm, dark...", textMuted);
-    tagsEd->setFont(juce::Font(juce::FontOptions{}.withHeight(13.0f)));
+    tagsEd->setFont(MultiverseFlatTheme::titleFont());
     tagsEd->setBounds(70, 70, 220, 24);
     dialog->addAndMakeVisible(tagsEd);
 
@@ -1012,7 +1012,7 @@ void LibrarianPanel::showSaveDialog()
     auto* charEd = new juce::TextEditor();
     charEd->setText(processorRef.currentPresetCharacters);
     charEd->setTextToShowWhenEmpty("dark, bright, active...", textMuted);
-    charEd->setFont(juce::Font(juce::FontOptions{}.withHeight(13.0f)));
+    charEd->setFont(MultiverseFlatTheme::titleFont());
     charEd->setBounds(70, 100, 220, 24);
     dialog->addAndMakeVisible(charEd);
 
@@ -1025,7 +1025,7 @@ void LibrarianPanel::showSaveDialog()
     auto* descEd = new juce::TextEditor();
     descEd->setText(processorRef.currentPresetDescription);
     descEd->setTextToShowWhenEmpty("Description...", textMuted);
-    descEd->setFont(juce::Font(juce::FontOptions{}.withHeight(13.0f)));
+    descEd->setFont(MultiverseFlatTheme::titleFont());
     descEd->setBounds(70, 130, 220, 48);
     descEd->setMultiLine(true);
     dialog->addAndMakeVisible(descEd);
@@ -1192,7 +1192,7 @@ void LibrarianPanel::promptNewBookmarkFolder()
 
     auto* nameEd = new juce::TextEditor();
     nameEd->setTextToShowWhenEmpty("Folder name...", textMuted);
-    nameEd->setFont(juce::Font(juce::FontOptions{}.withHeight(13.0f)));
+    nameEd->setFont(MultiverseFlatTheme::titleFont());
     nameEd->setBounds(10, 10, 230, 24);
     dialog->addAndMakeVisible(nameEd);
 

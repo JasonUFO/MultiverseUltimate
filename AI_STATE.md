@@ -761,8 +761,111 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 **Build verified:** VST3 + AU both build and install successfully ✅
 
+## Completed (UI Overhaul — Avenger-Style Redesign Phase 2) (2026-05-09)
+
+- **OscTabBar** (`Source/Synth/SynthPanel.h` — inner class): color-coded tab bar component for oscillator selection
+  - 8 accent colors cycling: cyan, pink, purple, green, amber (repeating for 6-8)
+  - Active tab: accent color fill + bottom accent line; inactive: bgRaised fill
+  - Each tab shows "OSC N" label + type abbreviation (CLA/WT/ADD/PD/ANA/DIG)
+  - +/− buttons rendered inline on the right side of the tab bar for adding/removing oscillators
+  - Click handling: tab click switches active oscillator; +/− clicks adjust oscCount APVTS param
+- **Tab-based oscillator layout** replaces old 8-strip layout:
+  - `activeOscIndex` state tracks which oscillator tab is selected
+  - Only the active oscillator's controls are visible and laid out in the detail panel
+  - Detail panel: oscDisplay (48px) → Type+Waveform row → Level/Detune/WavePos knobs → Shape type combo → ShapeAmt/SelfOsc/PD knobs → WT buttons
+  - 370px vertical section height (was variable 220-460px for 1-2 rows of strips)
+- **Accent color line** at top of OSC section: draws the active oscillator's tab color as a thin highlight
+- **Type change listeners**: each osc typeSelector.onChange calls updateVisibility() + resized() to update tab abbreviations and re-layout
+- **Font deprecation fixes**: remaining `juce::Font(height)` and `juce::Font(height, bold)` → `juce::FontOptions{}.withHeight()` in SynthPanel.cpp
+- **Removed**: `addOscButton` / `removeOscButton` (functionality moved to OscTabBar +/− buttons)
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (UI Overhaul — Avenger-Style Redesign Phase 3) (2026-05-09)
+
+- **Dual-ring modulation display** — `NeuKnob::paint()` rewritten to show per-source colored modulation arcs:
+  - Each modulation connection gets its own coloured arc at an increasing radius offset (3px spacing)
+  - Source colors: LFO1=cyan, LFO2=pink, LFO3=purple, LFO4=green, LFO5=amber, LFO6-8 cycle; Env/Env2/Env3=green/amber/pink; Velocity/Note/Aftertouch/ModWheel/PitchBend/Random/EnvFollower/MPEPressure/MPESlide/SeqStep mapped to palette
+  - Dim background track arc (0.15 alpha) + bright active arc (0.7 alpha) for each source
+  - `NeuKnob::getModSourceColour(ModSourceType)` static method provides the palette
+  - Old single pink arc replaced with multi-source coloured arcs
+- **Readout display bar** — `ReadoutBar` inner class in SynthPanel:
+  - 28px persistent bar at the bottom of SynthPanel showing hovered parameter name (left) + value (right)
+  - 30 Hz timer polls mouse position, finds NeuKnob/MidiLearnSlider under cursor
+  - `formatParamName()` converts camelCase param IDs to human-readable (e.g. "filterCutoff" → "Filter Cutoff")
+  - Styled with bgDeep background, accentCyan parameter name, textPrimary value
+- **Drag-drop modulation visual feedback**:
+  - Global `NeuKnob::modDragActive` + `NeuKnob::modDragSource` static state set during mod-source drags
+  - All valid drop-target NeuKnobs show subtle source-colored outline (0.18 alpha) during drag
+  - Hovered drop target shows bright source-colored rounded rect (0.5 alpha)
+  - `ModDragOverlay` in PluginEditor: full-editor overlay with 30 Hz timer, draws glow line (6px) + core line (2px) + end dot from drag start to cursor, colored by source type
+  - `lineStart` captured when mod drag transitions from inactive to active
+  - `dragSourceColour` in NeuKnob set from source type colour on `itemDragEnter`
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (UI Overhaul — Avenger-Style Redesign Phase 4) (2026-05-09)
+
+- **SignalFlowBar** (`Source/Synth/SignalFlowBar.h`) — NEW FILE: compact horizontal signal-flow strip
+  - 7 blocks: OSC → SUB → FLT → SHP → ENV → AMP → OUT
+  - Active blocks: accentCyan fill (0.18 alpha) + border (0.6 alpha) + label
+  - Inactive blocks: bgRaised fill + borderLight border + textMuted label
+  - Arrow lines between blocks: colored by source block (cyan if active, dimmed if not)
+  - 10 Hz timer polls APVTS: SUB active when sub/noise oscillator enabled; SHP active when any osc has ShapeType > Off; OSC/FLT/ENV/AMP/OUT always active
+  - Click detection on blocks (32px tall, 52px wide blocks)
+  - Hidden in FM mode (visibility controlled by SynthPanel::updateVisibility)
+  - Placed between synthDisplay and OSC section in SynthPanel layout (32px strip)
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (Phase 5 — Theme Polish) (2026-05-09)
+
+- **Design system constants** — `MultiverseFlatTheme::Metrics` struct: `fontHeader/Label/Value/Title`, `outerMargin/sectionPadding/sectionGap/smallGap/sectionHeaderH`, `dividerAlpha`
+- **Font getters** — `headerFont()` (11pt bold), `labelFont()` (9pt plain), `valueFont()` (10pt monospaced), `titleFont()` (13pt bold)
+- **drawDivider()** static helper — 1px `borderLight` line at configurable opacity
+- **BottomBar macro value readout** — Added `valueLabel` per macro knob showing 0-100%, cell width expanded from 36→42px
+- **LFO color fix** — `ModulationMatrixPanel` LFO row labels now use `NeuKnob::getModSourceColour()` instead of hardcoded `accentBlue`; LFO1=cyan, LFO2=pink, LFO3=purple, LFO4=green
+- **Font normalization** — All 14+ panels migrated from hardcoded font sizes to theme getters:
+  - SynthPanel, SynthDisplay, FilterDisplay, EnvelopeDisplay, SignalFlowBar
+  - EffectsPanel, GranularPanel, LayersPanel, MacroPanel
+  - PerformancePanel, RoutingPanel, LibrarianPanel, QuickFXStrip
+  - PluginEditor presetNameLabel → `titleFont()`
+- **Spacing normalization** — `.reduced(16)` → `.reduced(Metrics::outerMargin)`, gap values → `Metrics::sectionGap/smallGap`
+- **Divider lines** — Added `drawDivider()` calls between sections in SynthPanel, GranularPanel, EffectsPanel, MacroPanel, LayersPanel
+- **Build fix** — `JUCE_DECLARE_NON_COPYABLE_WITH_LEAKY_DETECTOR` → `JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR` (typo fix for JUCE 7+); `valueFont()` uses `Font::getDefaultMonospacedFontName()` instead of nonexistent `withMonospaced()`
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (UI Overhaul — All-Oscillator View + Proportions) (2026-05-09)
+
+- **Tab visibility fix** — `MultiverseFlatTheme::drawTabButton()` inactive tabs now use `bgHover` fill (clearly lighter) on `bgDeep` tab bar background; added `borderLight` bottom line for visual separation; `drawTabAreaBehindFrontButton()` uses `bgDeep` instead of `bgRaised`
+- **Search bar ♫ symbol fix** — `LibrarianPanel.h`: `autoPreviewButton` changed from Unicode `♫` (U+266B) to plain text `"Auto"`
+- **Metrics overhaul** — `MultiverseFlatTheme::Metrics` font sizes increased: header 11→12, label 9→10, value 10→11, title 13→14; spacing: sectionGap 8→10, sectionPadding 8→10, smallGap 4→5, outerMargin 8→10
+- **All-oscillator view** — `OscTabBar` removed; all active oscillators shown simultaneously in a horizontal row in Classic mode; each oscillator has its own mini `OscDisplay` waveform indicator, type selector, level/detune/wavePos knobs, shape controls, wavetable buttons; `+`/`-` buttons replace tab bar for oscillator count control; `SynthDisplay` (oscilloscope+FFT) and `SignalFlowBar` removed from SynthPanel to free 152px vertical space; `LFODisplay` removed
+- **Per-oscillator waveform display** — `std::array<OscDisplay, 8> oscDisplays` replaces single `OscDisplay`; each osc strip shows its waveform type; waveform selector onChange updates the display per-oscillator
+- **Progressive disclosure** — when strip width < 120px (many oscillators), advanced shaping controls are hidden; only type, level, detune shown
+- **SynthPanel layout** — horizontal osc row at top (280px section), then SUB/NOISE (110px), UNISON (110px), FILTER (170px, with FilterDisplay), ENV (150px, with EnvelopeDisplay), CHORD/STRUM (90px), readout bar (28px)
+- **Proportion fixes** — SynthPanel knobs 70→80px; QuickFXStrip knobs 28→36px, labels 12→14px, combos 20→24px, gaps 6→8px; BottomBar knobs 32→38px, cell width 42→48px; left sidebar 280→260px
+- **FM mode** unchanged — FM operator layout still works with separate branch in `resized()` and `updateVisibility()`
+- **Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (Serum 2-Style UI Redesign — Phase 1: ModBar) (2026-05-09)
+
+- **ModBar replaces BottomBar + QuickFXStrip** — single 160px bottom modulation bar with 7 sub-tabs: ENV1, ENV2, ENV3, LFO, MACRO, QFX, KEY
+- **EnvSubPanel** — 4 ADSR NeuKnobs + EnvelopeDisplay per envelope; ENV1 uses `attack/decay/sustain/release`, ENV2 uses `modEnv2Attack/Decay/Sustain/Release`, ENV3 uses `modEnv3Attack/Decay/Sustain/Release`
+- **LFOSubPanel** — 8-button bank selector (LFO1-8) with accent colors; Rate knob, Shape combo, Sync toggle, Sync Division combo, DRAW button (opens LFOShapeEditor CallOutBox); waveform preview; attachments rebuild on bank switch
+- **MacroSubPanel** — 8 macro knobs with name labels + value readouts; timer-driven macro push (same pattern as old BottomBar)
+- **QuickFXSubPanel** — Filter Mod (enable + cutoff/res/env), Amp Mod (enable + vol/pan), Delay (mix/time/fdb), Reverb (wet/room/damp), Main Filter (enable + type + cutoff/res); horizontal layout
+- **KeyboardSubPanel** — Pitch wheel + mod wheel + MidiKeyboardComponent
+- **PluginEditor layout** — 36px header, tabs fill full width (no right strip), ModBar 160px at bottom (full width)
+- **QuickFXStrip removed from PluginEditor** — its content merged into ModBar QFX sub-tab
+- **BottomBar.h/.cpp** — renamed class from `BottomBar` to `ModBar`; file names unchanged; PitchWheel and ModWheel classes preserved
+- **Build verified:** VST3 + AU both build and install successfully ✅
+
 ## Next Session
 
-**Phase 2 — Tab-Based Oscillator System**: Replace 8-oscillator strip layout with color-coded tab bar; single active oscillator detail panel; collapsed tab view for inactive oscillators.
+**Serum 2-Style UI Redesign — Phase 2: Header Redesign** (36px header, clickable preset name, visible scale/quality/FX mode controls)
+
+**Remaining phases:** Phase 2 (Header), Phase 3 (Two-tier tabs), Phase 4 (Modulation restructure), Phase 5 (Preset overlay), Phase 6 (Theme polish)
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).
