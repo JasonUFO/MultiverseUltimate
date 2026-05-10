@@ -1,9 +1,10 @@
 #include "EffectsPanel.h"
 #include "../PluginProcessor.h"
 #include "../MultiverseFlatTheme.h"
+#include "../SkinManager.h"
 
 //==============================================================================
-// EffectChainStrip
+// EffectChainStrip — Serum 2-style: vivid tiles with per-effect accent colours
 
 const char* EffectChainStrip::effectName(int id)
 {
@@ -26,9 +27,9 @@ EffectChainStrip::EffectChainStrip(PluginProcessor& p) : proc(p)
 
 juce::Rectangle<int> EffectChainStrip::tileRect(int i) const
 {
-    const int labelH = 15;
+    const int labelH = 18;
     const int tileW  = getWidth() / 6;
-    return { i * tileW + 2, labelH, tileW - 4, getHeight() - labelH - 2 };
+    return { i * tileW + 3, labelH, tileW - 6, getHeight() - labelH - 3 };
 }
 
 int EffectChainStrip::slotAt(int x) const
@@ -39,36 +40,72 @@ int EffectChainStrip::slotAt(int x) const
 
 void EffectChainStrip::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgBase);
+    const Skin& s = MultiverseFlatTheme::skin();
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
-    g.setColour(MultiverseFlatTheme::textSecondary.withAlpha(0.7f));
-    g.setFont(MultiverseFlatTheme::labelFont());
-    g.drawText("EFFECT CHAIN  \xe2\x80\x94  drag tiles to reorder",
-               getLocalBounds().removeFromTop(15).reduced(6, 0),
+    // Header label
+    g.setColour(s.accent1.withAlpha(0.8f));
+    g.setFont(MultiverseFlatTheme::headerFont());
+    g.drawText("EFFECT CHAIN", getLocalBounds().removeFromTop(18).reduced(6, 0),
                juce::Justification::centredLeft);
+
+    // Per-effect accent colours
+    static const juce::Colour effectColours[] = {
+        juce::Colours::cyan,         // CHORUS
+        juce::Colours::orangered,     // DIST
+        juce::Colours::lime,         // EQ
+        juce::Colours::yellow,       // COMP
+        juce::Colours::mediumpurple,  // DELAY
+        juce::Colours::deepskyblue   // REVERB
+    };
 
     for (int i = 0; i < 6; ++i)
     {
         const int id = proc.getChainSlot(i);
         const auto tile = tileRect(i);
+        const auto tileF = tile.toFloat();
 
         const bool isSource = dragging && (i == dragSource);
         const bool isTarget = dragging && (i == dragOver) && (i != dragSource);
 
-        g.setColour(isTarget  ? MultiverseFlatTheme::accentAmber.withAlpha(0.85f)
-                   : isSource ? MultiverseFlatTheme::bgRaised.darker(0.3f)
-                              : MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(tile.toFloat(), 5.f);
+        const juce::Colour effectCol = (id >= 0 && id < 6) ? effectColours[id] : s.accent1;
 
-        g.setColour(juce::Colours::white.withAlpha(isSource ? 0.45f : 0.90f));
-        g.setFont(MultiverseFlatTheme::headerFont());
-        g.drawFittedText(effectName(id), tile, juce::Justification::centred, 1);
+        if (isTarget)
+        {
+            g.setColour(effectCol.withAlpha(0.2f));
+            g.fillRoundedRectangle(tileF.expanded(4.0f), 7.f);
+            g.setColour(effectCol.withAlpha(0.85f));
+            g.fillRoundedRectangle(tileF, 6.f);
+        }
+        else if (isSource)
+        {
+            g.setColour(s.bgRaised.darker(0.3f));
+            g.fillRoundedRectangle(tileF, 6.f);
+        }
+        else
+        {
+            g.setColour(s.bgRaised);
+            g.fillRoundedRectangle(tileF, 6.f);
+
+            // Accent top bar per effect
+            auto topBar = tileF.withHeight(3.0f);
+            g.setColour(effectCol);
+            g.fillRoundedRectangle(topBar, 3.f);
+
+            g.setColour(s.borderLight.withAlpha(0.3f));
+            g.drawRoundedRectangle(tileF.reduced(0.5f), 6.f, 1.0f);
+        }
 
         // Step number
-        g.setColour(MultiverseFlatTheme::textMuted);
-        g.setFont(MultiverseFlatTheme::labelFont());
-        g.drawText(juce::String(i + 1), tile.withTrimmedBottom(tile.getHeight() - 10).translated(3, 1),
+        g.setColour(s.textMuted);
+        g.setFont(juce::Font(juce::FontOptions{}.withHeight(9.0f)));
+        g.drawText(juce::String(i + 1), tile.withTrimmedLeft(4).withTrimmedTop(4).withTrimmedBottom(tile.getHeight() - 14),
                    juce::Justification::topLeft);
+
+        g.setColour(isSource ? juce::Colours::white.withAlpha(0.45f) : s.textPrimary);
+        g.setFont(MultiverseFlatTheme::headerFont());
+        g.drawFittedText(effectName(id), tile.withTrimmedTop(16).reduced(2),
+                          juce::Justification::centred, 1);
     }
 }
 
@@ -332,71 +369,43 @@ void EffectsPanel::setupLabel(juce::Label& l, const juce::String& text)
 {
     l.setText(text, juce::dontSendNotification);
     l.setJustificationType(juce::Justification::centred);
-    l.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    l.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
+    addAndMakeVisible(l);
 }
 
 void EffectsPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
     // Draw neumorphic section cards
     const float cr = 8.0f;
     if (chorusSectionBounds.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard(g, chorusSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(chorusSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-        g.drawRoundedRectangle(chorusSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
     }
     if (distortionSectionBounds.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard(g, distortionSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(distortionSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-        g.drawRoundedRectangle(distortionSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
     }
     if (eqSectionBounds.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard(g, eqSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(eqSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-        g.drawRoundedRectangle(eqSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
     }
     if (compressorSectionBounds.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard(g, compressorSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(compressorSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-        g.drawRoundedRectangle(compressorSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
     }
     if (delaySectionBounds.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard(g, delaySectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(delaySectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-        g.drawRoundedRectangle(delaySectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
     }
     if (reverbSectionBounds.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard(g, reverbSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(reverbSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-        g.drawRoundedRectangle(reverbSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
     }
     if (sendsSectionBounds.getHeight() > 0)
     {
-        MultiverseFlatTheme::drawCard(g, sendsSectionBounds.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(sendsSectionBounds.toFloat(), cr);
-        // Accent border for the sends section
-        g.setColour(MultiverseFlatTheme::neonCyan.withAlpha(0.25f));
-        g.drawRoundedRectangle(sendsSectionBounds.toFloat().reduced(0.5f), cr, 1.0f);
+        MultiverseFlatTheme::drawCard(g, sendsSectionBounds.toFloat(), cr, true);
     }
 }
 

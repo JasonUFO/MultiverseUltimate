@@ -1,4 +1,5 @@
 #include "WavetableEditor.h"
+#include "../MultiverseFlatTheme.h"
 #include <cmath>
 
 WavetableEditor::WavetableEditor(WavetableOscillator& osc)
@@ -102,10 +103,10 @@ WavetableEditor::~WavetableEditor()
 
 void WavetableEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::darkgrey.darker(0.8f));
+    g.fillAll(MultiverseFlatTheme::bgDeep());
 
     // Draw waveform area background
-    g.setColour(juce::Colours::black);
+    g.setColour(MultiverseFlatTheme::bgVoid());
     g.fillRect(waveformArea);
 
     // Draw waveform
@@ -122,7 +123,7 @@ void WavetableEditor::paint(juce::Graphics& g)
     // Draw draw points
     if (drawPoints.size() > 1)
     {
-        g.setColour(juce::Colours::yellow);
+        g.setColour(MultiverseFlatTheme::accent5());
         for (int i = 1; i < drawPoints.size(); ++i)
         {
             g.drawLine(drawPoints[i-1].x, drawPoints[i-1].y, drawPoints[i].x, drawPoints[i].y, 2.0f);
@@ -130,7 +131,7 @@ void WavetableEditor::paint(juce::Graphics& g)
     }
 
     // Border
-    g.setColour(juce::Colours::grey);
+    g.setColour(MultiverseFlatTheme::borderLight());
     g.drawRect(getLocalBounds(), 2);
 }
 
@@ -378,7 +379,7 @@ void WavetableEditor::drawWaveform(juce::Graphics& g, const juce::Rectangle<int>
     int frame = frameSelector.getSelectedId() - 1;
     int tableSize = oscillator.getTableSize();
 
-    g.setColour(juce::Colours::cyan);
+    g.setColour(MultiverseFlatTheme::accent1());
     juce::Path waveform;
     bool first = true;
 

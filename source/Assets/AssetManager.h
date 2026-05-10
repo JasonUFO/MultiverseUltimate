@@ -14,46 +14,14 @@ public:
     void onSkinChanged();
 
     // ── Knob images ──────────────────────────────────────────────
-    juce::Image getKnobLarge()        const { return images.at("knob_large"); }
-    juce::Image getKnobSmall()        const { return images.at("knob_small"); }
-
-    // ── Button images ────────────────────────────────────────────
-    juce::Image getButtonBigOn()      const { return images.at("button_big_on"); }
-    juce::Image getButtonBigOff()     const { return images.at("button_big_off"); }
-    juce::Image getButtonNormal()     const { return images.at("button_normal"); }
-    juce::Image getButtonHover()      const { return images.at("button_hover"); }
-    juce::Image getButtonPressed()    const { return images.at("button_pressed"); }
-    juce::Image getButtonDisabled()   const { return images.at("button_disabled"); }
-
-    // ── Toggle / radio ───────────────────────────────────────────
-    juce::Image getRadioButtonOff()   const { return images.at("radio_off"); }
-    juce::Image getRadioButtonOn()    const { return images.at("radio_on"); }
-
-    // ── Dropdown ─────────────────────────────────────────────────
-    juce::Image getDropdown()         const { return images.at("dropdown"); }
-    juce::Image getDropdownArrow()    const { return images.at("dropdown_arrow"); }
-
-    // ── Header ───────────────────────────────────────────────────
-    juce::Image getHeaderBig()        const { return images.at("header_big"); }
-    juce::Image getHeaderSmall()      const { return images.at("header_small"); }
-
-    // ── Panel backgrounds ────────────────────────────────────────
-    juce::Image getContent()          const { return images.at("content"); }
-    juce::Image getBox()              const { return images.at("box"); }
-    juce::Image getBoxActive()         const { return tintedImages.count("box_active") ? tintedImages.at("box_active") : images.at("box"); }
-    juce::Image getFrame34()          const { return images.at("frame_34"); }
-    juce::Image getFrame38()          const { return images.at("frame_38"); }
-    juce::Image getFrame482()         const { return images.at("frame_482"); }
-    juce::Image getFrame488()         const { return images.at("frame_488"); }
-
-    // ── Dividers & tabs ─────────────────────────────────────────
-    juce::Image getFrame1()           const { return images.at("frame_1"); }
-    juce::Image getFrame11()          const { return images.at("frame_11"); }
-    juce::Image getFrame37()          const { return images.at("frame_37"); }
+    juce::Image getKnobLarge()        const { return tintedImages.count("knob_large_tinted") ? tintedImages.at("knob_large_tinted") : images.at("knob_large"); }
+    juce::Image getKnobSmall()        const { return tintedImages.count("knob_small_tinted") ? tintedImages.at("knob_small_tinted") : images.at("knob_small"); }
 
     // ── Specialty ────────────────────────────────────────────────
-    juce::Image getEQGraph()          const { return images.at("eq_graph"); }
-    juce::Image getLpHp()             const { return images.at("lphp"); }
+    juce::Image getEQGraph()          const { return tintedImages.count("eq_graph_tinted") ? tintedImages.at("eq_graph_tinted") : images.at("eq_graph"); }
+    juce::Image getEQGraphUntinted()  const { return images.at("eq_graph"); }
+    juce::Image getLpHp()             const { return tintedImages.count("lphp_tinted") ? tintedImages.at("lphp_tinted") : images.at("lphp"); }
+    juce::Image getLpHpUntinted()     const { return images.at("lphp"); }
     juce::Image getWheelSprite()      const { return images.at("wheel_sprite"); }
 
     // ── Wheel sprite dimensions ──────────────────────────────────
@@ -68,6 +36,11 @@ public:
     // ── Tinting ──────────────────────────────────────────────────
     // Creates a colour-multiplied copy of source
     static juce::Image tintImage (const juce::Image& source, juce::Colour tint);
+
+    // Creates an overlay-blended copy of source (lerp with alpha)
+    // resultPixel = lerp(srcPixel, tintColor, blendAlpha)
+    // Preserves brightness while shifting hue — use for skin-aware image tinting
+    static juce::Image tintImageOverlay (const juce::Image& source, juce::Colour tintColor, float blendAlpha);
 
     // ── Drawing helpers ──────────────────────────────────────────
     // Draw image scaled to fit dest bounds, maintaining aspect ratio

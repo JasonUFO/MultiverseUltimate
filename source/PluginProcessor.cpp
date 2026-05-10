@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "SkinManager.h"
 #include <cstdio>
 #include <cstring>
 #include "Sequencer/Sequencer.h"
@@ -1863,6 +1864,9 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     auto xml = root.createXml();
     if (xml != nullptr)
     {
+        // Save skin selection
+        SkinManager::instance().saveToState(*xml);
+
         juce::MemoryOutputStream stream;
         xml->writeTo(stream);
         destData.append(stream.getData(), stream.getDataSize());
@@ -1882,6 +1886,9 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     currentPresetDescription = xml->getStringAttribute("description", "");
     currentPresetTags        = xml->getStringAttribute("tags", "");
     currentPresetCharacters  = xml->getStringAttribute("characters", "");
+
+    // Restore skin selection
+    SkinManager::instance().loadFromState(*xml);
 
     juce::ValueTree root = juce::ValueTree::fromXml(*xml);
 

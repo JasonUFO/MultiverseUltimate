@@ -51,19 +51,15 @@ MacroPanel::~MacroPanel()
 
 void MacroPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
     const float cr = 8.0f;
     if (macroSectionRect.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard(g, macroSectionRect.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(macroSectionRect.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-        g.drawRoundedRectangle(macroSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
 
         // Section title
-        g.setColour(MultiverseFlatTheme::textLabel);
+        g.setColour(MultiverseFlatTheme::textLabel());
         g.setFont(MultiverseFlatTheme::headerFont());
         g.drawText("MACRO CONTROLS", macroSectionRect.getX() + 8, macroSectionRect.getY() + 5, 200, 14, juce::Justification::centredLeft);
     }

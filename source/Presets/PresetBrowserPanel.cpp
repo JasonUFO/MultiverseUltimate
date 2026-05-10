@@ -5,15 +5,15 @@
 namespace
 {
     // Use global theme colors via aliases for readability
-    const auto& bgBase      = MultiverseFlatTheme::bgBase;
-    const auto& bgRaised    = MultiverseFlatTheme::bgRaised;
-    const auto& bgDeep      = MultiverseFlatTheme::bgDeep;
-    const auto& accentBlue  = MultiverseFlatTheme::accentCyan;
-    const auto& accentPurple= MultiverseFlatTheme::accentPurple;
-    const auto& textPrimary = MultiverseFlatTheme::textPrimary;
-    const auto& textSecondary=MultiverseFlatTheme::textSecondary;
-    const auto& textMuted   = MultiverseFlatTheme::textMuted;
-    const auto& borderLight = MultiverseFlatTheme::borderLight;
+    const auto& bgBase      = MultiverseFlatTheme::bgBase();
+    const auto& bgRaised    = MultiverseFlatTheme::bgRaised();
+    const auto& bgDeep      = MultiverseFlatTheme::bgDeep();
+    const auto& accentBlue  = MultiverseFlatTheme::accentCyan();
+    const auto& accentPurple= MultiverseFlatTheme::accentPurple();
+    const auto& textPrimary = MultiverseFlatTheme::textPrimary();
+    const auto& textSecondary=MultiverseFlatTheme::textSecondary();
+    const auto& textMuted   = MultiverseFlatTheme::textMuted();
+    const auto& borderLight = MultiverseFlatTheme::borderLight();
 }
 
 const juce::Colour PresetBrowserPanel::favColors[8] = {
@@ -112,22 +112,18 @@ PresetBrowserPanel::PresetBrowserPanel(PluginProcessor& p)
 //==============================================================================
 void PresetBrowserPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
     // Tag filter area background
     if (activeTagFilters.size() > 0)
     {
         auto ta = tagFilterArea.getBounds().toFloat().reduced (2, 2);
-        MultiverseFlatTheme::drawCard (g, ta, 6.0f);
-        g.setColour (bgDeep);
-        g.fillRoundedRectangle (ta, 6.0f);
+        MultiverseFlatTheme::drawCard (g, ta, 6.0f, false, bgDeep);
     }
 
     // Metadata strip background
     auto metaArea = getLocalBounds().removeFromBottom (48).toFloat().reduced (6, 4);
     MultiverseFlatTheme::drawCard (g, metaArea, 8.0f);
-    g.setColour (bgRaised);
-    g.fillRoundedRectangle (metaArea, 8.0f);
 }
 
 //==============================================================================
@@ -310,8 +306,6 @@ void PresetBrowserPanel::paintListBoxItem (int row, juce::Graphics& g, int w, in
     else
     {
         MultiverseFlatTheme::drawCard(g, bounds, corner);
-        g.setColour (bgRaised);
-        g.fillRoundedRectangle (bounds, corner);
     }
 
     int presetIndex = filteredPresetIndices[row];

@@ -3,15 +3,28 @@
 #include "../PluginProcessor.h"
 
 const juce::Colour SynthPanel::oscColours[8] = {
-    MultiverseFlatTheme::accentCyan,
-    MultiverseFlatTheme::accentPink,
-    MultiverseFlatTheme::accentPurple,
-    MultiverseFlatTheme::accentGreen,
-    MultiverseFlatTheme::accentAmber,
-    MultiverseFlatTheme::accentCyan,
-    MultiverseFlatTheme::accentPink,
-    MultiverseFlatTheme::accentPurple
+    MultiverseFlatTheme::accentCyan(),
+    MultiverseFlatTheme::accentPink(),
+    MultiverseFlatTheme::accentPurple(),
+    MultiverseFlatTheme::accentGreen(),
+    MultiverseFlatTheme::accentAmber(),
+    MultiverseFlatTheme::accentCyan(),
+    MultiverseFlatTheme::accentPink(),
+    MultiverseFlatTheme::accentPurple()
 };
+
+const char* SynthPanel::sectionNames[kNumSections] = {
+    "OSC", "SUB / NOISE", "UNISON", "FILTER", "ENV", "CHORD / STRUM"
+};
+const int SynthPanel::sectionDefaultHeights[kNumSections] = {
+    280, 110, 110, 170, 150, 90
+};
+const int SynthPanel::sectionCollapsedH = 24;
+
+int SynthPanel::getSectionHeight(SectionID id) const
+{
+    return sectionExpanded[id] ? sectionDefaultHeights[id] : sectionCollapsedH;
+}
 
 SynthPanel::SynthPanel(PluginProcessor& p)
     : processorRef(p), synthEngine(p.getSynthEngine())
@@ -615,21 +628,52 @@ void SynthPanel::setupLabel(juce::Label& l, const juce::String& text)
 {
     l.setText(text, juce::dontSendNotification);
     l.setJustificationType(juce::Justification::centred);
+    l.setFont(MultiverseFlatTheme::labelFont());
+    l.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
 }
 
 void SynthPanel::drawSection(juce::Graphics& g, juce::Rectangle<int> r,
                                const juce::String& title) const
 {
+    drawSection(g, r, title, true);
+}
+
+void SynthPanel::drawSection(juce::Graphics& g, juce::Rectangle<int> r,
+                               const juce::String& title, bool expanded) const
+{
     const float cr = 8.0f;
     MultiverseFlatTheme::drawCard(g, r.toFloat(), cr);
-    g.setColour(MultiverseFlatTheme::bgRaised);
-    g.fillRoundedRectangle(r.toFloat(), cr);
-    g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-    g.drawRoundedRectangle(r.toFloat().reduced(0.5f), cr, 1.0f);
-    g.setColour(MultiverseFlatTheme::textLabel);
+
+    // Disclosure triangle
+    const float triX = 10.0f;
+    const float triY = r.getY() + 12.0f;
+    const float triSize = 6.0f;
+    juce::Path triangle;
+    if (expanded)
+    {
+        triangle.addTriangle(triX - triSize * 0.5f, triY - triSize * 0.4f,
+                             triX + triSize * 0.5f, triY - triSize * 0.4f,
+                             triX, triY + triSize * 0.6f);
+    }
+    else
+    {
+        triangle.addTriangle(triX - triSize * 0.4f, triY - triSize * 0.5f,
+                             triX - triSize * 0.4f, triY + triSize * 0.5f,
+                             triX + triSize * 0.6f, triY);
+    }
+    g.setColour(expanded ? MultiverseFlatTheme::accentCyan() : MultiverseFlatTheme::textMuted());
+    g.fillPath(triangle);
+
+    g.setColour(expanded ? MultiverseFlatTheme::textPrimary() : MultiverseFlatTheme::textMuted());
     g.setFont(MultiverseFlatTheme::headerFont());
-    g.drawText(title, r.getX() + 8, r.getY() + 5, 100, 14, juce::Justification::centredLeft);
-    MultiverseFlatTheme::drawDivider(g, static_cast<float>(r.getY() + 18), static_cast<float>(r.getX() + 8), static_cast<float>(r.getRight() - 8));
+    g.drawText(title, r.getX() + 22, r.getY() + 5, 200, 14, juce::Justification::centredLeft);
+
+    if (expanded)
+    {
+        MultiverseFlatTheme::drawDivider(g, static_cast<float>(r.getY() + 18),
+                                          static_cast<float>(r.getX() + 8),
+                                          static_cast<float>(r.getRight() - 8));
+    }
 }
 
 //==============================================================================
@@ -637,13 +681,14 @@ void SynthPanel::updateVisibility()
 {
     const bool isFM = (modeSelector.getSelectedId() == 2);
 
-    // OSC section — all active oscillators visible
+    // OSC section — all active oscillators visible (if section expanded)
+    const bool oscVisible = !isFM && sectionExpanded[kOSC];
     const int activeOscCount = static_cast<int>(*processorRef.apvts.getRawParameterValue("oscCount")) + 1;
 
     for (int i = 0; i < 8; ++i)
     {
         auto& c = oscControls[i];
-        const bool isActive = (!isFM) && (i < activeOscCount);
+        const bool isActive = oscVisible && (i < activeOscCount);
         const bool isWavetable  = isActive && c.typeSelector.getSelectedId() == 2;
         const bool isPhaseDist  = isActive && c.typeSelector.getSelectedId() == 4;
         const bool hasShaping   = isActive && c.typeSelector.getSelectedId() > 1;
@@ -677,29 +722,36 @@ void SynthPanel::updateVisibility()
     // Mode badge shows osc count
     modeSelector.setVisible(true);
 
-    unisonVoicesLabel.setVisible(!isFM); unisonVoicesBox.setVisible(!isFM);
-    unisonDetuneLabel.setVisible(!isFM); unisonDetuneSlider.setVisible(!isFM);
-    unisonWidthLabel.setVisible(!isFM);  unisonWidthSlider.setVisible(!isFM);
-    unisonSpreadLabel.setVisible(!isFM); unisonSpreadSelector.setVisible(!isFM);
+    // Collapsed sections hide their controls regardless of mode
+    const bool subNoiseVisible = !isFM && sectionExpanded[kSubNoise];
+    const bool unisonVisible = !isFM && sectionExpanded[kUnison];
+    const bool filterVisible = !isFM && sectionExpanded[kFilter];
+    const bool envVisible = !isFM && sectionExpanded[kEnv];
+    const bool chordVisible = !isFM && sectionExpanded[kChord];
 
-    attackLabel.setVisible(!isFM);  attackSlider.setVisible(!isFM);
-    decayLabel.setVisible(!isFM);   decaySlider.setVisible(!isFM);
-    sustainLabel.setVisible(!isFM); sustainSlider.setVisible(!isFM);
-    releaseLabel.setVisible(!isFM); releaseSlider.setVisible(!isFM);
-    envelopeDisplay.setVisible(!isFM);
+    unisonVoicesLabel.setVisible(unisonVisible); unisonVoicesBox.setVisible(unisonVisible);
+    unisonDetuneLabel.setVisible(unisonVisible); unisonDetuneSlider.setVisible(unisonVisible);
+    unisonWidthLabel.setVisible(unisonVisible);  unisonWidthSlider.setVisible(unisonVisible);
+    unisonSpreadLabel.setVisible(unisonVisible); unisonSpreadSelector.setVisible(unisonVisible);
 
-    cutoffLabel.setVisible(!isFM);        cutoffSlider.setVisible(!isFM);
-    filterDisplay.setVisible(!isFM);
-    resonanceLabel.setVisible(!isFM);     resonanceSlider.setVisible(!isFM);
-    oversamplingLabel.setVisible(!isFM);  oversamplingSelector.setVisible(!isFM);
-    filterTypeLabel.setVisible(!isFM);    filterTypeSelector.setVisible(!isFM);
+    attackLabel.setVisible(envVisible);  attackSlider.setVisible(envVisible);
+    decayLabel.setVisible(envVisible);   decaySlider.setVisible(envVisible);
+    sustainLabel.setVisible(envVisible); sustainSlider.setVisible(envVisible);
+    releaseLabel.setVisible(envVisible); releaseSlider.setVisible(envVisible);
+    envelopeDisplay.setVisible(envVisible);
 
-    subOscLabel.setVisible(!isFM);       subOscEnableButton.setVisible(!isFM);
-    subOscLevelSlider.setVisible(!isFM); subOscLevelLabel.setVisible(!isFM);
-    subOscWaveSelector.setVisible(!isFM);
-    noiseOscLabel.setVisible(!isFM);          noiseOscEnableButton.setVisible(!isFM);
-    noiseOscLevelSlider.setVisible(!isFM);    noiseOscLevelLabel.setVisible(!isFM);
-    noiseOscColorSlider.setVisible(!isFM);    noiseOscColorLabel.setVisible(!isFM);
+    cutoffLabel.setVisible(filterVisible);        cutoffSlider.setVisible(filterVisible);
+    filterDisplay.setVisible(filterVisible);
+    resonanceLabel.setVisible(filterVisible);     resonanceSlider.setVisible(filterVisible);
+    oversamplingLabel.setVisible(filterVisible);  oversamplingSelector.setVisible(filterVisible);
+    filterTypeLabel.setVisible(filterVisible);    filterTypeSelector.setVisible(filterVisible);
+
+    subOscLabel.setVisible(subNoiseVisible);       subOscEnableButton.setVisible(subNoiseVisible);
+    subOscLevelSlider.setVisible(subNoiseVisible); subOscLevelLabel.setVisible(subNoiseVisible);
+    subOscWaveSelector.setVisible(subNoiseVisible);
+    noiseOscLabel.setVisible(subNoiseVisible);          noiseOscEnableButton.setVisible(subNoiseVisible);
+    noiseOscLevelSlider.setVisible(subNoiseVisible);    noiseOscLevelLabel.setVisible(subNoiseVisible);
+    noiseOscColorSlider.setVisible(subNoiseVisible);    noiseOscColorLabel.setVisible(subNoiseVisible);
 
     algorithmLabel.setVisible(isFM);
     algorithmSelector.setVisible(isFM);
@@ -716,12 +768,12 @@ void SynthPanel::updateVisibility()
         c.releaseLabel.setVisible(isFM);  c.releaseSlider.setVisible(isFM);
     }
 
-    // Chord/Strum — only in Classic mode
-    chordEnableButton.setVisible(!isFM);
-    chordShapeLabel.setVisible(!isFM);
-    chordShapeSelector.setVisible(!isFM);
-    chordStrumLabel.setVisible(!isFM);
-    chordStrumSlider.setVisible(!isFM);
+    // Chord/Strum — only in Classic mode and section expanded
+    chordEnableButton.setVisible(chordVisible);
+    chordShapeLabel.setVisible(chordVisible);
+    chordShapeSelector.setVisible(chordVisible);
+    chordStrumLabel.setVisible(chordVisible);
+    chordStrumSlider.setVisible(chordVisible);
 
     savePresetButton.setVisible(true);
     loadPresetButton.setVisible(true);
@@ -730,18 +782,18 @@ void SynthPanel::updateVisibility()
 //==============================================================================
 void SynthPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
     const bool isFM = (modeSelector.getSelectedId() == 2);
 
     if (!isFM)
     {
-        drawSection(g, oscSectionRect,      "OSC");
-        drawSection(g, subNoiseSectionRect, "SUB / NOISE");
-        drawSection(g, unisonSectionRect,   "UNISON");
-        drawSection(g, filterSectionRect,   "FILTER");
-        drawSection(g, envSectionRect,      "ENV");
-        drawSection(g, chordSectionRect,    "CHORD / STRUM");
+        drawSection(g, oscSectionRect,      "OSC",          sectionExpanded[kOSC]);
+        drawSection(g, subNoiseSectionRect, "SUB / NOISE",  sectionExpanded[kSubNoise]);
+        drawSection(g, unisonSectionRect,   "UNISON",       sectionExpanded[kUnison]);
+        drawSection(g, filterSectionRect,   "FILTER",       sectionExpanded[kFilter]);
+        drawSection(g, envSectionRect,      "ENV",          sectionExpanded[kEnv]);
+        drawSection(g, chordSectionRect,    "CHORD / STRUM", sectionExpanded[kChord]);
 
         // Accent lines at top of each osc strip
         const int activeOscCount = static_cast<int>(*processorRef.apvts.getRawParameterValue("oscCount")) + 1;
@@ -768,7 +820,7 @@ void SynthPanel::paint(juce::Graphics& g)
     }
 
     // Mode badge
-    const juce::Colour badgeCol = isFM ? MultiverseFlatTheme::accentBlue.withAlpha(0.7f) : MultiverseFlatTheme::accentBlue;
+    const juce::Colour badgeCol = isFM ? MultiverseFlatTheme::accentBlue().withAlpha(0.7f) : MultiverseFlatTheme::accentBlue();
     g.setColour(badgeCol.withAlpha(0.18f));
     g.fillRoundedRectangle(modeBadgeRect.toFloat(), 4.0f);
     g.setColour(badgeCol);
@@ -868,15 +920,17 @@ void SynthPanel::resized()
 
         // OSC section: all oscillators in a horizontal row
         const int activeOscCount = static_cast<int>(*processorRef.apvts.getRawParameterValue("oscCount")) + 1;
-        // Calculate height based on content
-        const int oscSectionH = 280;
+        // Dynamic height based on collapse state
+        const int oscSectionH = getSectionHeight(kOSC);
         oscSectionRect = area.removeFromTop(oscSectionH);
+        sectionHeaderRects[kOSC] = oscSectionRect.withHeight(sectionCollapsedH);
 
+        if (sectionExpanded[kOSC])
         {
             auto oscInner = oscSectionRect.reduced(8).withTrimmedTop(20);
 
             // + / - buttons row (compact, right-aligned)
-            auto btnRow = oscInner.removeFromTop(22);
+            auto btnRow = oscInner.removeFromTop(24);
             addOscButton.setBounds(btnRow.removeFromRight(24).reduced(1, 2));
             btnRow.removeFromRight(4);
             removeOscButton.setBounds(btnRow.removeFromRight(24).reduced(1, 2));
@@ -901,7 +955,7 @@ void SynthPanel::resized()
                 strip.removeFromTop(4);
 
                 // Type selector
-                c.typeSelector.setBounds(strip.removeFromTop(22));
+                c.typeSelector.setBounds(strip.removeFromTop(26));
                 strip.removeFromTop(4);
 
                 // Level + Detune knobs (+ WavePos if Wavetable)
@@ -924,10 +978,10 @@ void SynthPanel::resized()
 
                 // Waveform selector (Classic mode only) or WavePos label
                 if (!isWavetable)
-                    c.waveformSelector.setBounds(strip.removeFromTop(22).withSizeKeepingCentre(72, 22));
+                    c.waveformSelector.setBounds(strip.removeFromTop(26).withSizeKeepingCentre(80, 26));
 
                 // Shape type combo
-                c.shapeTypeSelector.setBounds(strip.removeFromTop(22).withSizeKeepingCentre(72, 22));
+                c.shapeTypeSelector.setBounds(strip.removeFromTop(26).withSizeKeepingCentre(80, 26));
                 strip.removeFromTop(4);
 
                 // Shape amount, Self-osc, PhaseDist knobs
@@ -962,7 +1016,9 @@ void SynthPanel::resized()
         area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         // SUB / NOISE section
-        subNoiseSectionRect = area.removeFromTop(110);
+        subNoiseSectionRect = area.removeFromTop(getSectionHeight(kSubNoise));
+        sectionHeaderRects[kSubNoise] = subNoiseSectionRect.withHeight(sectionCollapsedH);
+        if (sectionExpanded[kSubNoise])
         {
             auto inner = subNoiseSectionRect.reduced(8).withTrimmedTop(18);
             const int halfW = inner.getWidth() / 2;
@@ -999,7 +1055,9 @@ void SynthPanel::resized()
         area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         // UNISON section
-        unisonSectionRect = area.removeFromTop(110);
+        unisonSectionRect = area.removeFromTop(getSectionHeight(kUnison));
+        sectionHeaderRects[kUnison] = unisonSectionRect.withHeight(sectionCollapsedH);
+        if (sectionExpanded[kUnison])
         {
             auto inner = unisonSectionRect.reduced(8).withTrimmedTop(18);
             // Voices ComboBox (labeled)
@@ -1025,7 +1083,9 @@ void SynthPanel::resized()
         area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         // FILTER section (with curve display)
-        filterSectionRect = area.removeFromTop(170);
+        filterSectionRect = area.removeFromTop(getSectionHeight(kFilter));
+        sectionHeaderRects[kFilter] = filterSectionRect.withHeight(sectionCollapsedH);
+        if (sectionExpanded[kFilter])
         {
             auto inner = filterSectionRect.reduced(8).withTrimmedTop(18);
 
@@ -1062,7 +1122,9 @@ void SynthPanel::resized()
         area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         // ENV section (with visualizer)
-        envSectionRect = area.removeFromTop(150);
+        envSectionRect = area.removeFromTop(getSectionHeight(kEnv));
+        sectionHeaderRects[kEnv] = envSectionRect.withHeight(sectionCollapsedH);
+        if (sectionExpanded[kEnv])
         {
             auto inner = envSectionRect.reduced(8).withTrimmedTop(18);
 
@@ -1087,7 +1149,9 @@ void SynthPanel::resized()
         area.removeFromTop(MultiverseFlatTheme::Metrics::sectionGap);
 
         // CHORD / STRUM section
-        chordSectionRect = area.removeFromTop(90);
+        chordSectionRect = area.removeFromTop(getSectionHeight(kChord));
+        sectionHeaderRects[kChord] = chordSectionRect.withHeight(sectionCollapsedH);
+        if (sectionExpanded[kChord])
         {
             auto inner = chordSectionRect.reduced(8).withTrimmedTop(18);
 
@@ -1112,4 +1176,22 @@ void SynthPanel::resized()
 
     // Readout bar at the very bottom
     readoutBar.setBounds(area.removeFromBottom(28));
+}
+
+void SynthPanel::mouseDown(const juce::MouseEvent& e)
+{
+    const bool isFM = (modeSelector.getSelectedId() == 2);
+    if (isFM) return;
+
+    for (int i = 0; i < kNumSections; ++i)
+    {
+        if (sectionHeaderRects[i].contains(e.getPosition()))
+        {
+            sectionExpanded[i] = !sectionExpanded[i];
+            updateVisibility();
+            resized();
+            repaint();
+            return;
+        }
+    }
 }

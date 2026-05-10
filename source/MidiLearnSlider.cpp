@@ -1,4 +1,5 @@
 #include "MidiLearnSlider.h"
+#include "MultiverseFlatTheme.h"
 #include "PluginProcessor.h"
 
 MidiLearnSlider::MidiLearnSlider()
@@ -29,9 +30,9 @@ void MidiLearnSlider::paint (juce::Graphics& g)
     {
         // Orange "L" badge, top-right corner
         auto badge = juce::Rectangle<float> (b.getRight() - sz, b.getY(), sz, sz);
-        g.setColour (juce::Colours::orange.withAlpha (0.9f));
+        g.setColour (MultiverseFlatTheme::accent5().withAlpha (0.9f));
         g.fillRoundedRectangle (badge, 3.0f);
-        g.setColour (juce::Colours::black);
+        g.setColour (MultiverseFlatTheme::bgVoid());
         g.setFont (juce::Font (9.0f, juce::Font::bold));
         g.drawText ("L", badge.toNearestInt(), juce::Justification::centred, false);
     }
@@ -40,9 +41,9 @@ void MidiLearnSlider::paint (juce::Graphics& g)
     {
         // Cyan "M" badge, top-left corner
         auto badge = juce::Rectangle<float> (b.getX(), b.getY(), sz, sz);
-        g.setColour (juce::Colours::cyan.withAlpha (0.9f));
+        g.setColour (MultiverseFlatTheme::accent1().withAlpha (0.9f));
         g.fillRoundedRectangle (badge, 3.0f);
-        g.setColour (juce::Colours::black);
+        g.setColour (MultiverseFlatTheme::bgVoid());
         g.setFont (juce::Font (9.0f, juce::Font::bold));
         g.drawText ("M", badge.toNearestInt(), juce::Justification::centred, false);
     }

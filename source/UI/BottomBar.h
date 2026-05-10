@@ -2,13 +2,15 @@
 
 #include <JuceHeader.h>
 #include "../MultiverseFlatTheme.h"
+#include "../SkinManager.h"
 #include "../NeuKnob.h"
 #include "../Macros/MacroManager.h"
 #include "../Synth/EnvelopeDisplay.h"
+#include "../Synth/ModulationMatrix.h"
 
 class PluginProcessor;
 
-// Pitch bend wheel — springs back to center on release
+// ── Pitch wheel — springs back to center, with vivid skin-aware rendering ──
 class PitchWheel : public juce::Component
 {
 public:
@@ -27,7 +29,7 @@ private:
     int lastY = 0;
 };
 
-// Modulation wheel — stays where you put it
+// ── Mod wheel — stays where released, vivid skin-aware rendering ──
 class ModWheel : public juce::Component
 {
 public:
@@ -45,7 +47,88 @@ private:
 };
 
 //==============================================================================
-// Sub-tab indices
+// Custom sub-tab button
+class SubTabButton : public juce::Component
+{
+public:
+    SubTabButton (const juce::String& buttonText) : text (buttonText) {}
+
+    void paint (juce::Graphics& g) override
+    {
+        MultiverseFlatTheme::drawSubTabButton (g, getLocalBounds().toFloat(), text, isActive, isHover);
+    }
+
+    void mouseEnter (const juce::MouseEvent&) override { isHover = true; repaint(); }
+    void mouseExit (const juce::MouseEvent&) override  { isHover = false; repaint(); }
+    void mouseDown (const juce::MouseEvent&) override   { if (onClick) onClick(); }
+
+    juce::String text;
+    bool isActive = false;
+    bool isHover = false;
+    std::function<void()> onClick;
+};
+
+//==============================================================================
+// LFO bank button
+class BankButton : public juce::Component
+{
+public:
+    BankButton (const juce::String& buttonText, int lfoIndex_)
+        : text (buttonText), lfoIndex (lfoIndex_) {}
+
+    void paint (juce::Graphics& g) override
+    {
+        auto bounds = getLocalBounds().toFloat();
+        const float corner = bounds.getHeight() / 2.0f;
+        const Skin& s = MultiverseFlatTheme::skin();
+
+        if (isActive)
+        {
+            auto col = NeuKnob::getModSourceColour (lfoIndex < 4
+                            ? static_cast<ModSourceType>(lfoIndex)
+                            : static_cast<ModSourceType>(11 + lfoIndex));
+            g.setColour (col.withAlpha (0.15f));
+            g.fillRoundedRectangle (bounds, corner);
+            g.setColour (col.withAlpha (0.5f));
+            g.drawRoundedRectangle (bounds, corner, 1.0f);
+        }
+        else if (isHover)
+        {
+            g.setColour (s.bgHover);
+            g.fillRoundedRectangle (bounds, corner);
+            g.setColour (s.borderLight);
+            g.drawRoundedRectangle (bounds, corner, 1.0f);
+        }
+        else
+        {
+            g.setColour (s.bgRaised);
+            g.fillRoundedRectangle (bounds, corner);
+            g.setColour (s.borderLight.withAlpha (0.5f));
+            g.drawRoundedRectangle (bounds, corner, 1.0f);
+        }
+
+        g.setFont (juce::Font (juce::FontOptions{}.withHeight (10.0f)));
+        g.setColour (isActive ? NeuKnob::getModSourceColour (lfoIndex < 4
+                                    ? static_cast<ModSourceType>(lfoIndex)
+                                    : static_cast<ModSourceType>(11 + lfoIndex))
+                               : s.textSecondary);
+        g.drawFittedText (text, getLocalBounds().reduced (4, 0),
+                          juce::Justification::centred, 1);
+    }
+
+    void mouseEnter (const juce::MouseEvent&) override { isHover = true; repaint(); }
+    void mouseExit (const juce::MouseEvent&) override  { isHover = false; repaint(); }
+    void mouseDown (const juce::MouseEvent&) override   { if (onClick) onClick(); }
+
+    juce::String text;
+    int lfoIndex;
+    bool isActive = false;
+    bool isHover = false;
+    std::function<void()> onClick;
+};
+
+//==============================================================================
+// Sub-tab indices — KEY removed (always visible)
 enum ModSubTab
 {
     kEnv1 = 0,
@@ -54,12 +137,11 @@ enum ModSubTab
     kLfo,
     kMacro,
     kQfx,
-    kKey,
-    kNumSubTabs
+    kNumSubTabs   // was kKey — keyboard is now always visible
 };
 
 //==============================================================================
-// ENV sub-panel: ADSR knobs + EnvelopeDisplay
+// ENV sub-panel
 class EnvSubPanel : public juce::Component
 {
 public:
@@ -69,7 +151,7 @@ public:
 
 private:
     PluginProcessor& proc;
-    int envIndex; // 0=ENV1(amp), 1=ENV2, 2=ENV3
+    int envIndex;
 
     struct KnobGroup
     {
@@ -85,25 +167,25 @@ private:
 };
 
 //==============================================================================
-// LFO sub-panel: bank selector (LFO1-8) + Rate/Shape/Sync/SyncDiv + DRAW
+// LFO sub-panel
 class LFOSubPanel : public juce::Component,
-                    public juce::Button::Listener,
                     private juce::Timer
 {
 public:
     explicit LFOSubPanel(PluginProcessor& p);
     void paint(juce::Graphics& g) override;
     void resized() override;
-    void buttonClicked(juce::Button* btn) override;
+    void mouseDrag(const juce::MouseEvent& e) override;
 
 private:
     PluginProcessor& proc;
-    int activeBank = 0; // 0-7 for LFO1-8
+    int activeBank = 0;
 
-    // Bank selector buttons
-    std::array<juce::TextButton, 8> bankButtons;
+    std::array<BankButton, 8> bankButtons {{
+        BankButton{"1", 0}, BankButton{"2", 1}, BankButton{"3", 2}, BankButton{"4", 3},
+        BankButton{"5", 4}, BankButton{"6", 5}, BankButton{"7", 6}, BankButton{"8", 7}
+    }};
 
-    // Controls (re-attached on bank switch)
     NeuKnob rateKnob;
     juce::ComboBox shapeCombo;
     juce::ToggleButton syncButton { "Sync" };
@@ -118,7 +200,6 @@ private:
     juce::Label rateLabel { {}, "Rate" };
     juce::Label shapeLabel { {}, "Shape" };
 
-    // LFO shape preview
     juce::Path wavePath;
     bool wavePathDirty = true;
     void rebuildWavePath();
@@ -127,11 +208,13 @@ private:
     void switchBank(int newBank);
     void showShapeEditor();
 
+    juce::Rectangle<int> dragArea;
+
     static constexpr int KNOB_SZ = 52;
 };
 
 //==============================================================================
-// Macro sub-panel: 8 macro knobs + name + value labels
+// Macro sub-panel
 class MacroSubPanel : public juce::Component, private juce::Timer
 {
 public:
@@ -158,7 +241,7 @@ private:
 };
 
 //==============================================================================
-// Quick FX sub-panel: horizontal layout of all QuickFX controls
+// Quick FX sub-panel
 class QuickFXSubPanel : public juce::Component
 {
 public:
@@ -185,7 +268,6 @@ private:
         juce::Label label { {}, {} };
     };
 
-    // Enable toggles
     juce::ToggleButton filterModEnable  { "ON" };
     juce::ToggleButton ampModEnable     { "ON" };
     juce::ToggleButton mainFilterEnable { "ON" };
@@ -193,20 +275,14 @@ private:
     std::unique_ptr<ButtonAttach> ampModEnableAttach;
     std::unique_ptr<ButtonAttach> mainFilterEnableAttach;
 
-    // Filter Mod
     KnobGroup fmCutoff, fmResonance, fmEnvDepth;
-    // Amp Mod
     KnobGroup amVolume, amPan;
-    // Delay
     KnobGroup delayMix, delayTime, delayFeedback;
-    // Reverb
     KnobGroup reverbWet, reverbRoom, reverbDamp;
-    // Main Filter
     KnobGroup mfCutoff, mfResonance;
     juce::ComboBox mfTypeCombo;
     std::unique_ptr<ComboAttach> mfTypeAttach;
 
-    // Section headers
     juce::Label filterModLabel  { {}, "FLT MOD" };
     juce::Label ampModLabel     { {}, "AMP MOD" };
     juce::Label delayLabel      { {}, "DELAY" };
@@ -217,13 +293,16 @@ private:
 };
 
 //==============================================================================
-// Keyboard sub-panel: pitch/mod wheels + MIDI keyboard
-class KeyboardSubPanel : public juce::Component
+// Keyboard strip — always-visible bottom strip with pitch/mod wheels + keyboard
+class KeyboardStrip : public juce::Component
 {
 public:
-    explicit KeyboardSubPanel(PluginProcessor& p);
+    explicit KeyboardStrip(PluginProcessor& p);
     void paint(juce::Graphics& g) override;
     void resized() override;
+
+    // Expose height so PluginEditor can query it
+    static constexpr int STRIP_H = 110;
 
 private:
     PluginProcessor& proc;
@@ -231,17 +310,13 @@ private:
     ModWheel   modWheel;
     juce::MidiKeyboardComponent keyboard;
 
-    static constexpr int WHEEL_W    = 28;
-    static constexpr int KEYBOARD_H  = 64;
-
     void sendPitchBend(float value);
     void sendModWheel(float value);
 };
 
 //==============================================================================
-// ModBar: bottom modulation bar with sub-tabs
+// ModBar: modulation bar with sub-tabs (no KEY tab — keyboard is always visible)
 class ModBar : public juce::Component,
-               public juce::Button::Listener,
                private juce::Timer
 {
 public:
@@ -257,23 +332,23 @@ public:
 private:
     PluginProcessor& proc;
 
-    // Sub-tab buttons
-    std::array<juce::TextButton, kNumSubTabs> subTabButtons;
-    int activeSubTab = kMacro; // default to MACRO
+    // KEY removed from sub-tabs
+    std::array<SubTabButton, kNumSubTabs> subTabButtons {{
+        SubTabButton{"ENV1"}, SubTabButton{"ENV2"}, SubTabButton{"ENV3"},
+        SubTabButton{"LFO"},  SubTabButton{"MACRO"}, SubTabButton{"QFX"}
+    }};
+    int activeSubTab = kMacro;
 
-    // Sub-panels
     EnvSubPanel      env1Panel;
     EnvSubPanel      env2Panel;
     EnvSubPanel      env3Panel;
     LFOSubPanel      lfoPanel;
     MacroSubPanel    macroPanel;
     QuickFXSubPanel  quickFXPanel;
-    KeyboardSubPanel keyboardPanel;
 
     std::array<juce::Component*, kNumSubTabs> subPanels;
 
     void switchSubTab(int newIndex);
-    void buttonClicked(juce::Button* btn) override;
     void timerCallback() override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModBar)

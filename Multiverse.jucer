@@ -18,10 +18,6 @@
             file="source/MidiLearnSlider.h"/>
       <FILE id="Aa0006" name="MidiLearnSlider.cpp" compile="1" resource="0"
             file="source/MidiLearnSlider.cpp"/>
-      <FILE id="Aa0007" name="CyberpunkTheme.h" compile="0" resource="0"
-            file="source/CyberpunkTheme.h"/>
-      <FILE id="Aa0008" name="CyberpunkTheme.cpp" compile="1" resource="0"
-            file="source/CyberpunkTheme.cpp"/>
       <FILE id="Aa0011" name="MultiverseFlatTheme.h" compile="0" resource="0"
             file="source/MultiverseFlatTheme.h"/>
       <FILE id="Aa0012" name="MultiverseFlatTheme.cpp" compile="1" resource="0"

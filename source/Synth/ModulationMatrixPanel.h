@@ -15,30 +15,6 @@ public:
     void timerCallback() override;
 
 private:
-    // ── LFO bank row ─────────────────────────────────────────────────────────
-    struct LFORow : public juce::Component
-    {
-        juce::Label        label;
-        juce::Slider       rateSlider;
-        juce::ComboBox     shapeCombo;
-        juce::ToggleButton syncButton { "SYNC" };
-        juce::ComboBox     syncDivCombo;
-        juce::TextButton   drawButton { "DRAW" };
-
-        std::unique_ptr<juce::SliderParameterAttachment>   rateAttachment;
-        std::unique_ptr<juce::ComboBoxParameterAttachment> shapeAttachment;
-        std::unique_ptr<juce::ButtonParameterAttachment>   syncAttachment;
-        std::unique_ptr<juce::ComboBoxParameterAttachment> syncDivAttachment;
-
-        ModulationMatrix& matrixRef;
-        int lfoIdx;
-
-        LFORow(int index, juce::AudioProcessorValueTreeState& apvts, ModulationMatrix& matrix);
-        void resized() override;
-        void mouseDrag(const juce::MouseEvent& e) override;
-        void updateDrawButtonState();
-    };
-
     // ── Mod connection row ────────────────────────────────────────────────────
     struct Row : public juce::Component
     {
@@ -58,8 +34,6 @@ private:
 
     juce::Label titleLabel;
     juce::TextButton addButton{ "+" };
-
-    std::array<std::unique_ptr<LFORow>, 8> lfoRows;
 
     std::vector<std::unique_ptr<Row>> rows;
     std::vector<juce::Rectangle<int>> rowBounds;

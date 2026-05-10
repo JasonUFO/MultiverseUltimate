@@ -8,33 +8,34 @@ ModSourceType NeuKnob::modDragSource = ModSourceType::LFO1;
 
 juce::Colour NeuKnob::getModSourceColour(ModSourceType type)
 {
-    static const juce::Colour palette[] = {
-        MultiverseFlatTheme::accentCyan,    // LFO1
-        MultiverseFlatTheme::accentPink,    // LFO2
-        MultiverseFlatTheme::accentPurple,  // LFO3
-        MultiverseFlatTheme::accentGreen,   // LFO4
-        MultiverseFlatTheme::accentAmber,   // Envelope
-        MultiverseFlatTheme::accentCyan,    // Velocity
-        MultiverseFlatTheme::accentPurple,  // NoteNumber
-        MultiverseFlatTheme::accentPink,    // Aftertouch
-        MultiverseFlatTheme::accentGreen,   // ModWheel
-        MultiverseFlatTheme::accentAmber,   // PitchBend
-        MultiverseFlatTheme::accentPurple,  // Random
-        MultiverseFlatTheme::accentCyan,    // EnvelopeFollower
-        MultiverseFlatTheme::accentGreen,   // MPEPressure
-        MultiverseFlatTheme::accentAmber,   // MPESlide
-        MultiverseFlatTheme::accentPink,    // SequencerStep
-        MultiverseFlatTheme::accentAmber,  // LFO5
-        MultiverseFlatTheme::accentCyan,    // LFO6
-        MultiverseFlatTheme::accentPink,    // LFO7
-        MultiverseFlatTheme::accentPurple,  // LFO8
-        MultiverseFlatTheme::accentGreen,  // Envelope2
-        MultiverseFlatTheme::accentAmber   // Envelope3
+    // Palette rebuilt each call to pick up skin changes
+    const juce::Colour palette[] = {
+        MultiverseFlatTheme::accentCyan(),    // LFO1
+        MultiverseFlatTheme::accentPink(),    // LFO2
+        MultiverseFlatTheme::accentPurple(),  // LFO3
+        MultiverseFlatTheme::accentGreen(),   // LFO4
+        MultiverseFlatTheme::accentAmber(),   // Envelope
+        MultiverseFlatTheme::accentCyan(),    // Velocity
+        MultiverseFlatTheme::accentPurple(),  // NoteNumber
+        MultiverseFlatTheme::accentPink(),    // Aftertouch
+        MultiverseFlatTheme::accentGreen(),   // ModWheel
+        MultiverseFlatTheme::accentAmber(),   // PitchBend
+        MultiverseFlatTheme::accentPurple(),  // Random
+        MultiverseFlatTheme::accentCyan(),    // EnvelopeFollower
+        MultiverseFlatTheme::accentGreen(),   // MPEPressure
+        MultiverseFlatTheme::accentAmber(),   // MPESlide
+        MultiverseFlatTheme::accentPink(),    // SequencerStep
+        MultiverseFlatTheme::accentAmber(),   // LFO5
+        MultiverseFlatTheme::accentCyan(),    // LFO6
+        MultiverseFlatTheme::accentPink(),    // LFO7
+        MultiverseFlatTheme::accentPurple(),  // LFO8
+        MultiverseFlatTheme::accentGreen(),   // Envelope2
+        MultiverseFlatTheme::accentAmber()    // Envelope3
     };
     const int idx = static_cast<int>(type);
     if (idx >= 0 && idx < 21)
         return palette[idx];
-    return MultiverseFlatTheme::accentCyan;
+    return MultiverseFlatTheme::accentCyan();
 }
 
 NeuKnob::NeuKnob()
@@ -54,7 +55,7 @@ void NeuKnob::arcTimerTick()
 
     lastMacroState = assigned;
     if (assigned)
-        setColour(juce::Slider::rotarySliderFillColourId, MultiverseFlatTheme::accentAmber);
+        setColour(juce::Slider::rotarySliderFillColourId, MultiverseFlatTheme::accentAmber());
     else
         removeColour(juce::Slider::rotarySliderFillColourId);
 }
@@ -111,6 +112,16 @@ void NeuKnob::paint(juce::Graphics& g)
                                   (radius + lineWidth * 0.5f) * 2.0f,
                                   lineWidth);
 
+                    // Outer glow (bloom)
+                    juce::Path glowArc;
+                    glowArc.addArc(cx - radius - lineWidth * 0.5f,
+                                   cy - radius - lineWidth * 0.5f,
+                                   (radius + lineWidth * 0.5f) * 2.0f,
+                                   (radius + lineWidth * 0.5f) * 2.0f,
+                                   startAngle, modEnd, true);
+                    g.setColour(srcColour.withAlpha(0.15f));
+                    g.strokePath(glowArc, juce::PathStrokeType(lineWidth + 4.0f));
+
                     // Active modulation arc
                     juce::Path modArc;
                     modArc.addArc(cx - radius - lineWidth * 0.5f,
@@ -118,23 +129,31 @@ void NeuKnob::paint(juce::Graphics& g)
                                   (radius + lineWidth * 0.5f) * 2.0f,
                                   (radius + lineWidth * 0.5f) * 2.0f,
                                   startAngle, modEnd, true);
-                    g.setColour(srcColour.withAlpha(0.7f));
+                    g.setColour(srcColour.withAlpha(0.85f));
                     g.strokePath(modArc, juce::PathStrokeType(lineWidth));
                 }
             }
         }
     }
 
-    // Drag-over highlight ring — uses source colour if available
+    // Drag-over highlight ring — Avenger-style glow with source colour
     if (isDragOver)
     {
         const float cx = getWidth() * 0.5f;
         const float cy = getHeight() * 0.5f;
         const float radius = std::min(getWidth(), getHeight()) * 0.46f;
         const juce::Colour hlColour = dragSourceColour.isTransparent()
-            ? MultiverseFlatTheme::accentCyan : dragSourceColour;
-        g.setColour(hlColour.withAlpha(0.5f));
-        g.drawRoundedRectangle(juce::Rectangle<float>(cx - radius, cy - radius, radius * 2, radius * 2), radius * 0.3f, 2.5f);
+            ? MultiverseFlatTheme::accentCyan() : dragSourceColour;
+        auto bounds = juce::Rectangle<float>(cx - radius, cy - radius, radius * 2, radius * 2);
+
+        // Outer bloom
+        MultiverseFlatTheme::drawGlow(g, bounds.expanded(4.0f), hlColour, radius * 0.3f + 4.0f, 0.25f);
+        // Inner glow ring
+        g.setColour(hlColour.withAlpha(0.6f));
+        g.drawRoundedRectangle(bounds, radius * 0.3f, 2.5f);
+        // Specular ring
+        g.setColour(hlColour.brighter(0.5f).withAlpha(0.3f));
+        g.drawRoundedRectangle(bounds.reduced(2.0f), radius * 0.3f - 2.0f, 1.0f);
     }
     else if (modDragActive && getParamID().isNotEmpty() && getProcessor() != nullptr)
     {
@@ -146,7 +165,11 @@ void NeuKnob::paint(juce::Graphics& g)
             const float cy = getHeight() * 0.5f;
             const float radius = std::min(getWidth(), getHeight()) * 0.46f;
             const juce::Colour srcColour = getModSourceColour(modDragSource);
-            g.setColour(srcColour.withAlpha(0.18f));
+            // Subtle pulse glow
+            MultiverseFlatTheme::drawGlow(g,
+                juce::Rectangle<float>(cx - radius, cy - radius, radius * 2, radius * 2),
+                srcColour, radius * 0.3f, 0.1f);
+            g.setColour(srcColour.withAlpha(0.3f));
             g.drawRoundedRectangle(juce::Rectangle<float>(cx - radius, cy - radius, radius * 2, radius * 2), radius * 0.3f, 1.5f);
         }
     }
@@ -161,11 +184,17 @@ void NeuKnob::paint(juce::Graphics& g)
     const float pillY = 2.0f;
 
     auto pill = juce::Rectangle<float>(pillX, pillY, pillW, pillH);
-    g.setColour(MultiverseFlatTheme::bgDeep);
-    g.fillRoundedRectangle(pill, pillH * 0.5f);
-    g.setColour(MultiverseFlatTheme::accentBlue.withAlpha(0.5f));
+
+    // 3D metallic pill: inset background + bevel + accent glow
+    MultiverseFlatTheme::drawInset(g, pill, pillH * 0.5f);
+    MultiverseFlatTheme::drawGradientFill(g, pill.reduced(0.5f));
+    g.setColour(MultiverseFlatTheme::accentBlue().withAlpha(0.4f));
     g.drawRoundedRectangle(pill, pillH * 0.5f, 1.0f);
-    g.setColour(MultiverseFlatTheme::textPrimary);
+    // Specular highlight along top edge
+    g.setColour(juce::Colours::white.withAlpha(0.15f));
+    g.drawHorizontalLine(static_cast<int>(pillY + 2.0f),
+                          pillX + 6.0f, pillX + pillW - 6.0f);
+    g.setColour(MultiverseFlatTheme::textPrimary());
     g.drawText(text, pill.toNearestInt(), juce::Justification::centred, false);
 }
 

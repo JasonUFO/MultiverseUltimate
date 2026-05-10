@@ -978,13 +978,106 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 
 **Build verified:** VST3 + AU both build and install successfully ✅
 
+## Completed (ReaPlugs UI Phase 3 — Buttons & Toggles) (2026-05-10)
+
+- **drawToggleButton** — now draws `button_big_on.png`/`button_big_off.png` via 9-slice scaling (40/40/30/30 borders), with procedural accent overlay (ON state glow, dot indicator, text) on top
+- **drawButtonBackground** — now selects image based on component size and state:
+  - Small buttons (≤80px wide or ≤44px tall): Button.png (normal), Button_1.png (hover), Button_2.png (pressed/active), Button_3.png (disabled)
+  - Large buttons (>80px wide or >44px tall): Button_4.png (normal), Button_5.png (hover), Button_6.png (pressed/active), Button_7.png (disabled)
+  - All drawn via 9-slice (12px borders for small, 14px for large) with procedural accent overlay for active/highlight states
+  - Fallback: procedural drawing if images unavailable
+- **drawButtonText** — unchanged (procedural text on top of image background)
+- **AssetManager** — added `getButtonLargeNormal/Hover/Pressed/Disabled()` accessors for Button_4-7 PNGs; `loadAllImages()` loads them as `button_large_normal/hover/pressed/disabled`
+- **Fallback rendering** preserved: if images are null/invalid, all methods fall back to original procedural drawing
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (ReaPlugs UI Phase 4 — ComboBox & Dropdown) (2026-05-10)
+
+- **drawComboBox** — now uses image-based rendering:
+  - Background: `Dropdown.png` (normal), `Dropdown_4.png` (hover/focused), `Dropdown_5.png` (pressed) via 9-slice scaling (12/12/8/8 borders)
+  - Arrow: `Dropdown_6.png` drawn on right side, tinted with accent colour on focus
+  - Focus state: accent glow overlay (0.1 alpha fill + 0.5 alpha border) on top of image
+  - Fallback: procedural drawing (rounded rect, border, triangle arrow) if images unavailable
+- **AssetManager** — added `getDropdownHover()` and `getDropdownPressed()` accessors; `loadAllImages()` loads Dropdown_4/5 as `dropdown_hover/pressed`
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (ReaPlugs UI Phase 5 — Header & Tabs) (2026-05-10)
+
+- **Header background** — `PluginEditor::paint()` now draws `Header_Big.png` via 9-slice (40/40/20/20 borders) across the 36px header area
+- **Tab bar background** — `TwoTierTabBar::paint()` now draws `Header_Small.png` via 9-slice (30/30/10/10 borders) as the full tab bar background, replacing procedural fills
+- **Primary tabs** — `drawPrimaryTabButton()` now draws `Frame_1.png` via 9-slice (10/10/8/8 borders) as each tab background, with accent glow and text overlay on top
+- **Secondary tabs** — `drawSecondaryTabButton()` now draws `Frame_11.png` via 9-slice (12/12/12/12 borders) as each tab background, with accent line and text overlay
+- **Sub-tab buttons** — `drawSubTabButton()` now draws `Frame_11.png` via 9-slice (12/12/12/12 borders) as each pill background, with accent glow/border and text overlay
+- **ModBar background** — `ModBar::paint()` now draws `Frame_482.png` via 9-slice (20/20/15/15 borders) as the full ModBar background, replacing procedural `bgDeep` fill
+- **New theme methods** — `drawHeaderBackground()` and `drawTabBarBackground()` in `MultiverseFlatTheme`
+- **Fallback rendering** preserved: if images are null/invalid, all methods fall back to original procedural drawing
+- **BottomBar.cpp** — added `#include "Assets/AssetManager.h"`
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (ReaPlugs UI Phase 6 — Panel Backgrounds & Frames) (2026-05-10)
+
+- **drawCard() rewritten** — now uses `AssetManager::drawImage9Slice()` with Box.png (24/24/16/16 borders) as card background, with procedural overlay for custom fillColor, active glow, and accent border; fallback to procedural if image unavailable
+- **drawDivider() rewritten** — now draws Frame_37.png (306×12) as a horizontal image band at the divider position; fallback to procedural line if image unavailable
+- **drawContentBackground()** — NEW static method: draws Content.png (1600×1144) via 9-slice (40/40/30/30 borders) as panel content background; fallback to solid bgBase fill
+- **All 14 panel paint() methods updated** — replaced `g.fillAll(bgBase())` with `MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat())`:
+  - SynthPanel, EffectsPanel (main + EffectChainStrip), GranularPanel, LayersPanel, MacroPanel
+  - ModulationMatrixPanel, SamplerPanel, SequencerPanel, ArpeggiatorPanel, ProSequencerPanel
+  - DrumSequencerPanel, RoutingPanel, PerformancePanel, GlobalPanel
+  - LibrarianPanel, LibrarianPresetList, PresetBrowserPanel
+- **MultiverseFlatTheme.h** — added `drawContentBackground()` static method declaration
+- **AssetManager** — getBox(), getBoxActive(), getContent(), getFrame37() accessors already existed from Phase 1
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (ReaPlugs UI Phase 7 — Specialty Elements) (2026-05-10)
+
+- **PitchWheel** — `PitchWheel::paint()` now draws `wheel.png` sprite strip via `AssetManager::drawWheelFrame()` as the thumb indicator (square, 30px max, centered on track, moves with value); accent glow overlay preserved; track background with gradient, center line, and tick marks preserved
+- **ModWheel** — `ModWheel::paint()` now draws `wheel.png` sprite strip via `AssetManager::drawWheelFrame()` as the thumb indicator (same approach as PitchWheel but value range 0..1); accent glow and fill overlay preserved
+- **FilterDisplay** — `FilterDisplay::paint()` now draws `EQ_Graph.png` via `AssetManager::drawImage9Slice()` (40/40/30/30 borders) as the background behind the procedural filter response curve; `LpHp.png` drawn as a small filter type indicator (24×50px, top-right corner); procedural curve, frequency labels, and type label preserved on top
+- **SynthDisplay** — `SynthDisplay::paint()` now draws `EQ_Graph.png` via `AssetManager::drawImage9Slice()` at 35% opacity as the background for the spectrum analyzer area (right 55%); oscilloscope and tuner strip unchanged
+- **Includes** — `AssetManager.h` added to BottomBar.cpp, FilterDisplay.h, SynthDisplay.cpp
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (ReaPlugs UI Phase 8 — Theme Integration & Polish) (2026-05-10)
+
+- **Overlay tinting system** — `AssetManager::tintImageOverlay()` added (alpha-composite blend: `lerp(src, tint, alpha)`). Preserves brightness while shifting hue, unlike the existing `tintImage()` multiply blend which darkens.
+- **Aggressive tinted variants** — `generateTintedVariants()` expanded from 1 to 17 tinted images using overlay blend at aggressive alphas (0.35-0.65):
+  - Panel backgrounds: `box_tinted` (bgRaised 0.60), `box_active` (accent1 0.30), `content_tinted` (bgBase 0.65)
+  - Knobs: `knob_large_tinted` (bgRaised 0.55), `knob_small_tinted` (bgRaised 0.55)
+  - Specialty: `eq_graph_tinted` (bgDeep 0.60), `lphp_tinted` (accent1 0.65), `frame_37_tinted` (borderLight 0.60)
+  - Buttons: `button_normal_tinted` (bgRaised 0.60), `button_hover_tinted` (bgHover 0.60), `button_pressed_tinted` (accent1 0.35), `button_disabled_tinted` (bgDeep 0.55), `button_big_on_tinted` (accent1 0.40), `button_big_off_tinted` (bgRaised 0.55)
+  - Dropdowns: `dropdown_tinted` (bgRaised 0.60), `dropdown_hover_tinted` (bgHover 0.60), `dropdown_pressed_tinted` (accent1 0.35)
+- **All AssetManager accessor methods updated** — `getKnobLarge/Small()`, `getBox()`, `getBoxActive()`, `getContent()`, `getFrame37()`, `getButtonBigOn/Off()`, `getButtonNormal/Hover/Pressed/Disabled()`, `getDropdown/Hover/Pressed()`, `getEQGraph()`, `getLpHp()` now return tinted variants when available, raw images as fallback
+- **Skin persistence** — `PluginProcessor::getStateInformation()` calls `SkinManager::saveToState(*xml)` to save skinIndex + skinName; `setStateInformation()` calls `SkinManager::loadFromState(*xml)` to restore skin on preset load
+- **Skin selector sync** — `SkinManager::addSkinChangeCallback()` added; PluginEditor registers callback for `mvTheme.applySkinColours() + repaint()`; GlobalPanel registers callback to sync combo box selection; both selectors now stay in sync
+- **Image tinting regenerates on skin change** — `AssetManager::onSkinChanged()` regenerates all 17 tinted variants with the new skin's colors; `SkinManager::setSkin()` fires all registered callbacks after repaint
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (Progressive Disclosure Phase 1 — Collapsible Sections) (2026-05-10)
+
+- **Collapsible sections in SynthPanel** — each section (OSC, SUB/NOISE, UNISON, FILTER, ENV, CHORD/STRUM) has a clickable header with disclosure triangle (▶/▼)
+- **Default state:** OSC and ENV expanded; SUB/NOISE, UNISON, CHORD/STRUM collapsed
+- **Section collapse state:** `bool sectionExpanded[6]` in SynthPanel, `SectionID` enum for array indexing
+- **Dynamic layout:** `resized()` uses `getSectionHeight(SectionID)` which returns `sectionCollapsedH` (24px) or full height based on state
+- **`mouseDown()` handler:** detects clicks on `sectionHeaderRects[]` to toggle collapse state, triggers `updateVisibility() + resized() + repaint()`
+- **`drawSection()` overloaded:** new overload with `bool expanded` param draws disclosure triangle (down=expanded cyan, right=collapsed muted), title with muted color when collapsed, no divider when collapsed
+- **`updateVisibility()` updated:** all section controls hidden when their section is collapsed (e.g., filter knobs hidden when `sectionExpanded[kFilter]` is false)
+- **Inner layout guards:** `resized()` wraps each section's inner layout in `if (sectionExpanded[id])` so collapsed sections skip layout computation
+- **Static constants:** `sectionNames[6]`, `sectionDefaultHeights[6]` (280/110/110/170/150/90), `sectionCollapsedH = 24`
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
 ## Next Session
 
-**ReaPlugs UI Phase 3:** Button & toggle replacement (button_big_on/off, Button_1-7, Radio_Button)
-**ReaPlugs UI Phase 4:** ComboBox & dropdown replacement (Dropdown, Dropdown_4-6)
-**ReaPlugs UI Phase 5:** Header & tab replacement (Header_Big/Small, Frame_10/11)
-**ReaPlugs UI Phase 6:** Panel backgrounds & frames (Box, Content, Frame_37, drawCard→9-slice)
-**ReaPlugs UI Phase 7:** Specialty elements (wheel sprite, EQ_Graph, LpHp)
-**ReaPlugs UI Phase 8:** Theme integration & polish (all 20 skins, tinting verification)
+**Progressive Disclosure Phase 2 — Single-tier Tab Bar:**
+- Replace `TwoTierTabBar` (64px, two-row primary/secondary) with `SingleTierTabBar` (single row, all panels equal)
+- Reclaim ~24px for content viewport
+- Remove ROU tab (routing moves to GLOBAL as collapsible section)
+- All tabs: OSC, FX, MOD, GLO, DRM, GRN, SMP, LYR, SEQ, ARP
 
-**Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).
+**Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only)

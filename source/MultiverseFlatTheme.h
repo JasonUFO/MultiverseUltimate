@@ -98,16 +98,39 @@ public:
     static juce::Colour wheelTrack()    { return skin().wheelTrack; }
     static juce::Colour wheelFill()     { return skin().wheelFill; }
 
+    // 3D depth properties
+    static juce::Colour shadowDark()      { return skin().shadowDark; }
+    static juce::Colour shadowLight()     { return skin().shadowLight; }
+    static juce::Colour highlightSpec()   { return skin().highlightSpec; }
+    static juce::Colour panelGradient1()  { return skin().panelGradient1; }
+    static juce::Colour panelGradient2()  { return skin().panelGradient2; }
+    static juce::Colour insetBg()         { return skin().insetBg; }
+    static float bevelStrength()          { return skin().bevelStrength; }
+    static float glowIntensity()         { return skin().glowIntensity; }
+
     // Tab colours
     static juce::Colour tabPrimaryBg()   { return skin().tabPrimaryBg; }
     static juce::Colour tabSecondaryBg() { return skin().tabSecondaryBg; }
     static juce::Colour tabActiveBg()     { return skin().tabActiveBg; }
     static juce::Colour tabActiveGlow()   { return skin().tabActiveGlow; }
 
-    // Flat card helper
+    // Card/panel background (image-based with procedural overlay)
     static void drawCard (juce::Graphics&, juce::Rectangle<float>,
                           float cornerRadius, bool isActive = false,
                           juce::Colour fillColor = juce::Colour());
+
+    // Content area background (image-based)
+    static void drawContentBackground (juce::Graphics&, juce::Rectangle<float>);
+
+    // 3D rendering primitives
+    static void drawBevel (juce::Graphics& g, juce::Rectangle<float> bounds,
+                           float cornerRadius, float strength = 1.0f);
+    static void drawInset (juce::Graphics& g, juce::Rectangle<float> bounds,
+                          float cornerRadius, float strength = 1.0f);
+    static void drawGlow (juce::Graphics& g, juce::Rectangle<float> bounds,
+                         juce::Colour colour, float radius, float alpha = 0.5f);
+    static void draw3DSeparator (juce::Graphics& g, float y, float x1, float x2);
+    static void drawGradientFill (juce::Graphics& g, juce::Rectangle<float> bounds);
 
     // Overlay backdrop
     static void drawOverlayBackdrop (juce::Graphics& g, juce::Rectangle<float> bounds);
@@ -120,8 +143,12 @@ public:
     static void drawSubTabButton (juce::Graphics& g, juce::Rectangle<float> bounds,
                                    const juce::String& text, bool isActive, bool isHover);
 
-    // Section divider line
+    // Section divider line (image-based)
     static void drawDivider (juce::Graphics& g, float y, float x1, float x2);
+
+    // Image-based backgrounds
+    static void drawHeaderBackground (juce::Graphics& g, juce::Rectangle<float> bounds);
+    static void drawTabBarBackground (juce::Graphics& g, juce::Rectangle<float> bounds);
 
     // Font getters
     static juce::Font headerFont();

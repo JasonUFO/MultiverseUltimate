@@ -106,19 +106,15 @@ void GranularPanel::setupLabel (juce::Label& l)
 
 void GranularPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (MultiverseFlatTheme::bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
     const float cr = 8.0f;
 
     if (sourceSectionRect.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard(g, sourceSectionRect.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(sourceSectionRect.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-        g.drawRoundedRectangle(sourceSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
         // Section title
-        g.setColour(MultiverseFlatTheme::textLabel);
+        g.setColour(MultiverseFlatTheme::textLabel());
         g.setFont(MultiverseFlatTheme::headerFont());
         g.drawText("SOURCE", sourceSectionRect.getX() + 8, sourceSectionRect.getY() + 5, 100, 14, juce::Justification::centredLeft);
         MultiverseFlatTheme::drawDivider(g, static_cast<float>(sourceSectionRect.getY() + 18), static_cast<float>(sourceSectionRect.getX() + 8), static_cast<float>(sourceSectionRect.getRight() - 8));
@@ -127,12 +123,8 @@ void GranularPanel::paint (juce::Graphics& g)
     if (grainSectionRect.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard(g, grainSectionRect.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(grainSectionRect.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-        g.drawRoundedRectangle(grainSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
         // Section title
-        g.setColour(MultiverseFlatTheme::textLabel);
+        g.setColour(MultiverseFlatTheme::textLabel());
         g.setFont(MultiverseFlatTheme::headerFont());
         g.drawText("GRAIN", grainSectionRect.getX() + 8, grainSectionRect.getY() + 5, 100, 14, juce::Justification::centredLeft);
         MultiverseFlatTheme::drawDivider(g, static_cast<float>(grainSectionRect.getY() + 18), static_cast<float>(grainSectionRect.getX() + 8), static_cast<float>(grainSectionRect.getRight() - 8));
@@ -141,12 +133,8 @@ void GranularPanel::paint (juce::Graphics& g)
     if (envelopeSectionRect.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard(g, envelopeSectionRect.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle(envelopeSectionRect.toFloat(), cr);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-        g.drawRoundedRectangle(envelopeSectionRect.toFloat().reduced(0.5f), cr, 1.0f);
         // Section title
-        g.setColour(MultiverseFlatTheme::textLabel);
+        g.setColour(MultiverseFlatTheme::textLabel());
         g.setFont(MultiverseFlatTheme::headerFont());
         g.drawText("VOICE ENVELOPE", envelopeSectionRect.getX() + 8, envelopeSectionRect.getY() + 5, 140, 14, juce::Justification::centredLeft);
         MultiverseFlatTheme::drawDivider(g, static_cast<float>(envelopeSectionRect.getY() + 18), static_cast<float>(envelopeSectionRect.getX() + 8), static_cast<float>(envelopeSectionRect.getRight() - 8));

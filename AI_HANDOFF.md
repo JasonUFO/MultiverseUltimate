@@ -138,15 +138,26 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 ### Serum 2-Style UI Redesign (COMPLETE)
 All 6 phases shipped. See completed table above.
 
-### ReaPlugs Image-Based UI (Current Focus)
+### ReaPlugs Image-Based UI (Phases 1-5 shipped)
 Replacing procedural drawing with PNG asset rendering from Parallax/ReaPlugs project.
 **Plan:** `/Users/jason/.claude/plans/drifting-jingling-sparrow.md`
-- ~~Phase 1: AssetManager~~ ✅ (2026-05-10) — AssetManager singleton, 35 PNGs embedded as BinaryData, tinting, 9-slice
-- ~~Phase 2: Knobs~~ ✅ (2026-05-10) — drawRotarySlider uses Knob.png/Knob_Small.png with rotation + accent arc overlay
-- **Phase 3: Buttons & Toggles** — button_big_on/off, Button_1-7, Radio_Button
-- **Phase 4: ComboBox & Dropdown** — Dropdown.png, Dropdown_6 arrow via 9-slice
-- **Phase 5: Header & Tabs** — Header_Big/Small, Frame_10/11 tab backgrounds
+- ~~Phase 1: AssetManager~~ ✅ (2026-05-10)
+- ~~Phase 2: Knobs~~ ✅ (2026-05-10)
+- ~~Phase 3: Buttons & Toggles~~ ✅ (2026-05-10)
+- ~~Phase 4: ComboBox & Dropdown~~ ✅ (2026-05-10)
+- ~~Phase 5: Header & Tabs~~ ✅ (2026-05-10)
 - **Phase 6: Panel Backgrounds** — Box.png 9-slice for drawCard, Content.png, Frame_37 divider
+- **Phase 7: Specialty** — wheel.png sprite strip, EQ_Graph background, LpHp
+- **Phase 8: Theme Integration** — Tint verification across all 20 skins, polish
+
+### Progressive Disclosure UI Redesign (Current Focus)
+Merging Avenger 2 workstation breadth with Serum 2 workflow polish.
+**Plan:** `/Users/jason/.claude/plans/fuzzy-doodling-matsumoto.md`
+- ~~Phase 1: Collapsible Sections~~ ✅ (2026-05-10) — SynthPanel sections clickable to collapse/expand, default: OSC+ENV expanded, others collapsed
+- **Phase 2: Single-tier Tab Bar** — Replace TwoTierTabBar with SingleTierTabBar, all panels equal, remove ROU tab
+- **Phase 3: Oscillator Detail View** — Mini strip + one-at-a-time detail, Serum 2 pattern
+- **Phase 4: Modulation Overlay** — MOD tab becomes full-screen overlay like PresetOverlay
+- **Phase 5: Simplified Init Preset** — 1 osc, sections collapsed, clean defaults
 - **Phase 7: Specialty** — wheel.png sprite strip, EQ_Graph background, LpHp
 - **Phase 8: Theme Integration** — Tint verification across all 20 skins, polish
 
@@ -191,8 +202,10 @@ All gap-fill phases (0–7) complete. Competitive feature expansion paused for U
 | Min window size | 800×533 |
 | Max window size | 1920×1280 |
 | Header height | 36px (Scale/Quality/FX visible, clickable preset name → overlay) |
-| ModBar height | 160px (7 sub-tabs: ENV1/2/3, LFO, MACRO, QFX, KEY) |
-| Layout | Header (36px) → Tabs (full width) → ModBar (160px at bottom) |
+| ModBar height | 160px (6 sub-tabs: ENV1/2/3, LFO, MACRO, QFX) |
+| Layout | Header (36px) → Tabs (full width) → Content → ModBar (160px) → Keyboard (110px) |
+| Collapsible sections | SynthPanel sections collapse/expand on click; default: OSC+ENV expanded |
+| Section collapsed height | 24px (header only with disclosure triangle) |
 
 ---
 
@@ -208,6 +221,7 @@ All gap-fill phases (0–7) complete. Competitive feature expansion paused for U
 - `QuickFXStrip` is no longer a separate component — its controls are in `QuickFXSubPanel` inside `ModBar`.
 - `BottomBar` class no longer exists — renamed to `ModBar`. PitchWheel and ModWheel classes still exist as standalone components inside `BottomBar.h`.
 - `MultiverseFlatTheme::drawCard()` is `public static` — callable from panel paint() for flat section card borders (bgRaised fill + borderLight/borderActive stroke). Replaces old `drawNeumorphicRect()`.
+- **SynthPanel collapsible sections** — `SynthPanel::SectionID` enum (kOSC, kSubNoise, kUnison, kFilter, kEnv, kChord) indexes `bool sectionExpanded[6]` and `Rectangle<int> sectionHeaderRects[6]`. Default: kOSC and kEnv expanded, others collapsed. `drawSection(g, rect, title, expanded)` draws disclosure triangle + title (cyan if expanded, muted if collapsed). `mouseDown()` toggles on header click. `updateVisibility()` hides controls when section collapsed. `getSectionHeight(SectionID)` returns 24 (collapsed) or default height.
 - `CyberpunkTheme.h/.cpp` still exist in the project but are NO LONGER used by any panel. They can be safely deleted when convenient.
 - `ModulationMatrix::getActiveConnectionsForTarget()` returns by value (thread-safety fix — do not change to ref/pointer).
 - Effect chain order is packed as 6 nibbles in `std::atomic<uint32_t> effectChainOrder` — `getChainSlot(pos)` / `swapChainSlots(a,b)` are the only API.

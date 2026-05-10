@@ -13,7 +13,7 @@ RoutingPanel::LayerBlock::LayerBlock(int idx, PluginProcessor& p)
 {
     nameLabel.setText("Layer " + juce::String(idx + 1), juce::dontSendNotification);
     nameLabel.setJustificationType(juce::Justification::centredLeft);
-    nameLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textPrimary);
+    nameLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textPrimary());
     nameLabel.setFont(MultiverseFlatTheme::headerFont());
     addAndMakeVisible(nameLabel);
 
@@ -66,9 +66,9 @@ void RoutingPanel::LayerBlock::paint(juce::Graphics& g)
     bool soloed = layer.isSoloed();
     bool muted  = layer.isMuted();
 
-    juce::Colour borderColor = soloed  ? MultiverseFlatTheme::accentPink
-                              : active ? MultiverseFlatTheme::accentCyan
-                                       : MultiverseFlatTheme::borderLight;
+    juce::Colour borderColor = soloed  ? MultiverseFlatTheme::accentPink()
+                              : active ? MultiverseFlatTheme::accentCyan()
+                                       : MultiverseFlatTheme::borderLight();
 
     MultiverseFlatTheme::drawCard(g, bounds, 6.0f, active);
 
@@ -76,7 +76,7 @@ void RoutingPanel::LayerBlock::paint(juce::Graphics& g)
     {
         // Level bar at bottom
         float barW = static_cast<float>((bounds.getWidth() - 8) * levelValue);
-        g.setColour(MultiverseFlatTheme::accentCyan.withAlpha(0.5f));
+        g.setColour(MultiverseFlatTheme::accentCyan().withAlpha(0.5f));
         g.fillRoundedRectangle(bounds.getX() + 4, bounds.getBottom() - 6, barW, 3.0f, 1.5f);
     }
 
@@ -84,7 +84,7 @@ void RoutingPanel::LayerBlock::paint(juce::Graphics& g)
     int busIdx = layer.getOutputBusIndex();
     if (busIdx > 0)
     {
-        g.setColour(MultiverseFlatTheme::accentAmber);
+        g.setColour(MultiverseFlatTheme::accentAmber());
         g.setFont(MultiverseFlatTheme::labelFont());
         g.drawText("B" + juce::String(busIdx),
                    bounds.withTrimmedLeft(bounds.getWidth() - 24).withTrimmedTop(2),
@@ -142,7 +142,7 @@ RoutingPanel::DrumsSummaryBlock::DrumsSummaryBlock(PluginProcessor& p) : proc(p)
 {
     infoLabel.setText("DRUMS \xe2\x80\x94 8 tracks", juce::dontSendNotification);
     infoLabel.setJustificationType(juce::Justification::centredLeft);
-    infoLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textPrimary);
+    infoLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textPrimary());
     infoLabel.setFont(MultiverseFlatTheme::headerFont());
     addAndMakeVisible(infoLabel);
 
@@ -208,9 +208,9 @@ void RoutingPanel::ChainStrip::paint(juce::Graphics& g)
         const bool isSource = dragging && (i == dragSource);
         const bool isTarget = dragging && (i == dragOver) && (i != dragSource);
 
-        g.setColour(isTarget  ? MultiverseFlatTheme::accentAmber.withAlpha(0.85f)
-                   : isSource ? MultiverseFlatTheme::bgRaised.darker(0.3f)
-                              : MultiverseFlatTheme::bgRaised);
+        g.setColour(isTarget  ? MultiverseFlatTheme::accentAmber().withAlpha(0.85f)
+                   : isSource ? MultiverseFlatTheme::bgRaised().darker(0.3f)
+                              : MultiverseFlatTheme::bgRaised());
         g.fillRoundedRectangle(tile.toFloat(), 4.f);
 
         g.setColour(juce::Colours::white.withAlpha(isSource ? 0.45f : 0.90f));
@@ -220,7 +220,7 @@ void RoutingPanel::ChainStrip::paint(juce::Graphics& g)
         // Arrow between tiles
         if (i < 5)
         {
-            g.setColour(MultiverseFlatTheme::textMuted);
+            g.setColour(MultiverseFlatTheme::textMuted());
             auto arrowX = tile.getRight() + 2;
             auto arrowY = tile.getCentreY();
             g.drawLine(static_cast<float>(arrowX), static_cast<float>(arrowY - 3),
@@ -296,19 +296,19 @@ RoutingPanel::RoutingPanel(PluginProcessor& p)
 
     auxDelayLabel.setText("Delay", juce::dontSendNotification);
     auxDelayLabel.setJustificationType(juce::Justification::centred);
-    auxDelayLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    auxDelayLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     auxDelayLabel.setFont(MultiverseFlatTheme::labelFont());
     addAndMakeVisible(auxDelayLabel);
 
     auxReverbLabel.setText("Reverb", juce::dontSendNotification);
     auxReverbLabel.setJustificationType(juce::Justification::centred);
-    auxReverbLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    auxReverbLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     auxReverbLabel.setFont(MultiverseFlatTheme::labelFont());
     addAndMakeVisible(auxReverbLabel);
 
     auxSectionLabel.setText("AUX SENDS", juce::dontSendNotification);
     auxSectionLabel.setJustificationType(juce::Justification::centredLeft);
-    auxSectionLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    auxSectionLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     auxSectionLabel.setFont(MultiverseFlatTheme::headerFont());
     addAndMakeVisible(auxSectionLabel);
 
@@ -323,10 +323,10 @@ RoutingPanel::~RoutingPanel()
 
 void RoutingPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
     // Section headers
-    g.setColour(MultiverseFlatTheme::textSecondary);
+    g.setColour(MultiverseFlatTheme::textSecondary());
     g.setFont(MultiverseFlatTheme::headerFont());
 
     g.drawText("GENERATORS", generatorsRect.removeFromTop(16).reduced(4, 0),
@@ -426,11 +426,11 @@ void RoutingPanel::drawConnectionLines(juce::Graphics& g)
     float outTop = static_cast<float>(outputRect.getY() + 14);
 
     // Main vertical flow line from generators to chain
-    g.setColour(MultiverseFlatTheme::accentCyan.withAlpha(0.3f));
+    g.setColour(MultiverseFlatTheme::accentCyan().withAlpha(0.3f));
     g.drawLine(flowCenterX, genBottom, flowCenterX, chainTop, lineW);
 
     // Small arrow above chain
-    drawArrowDown(g, flowCenterX, chainTop - 8, chainTop, MultiverseFlatTheme::accentCyan.withAlpha(0.5f));
+    drawArrowDown(g, flowCenterX, chainTop - 8, chainTop, MultiverseFlatTheme::accentCyan().withAlpha(0.5f));
 
     // From chain to aux sends
     g.drawLine(flowCenterX, chainBottom, flowCenterX, auxTop, lineW);
@@ -457,9 +457,9 @@ void RoutingPanel::drawConnectionLines(juce::Graphics& g)
         float cx = static_cast<float>(blockBounds.getCentreX());
         float by = static_cast<float>(blockBounds.getBottom());
 
-        juce::Colour lineColour = layer.isSoloed() ? MultiverseFlatTheme::accentPink
-                                  : layer.getOutputBusIndex() > 0 ? MultiverseFlatTheme::accentAmber
-                                  : MultiverseFlatTheme::accentCyan;
+        juce::Colour lineColour = layer.isSoloed() ? MultiverseFlatTheme::accentPink()
+                                  : layer.getOutputBusIndex() > 0 ? MultiverseFlatTheme::accentAmber()
+                                  : MultiverseFlatTheme::accentCyan();
 
         float alpha = layer.isMuted() ? 0.15f : 0.5f;
         g.setColour(lineColour.withAlpha(alpha));
@@ -472,12 +472,12 @@ void RoutingPanel::drawConnectionLines(juce::Graphics& g)
     {
         float drumsCx = static_cast<float>(drumsBlock.getBounds().getCentreX());
         float drumsBy = static_cast<float>(drumsBlock.getBounds().getBottom());
-        g.setColour(MultiverseFlatTheme::accentCyan.withAlpha(0.3f));
+        g.setColour(MultiverseFlatTheme::accentCyan().withAlpha(0.3f));
         g.drawLine(drumsCx, drumsBy, drumsCx, drumsBy + 3, lineW);
     }
 
     // Output label
-    g.setColour(MultiverseFlatTheme::textPrimary);
+    g.setColour(MultiverseFlatTheme::textPrimary());
     g.setFont(MultiverseFlatTheme::titleFont());
     g.drawText("\xe2\x86\x92 OUTPUT", outputRect.reduced(4, 0),
                juce::Justification::centredLeft);

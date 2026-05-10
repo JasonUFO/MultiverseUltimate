@@ -15,8 +15,8 @@ public:
     {
         auto bounds = getLocalBounds().toFloat().reduced (1.5f);
 
-        juce::Colour bg = active ? MultiverseFlatTheme::accentBlue.darker (0.2f) : MultiverseFlatTheme::bgRaised;
-        juce::Colour border = active ? MultiverseFlatTheme::accentBlue : MultiverseFlatTheme::borderLight;
+        juce::Colour bg = active ? MultiverseFlatTheme::accentBlue().darker (0.2f) : MultiverseFlatTheme::bgRaised();
+        juce::Colour border = active ? MultiverseFlatTheme::accentBlue() : MultiverseFlatTheme::borderLight();
 
         g.setColour (bg);
         g.fillRoundedRectangle (bounds, 4.0f);

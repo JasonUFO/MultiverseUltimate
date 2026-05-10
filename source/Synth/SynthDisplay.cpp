@@ -1,4 +1,5 @@
 #include "SynthDisplay.h"
+#include "../Assets/AssetManager.h"
 #include "../MultiverseFlatTheme.h"
 #include "../PluginProcessor.h"
 
@@ -91,15 +92,15 @@ void SynthDisplay::paint(juce::Graphics& g)
     auto bounds = getLocalBounds().toFloat();
 
     // Inset neumorphic frame (carved-in look)
-    g.setColour(juce::Colour(0xff080810).withAlpha(0.9f));
+    g.setColour(MultiverseFlatTheme::shadowDark().withAlpha(0.9f));
     g.drawRoundedRectangle(bounds.translated(2.0f, 2.0f), 8.0f, 2.0f);
-    g.setColour(juce::Colour(0xff303050).withAlpha(0.5f));
+    g.setColour(MultiverseFlatTheme::shadowLight().withAlpha(0.5f));
     g.drawRoundedRectangle(bounds.translated(-1.0f, -1.0f), 8.0f, 1.5f);
 
     auto inner = bounds.reduced(2.0f);
-    g.setColour(juce::Colour(0xff0D0D18));
+    g.setColour(MultiverseFlatTheme::bgDeep());
     g.fillRoundedRectangle(inner, 6.0f);
-    g.setColour(juce::Colour(0xff252535));
+    g.setColour(MultiverseFlatTheme::borderLight());
     g.drawRoundedRectangle(inner, 6.0f, 1.0f);
     inner = inner.reduced(1.0f);
 
@@ -118,6 +119,16 @@ void SynthDisplay::paint(juce::Graphics& g)
     auto scopeArea = specArea.removeFromLeft(gw * 0.45f).reduced(4.0f, 4.0f);
     specArea       = specArea.reduced(4.0f, 4.0f);
 
+    // EQ_Graph background image for spectrum area
+    auto& am = AssetManager::instance();
+    auto eqImg = am.getEQGraph();
+    if (eqImg.isValid())
+    {
+        g.setOpacity(0.35f);
+        AssetManager::drawImage9Slice(g, eqImg, specArea.expanded(4.0f), 40, 40, 30, 30);
+        g.setOpacity(1.0f);
+    }
+
     // ---- Tuner strip (bottom of scope area) ----
     {
         static const char* noteNames[] = {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
@@ -135,31 +146,31 @@ void SynthDisplay::paint(juce::Graphics& g)
             const float barX  = tunerRect.getX() + 26.0f;
             const float barMid = barX + barW * 0.5f;
             const float barY  = tunerRect.getCentreY() - 2.5f;
-            g.setColour(juce::Colour(0xff1a1a2a));
+            g.setColour(MultiverseFlatTheme::bgDeep().darker(0.1f));
             g.fillRect(barX, barY, barW, 5.0f);
 
             // Cents fill
             const float centOff = juce::jlimit(-50.0f, 50.0f, tunerCents);
             const float indicW  = barW * 0.5f * std::abs(centOff) / 50.0f;
-            g.setColour(inTune ? MultiverseFlatTheme::neonGreen : MultiverseFlatTheme::accentAmber);
+            g.setColour(inTune ? MultiverseFlatTheme::neonGreen() : MultiverseFlatTheme::accentAmber());
             if (centOff < 0.0f)
                 g.fillRect(barMid - indicW, barY, indicW, 5.0f);
             else
                 g.fillRect(barMid, barY, indicW, 5.0f);
 
             // Centre tick
-            g.setColour(MultiverseFlatTheme::textSecondary);
+            g.setColour(MultiverseFlatTheme::textSecondary());
             g.fillRect(barMid - 0.5f, barY - 1.0f, 1.0f, 7.0f);
 
             // Note label
-            g.setColour(inTune ? MultiverseFlatTheme::neonGreen : MultiverseFlatTheme::textPrimary);
+            g.setColour(inTune ? MultiverseFlatTheme::neonGreen() : MultiverseFlatTheme::textPrimary());
             g.setFont(MultiverseFlatTheme::headerFont());
             g.drawText(juce::String(noteName) + juce::String(octave),
                        (int)tunerRect.getX(), (int)tunerRect.getY(), 26, (int)tunerH,
                        juce::Justification::centredLeft, false);
 
             // Hz readout
-            g.setColour(MultiverseFlatTheme::textMuted);
+            g.setColour(MultiverseFlatTheme::textMuted());
             g.setFont(MultiverseFlatTheme::valueFont());
             g.drawText(juce::String((int)tunerHz) + "Hz",
                        (int)(barX + barW + 2.0f), (int)tunerRect.getY(), 36, (int)tunerH,
@@ -168,7 +179,7 @@ void SynthDisplay::paint(juce::Graphics& g)
         else
         {
             // No signal
-            g.setColour(MultiverseFlatTheme::textMuted.withAlpha(0.35f));
+            g.setColour(MultiverseFlatTheme::textMuted().withAlpha(0.35f));
             g.setFont(MultiverseFlatTheme::labelFont());
             g.drawText("---", (int)tunerRect.getX(), (int)tunerRect.getY(),
                        (int)tunerRect.getWidth(), (int)tunerH,
@@ -196,14 +207,14 @@ void SynthDisplay::paint(juce::Graphics& g)
         }
 
         // Glow layer then crisp stroke
-        g.setColour(MultiverseFlatTheme::accentBlue.withAlpha(0.18f));
+        g.setColour(MultiverseFlatTheme::accentBlue().withAlpha(0.18f));
         g.strokePath(wave, juce::PathStrokeType(4.5f, juce::PathStrokeType::curved,
                                                 juce::PathStrokeType::rounded));
-        g.setColour(MultiverseFlatTheme::accentBlue);
+        g.setColour(MultiverseFlatTheme::accentBlue());
         g.strokePath(wave, juce::PathStrokeType(1.5f, juce::PathStrokeType::curved,
                                                 juce::PathStrokeType::rounded));
 
-        g.setColour(MultiverseFlatTheme::textMuted);
+        g.setColour(MultiverseFlatTheme::textMuted());
         g.setFont(MultiverseFlatTheme::labelFont());
         g.drawText("OSC", (int)scopeArea.getX(), (int)scopeArea.getY(), 24, 10,
                    juce::Justification::centredLeft, false);
@@ -230,14 +241,14 @@ void SynthDisplay::paint(juce::Graphics& g)
                 bars.addRectangle(sox + float(x), sbot - barH, 1.5f, barH);
         }
 
-        juce::ColourGradient grad(MultiverseFlatTheme::accentPurple, sox, sbot,
-                                  MultiverseFlatTheme::accentBlue.brighter(0.4f), sox, specArea.getY(),
+        juce::ColourGradient grad(MultiverseFlatTheme::accentPurple(), sox, sbot,
+                                  MultiverseFlatTheme::accentBlue().brighter(0.4f), sox, specArea.getY(),
                                   false);
         g.setGradientFill(grad);
         g.fillPath(bars);
 
         // Peak hold — 1px per column
-        g.setColour(MultiverseFlatTheme::accentBlue.brighter(0.6f));
+        g.setColour(MultiverseFlatTheme::accentBlue().brighter(0.6f));
         for (int x = 0; x < dispW; ++x)
         {
             if (fftPeak[(int)(float(x) / float(dispW - 1) * float(numBins - 1))] < 0.01f) continue;
@@ -247,7 +258,7 @@ void SynthDisplay::paint(juce::Graphics& g)
             g.fillRect(sox + float(x), sbot - fftPeak[bin] * sh, 1.5f, 1.5f);
         }
 
-        g.setColour(MultiverseFlatTheme::textMuted);
+        g.setColour(MultiverseFlatTheme::textMuted());
         g.setFont(MultiverseFlatTheme::labelFont());
         g.drawText("FFT", (int)specArea.getX(), (int)specArea.getY(), 22, 10,
                    juce::Justification::centredLeft, false);

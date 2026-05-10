@@ -36,7 +36,7 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
 
     bpmLabel.setText ("BPM", juce::dontSendNotification);
     bpmLabel.setJustificationType (juce::Justification::centredRight);
-    bpmLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    bpmLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     addAndMakeVisible (bpmLabel);
 
     bpmSlider.setRange (40.0, 240.0, 0.5);
@@ -70,7 +70,7 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
     addAndMakeVisible (stopButton);
 
     positionLabel.setText ("Step: —", juce::dontSendNotification);
-    positionLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    positionLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     positionLabel.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (positionLabel);
 
@@ -93,7 +93,7 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
 
     // Swing
     swingLabel.setText ("Swing", juce::dontSendNotification);
-    swingLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    swingLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     swingLabel.setJustificationType (juce::Justification::centredRight);
     addAndMakeVisible (swingLabel);
 
@@ -111,7 +111,7 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
 
     // Quantization
     quantLabel.setText ("Quant", juce::dontSendNotification);
-    quantLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    quantLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     quantLabel.setJustificationType (juce::Justification::centredRight);
     addAndMakeVisible (quantLabel);
 
@@ -132,7 +132,7 @@ DrumSequencerPanel::DrumSequencerPanel (DrumSequencer& seq)
 
     // Pattern chain
     chainToggleButton.setClickingTogglesState (true);
-    chainToggleButton.setColour (juce::TextButton::buttonOnColourId, MultiverseFlatTheme::accentGreen.darker (0.2f));
+    chainToggleButton.setColour (juce::TextButton::buttonOnColourId, MultiverseFlatTheme::accentGreen().darker (0.2f));
     chainToggleButton.onClick = [this]()
     {
         chainActive = chainToggleButton.getToggleState();
@@ -305,9 +305,9 @@ void DrumSequencerPanel::fileDragExit (const juce::StringArray&)
 
 void DrumSequencerPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (MultiverseFlatTheme::bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
-     g.setColour (MultiverseFlatTheme::textSecondary);
+     g.setColour (MultiverseFlatTheme::textSecondary());
      g.setFont (juce::Font (12.0f, juce::Font::bold));
      g.drawText ("DRUM SEQUENCER", getLocalBounds().removeFromTop (24), juce::Justification::centred);
 
@@ -316,39 +316,23 @@ void DrumSequencerPanel::paint (juce::Graphics& g)
     if (transportBounds.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard (g, transportBounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle (transportBounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
-        g.drawRoundedRectangle (transportBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (swingBounds.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard (g, swingBounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle (swingBounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
-        g.drawRoundedRectangle (swingBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (patternBounds.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard (g, patternBounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle (patternBounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
-        g.drawRoundedRectangle (patternBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
     if (gridBounds.getHeight() > 0)
     {
         MultiverseFlatTheme::drawCard (g, gridBounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle (gridBounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
-        g.drawRoundedRectangle (gridBounds.toFloat().reduced (0.5f), cr, 1.0f);
     }
 
     if (isDragOver)
     {
-        g.setColour (MultiverseFlatTheme::accentBlue.withAlpha (0.25f));
+        g.setColour (MultiverseFlatTheme::accentBlue().withAlpha (0.25f));
         g.drawRoundedRectangle (getLocalBounds().toFloat().reduced (4), 4, 2);
     }
 }
@@ -437,20 +421,20 @@ void DrumSequencerPanel::DrumStepButton::paint (juce::Graphics& g)
     juce::Colour bg, border;
     if (highlighted)
     {
-        bg = MultiverseFlatTheme::accentAmber;
-        border = MultiverseFlatTheme::accentAmber.brighter (0.3f);
+        bg = MultiverseFlatTheme::accentAmber();
+        border = MultiverseFlatTheme::accentAmber().brighter (0.3f);
     }
     else if (active)
     {
         // Velocity intensity: dark blue (low) → bright cyan (high)
         float v = juce::jlimit (0.0f, 1.0f, velocity);
-        bg     = MultiverseFlatTheme::accentBlue.darker (0.5f).interpolatedWith (MultiverseFlatTheme::accentBlue, v);
-        border = MultiverseFlatTheme::accentBlue.darker (0.7f).interpolatedWith (MultiverseFlatTheme::accentBlue.brighter (0.3f), v);
+        bg     = MultiverseFlatTheme::accentBlue().darker (0.5f).interpolatedWith (MultiverseFlatTheme::accentBlue(), v);
+        border = MultiverseFlatTheme::accentBlue().darker (0.7f).interpolatedWith (MultiverseFlatTheme::accentBlue().brighter (0.3f), v);
     }
     else
     {
-        bg = MultiverseFlatTheme::bgRaised;
-        border = MultiverseFlatTheme::borderLight;
+        bg = MultiverseFlatTheme::bgRaised();
+        border = MultiverseFlatTheme::borderLight();
     }
 
     g.setColour (bg);
@@ -493,7 +477,7 @@ DrumSequencerPanel::TrackRow::TrackRow (int idx, DrumSequencer& seq, DrumSequenc
     addAndMakeVisible (volumeSlider);
 
     muteButton.setClickingTogglesState (true);
-    muteButton.setColour (juce::TextButton::buttonOnColourId, MultiverseFlatTheme::accentAmber.darker (0.3f));
+    muteButton.setColour (juce::TextButton::buttonOnColourId, MultiverseFlatTheme::accentAmber().darker (0.3f));
     muteButton.onClick = [this]()
     {
         sequencer.setTrackMuted (trackIndex, muteButton.getToggleState());
@@ -501,7 +485,7 @@ DrumSequencerPanel::TrackRow::TrackRow (int idx, DrumSequencer& seq, DrumSequenc
     addAndMakeVisible (muteButton);
 
     soloButton.setClickingTogglesState (true);
-    soloButton.setColour (juce::TextButton::buttonOnColourId, MultiverseFlatTheme::accentAmber.darker (0.2f));
+    soloButton.setColour (juce::TextButton::buttonOnColourId, MultiverseFlatTheme::accentAmber().darker (0.2f));
     soloButton.onClick = [this]()
     {
         sequencer.setTrackSolo (trackIndex, soloButton.getToggleState());
@@ -531,8 +515,8 @@ DrumSequencerPanel::TrackRow::TrackRow (int idx, DrumSequencer& seq, DrumSequenc
     };
     addAndMakeVisible (loadButton);
 
-    levelMeter.setColour (juce::Label::backgroundColourId, MultiverseFlatTheme::bgDeep);
-    levelMeter.setColour (juce::Label::textColourId, MultiverseFlatTheme::accentGreen);
+    levelMeter.setColour (juce::Label::backgroundColourId, MultiverseFlatTheme::bgDeep());
+    levelMeter.setColour (juce::Label::textColourId, MultiverseFlatTheme::accentGreen());
     addAndMakeVisible (levelMeter);
 
     fxButton.setColour (juce::TextButton::buttonColourId, juce::Colour (0xff223355));
@@ -569,12 +553,12 @@ void DrumSequencerPanel::TrackRow::updateFromSequencer()
     float level = sequencer.getTrackLevel (trackIndex);
     int meterHeight = static_cast<int> (level * getHeight());
     levelMeter.setColour (juce::Label::backgroundColourId,
-                          MultiverseFlatTheme::accentGreen.withAlpha (0.3f + level * 0.7f));
+                          MultiverseFlatTheme::accentGreen().withAlpha (0.3f + level * 0.7f));
 }
 
 void DrumSequencerPanel::TrackRow::paint (juce::Graphics& g)
 {
-    g.setColour (MultiverseFlatTheme::bgRaised.darker (0.2f));
+    g.setColour (MultiverseFlatTheme::bgRaised().darker (0.2f));
     g.fillRoundedRectangle (getLocalBounds().toFloat().reduced (1), 2.0f);
 
     // Waveform preview in name label area when a sample is loaded
@@ -582,7 +566,7 @@ void DrumSequencerPanel::TrackRow::paint (juce::Graphics& g)
     if (buf.getNumSamples() >0)
     {
         auto waveArea = juce::Rectangle<int> (2, 2, 68, getHeight() - 4);
-        g.setColour (MultiverseFlatTheme::bgDeep);
+        g.setColour (MultiverseFlatTheme::bgDeep());
         g.fillRect (waveArea);
 
         const float* samples = buf.getReadPointer (0);
@@ -591,7 +575,7 @@ void DrumSequencerPanel::TrackRow::paint (juce::Graphics& g)
         float cy = waveArea.getCentreY();
         float halfH = (waveArea.getHeight() - 2) *0.45f;
 
-        g.setColour (MultiverseFlatTheme::accentBlue.withAlpha (0.85f));
+        g.setColour (MultiverseFlatTheme::accentBlue().withAlpha (0.85f));
         juce::Path path;
         for (int px = 0; px < w; ++px)
         {

@@ -19,9 +19,9 @@ public:
     void paint(juce::Graphics& g) override
     {
         auto b = getLocalBounds().toFloat();
-        g.setColour(MultiverseFlatTheme::bgDeep);
+        g.setColour(MultiverseFlatTheme::bgDeep());
         g.fillRoundedRectangle(b, 4.0f);
-        g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.4f));
+        g.setColour(MultiverseFlatTheme::borderLight().withAlpha(0.4f));
         g.drawRoundedRectangle(b, 4.0f, 1.0f);
 
         const int numBlocks = 7;
@@ -43,19 +43,19 @@ public:
             auto blockRect = juce::Rectangle<float>(x, y, blockW, blockH);
             if (active)
             {
-                g.setColour(MultiverseFlatTheme::accentCyan.withAlpha(0.18f));
+                g.setColour(MultiverseFlatTheme::accentCyan().withAlpha(0.18f));
                 g.fillRoundedRectangle(blockRect, 3.0f);
-                g.setColour(MultiverseFlatTheme::accentCyan.withAlpha(0.6f));
+                g.setColour(MultiverseFlatTheme::accentCyan().withAlpha(0.6f));
                 g.drawRoundedRectangle(blockRect, 3.0f, 1.0f);
-                g.setColour(MultiverseFlatTheme::accentCyan);
+                g.setColour(MultiverseFlatTheme::accentCyan());
             }
             else
             {
-                g.setColour(MultiverseFlatTheme::bgRaised);
+                g.setColour(MultiverseFlatTheme::bgRaised());
                 g.fillRoundedRectangle(blockRect, 3.0f);
-                g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.5f));
+                g.setColour(MultiverseFlatTheme::borderLight().withAlpha(0.5f));
                 g.drawRoundedRectangle(blockRect, 3.0f, 1.0f);
-                g.setColour(MultiverseFlatTheme::textMuted);
+                g.setColour(MultiverseFlatTheme::textMuted());
             }
 
             g.setFont(MultiverseFlatTheme::headerFont());
@@ -68,8 +68,8 @@ public:
                 const float arrowX = x + blockW + 2.0f;
                 const float arrowY = y + blockH * 0.5f;
                 const float arrowEnd = arrowX + gap - 4.0f;
-                g.setColour(active ? MultiverseFlatTheme::accentCyan.withAlpha(0.5f)
-                                   : MultiverseFlatTheme::borderLight.withAlpha(0.3f));
+                g.setColour(active ? MultiverseFlatTheme::accentCyan().withAlpha(0.5f)
+                                   : MultiverseFlatTheme::borderLight().withAlpha(0.3f));
                 g.drawLine(arrowX, arrowY, arrowEnd, arrowY, 1.5f);
                 g.drawLine(arrowEnd, arrowY, arrowEnd - 3.0f, arrowY - 3.0f, 1.5f);
                 g.drawLine(arrowEnd, arrowY, arrowEnd - 3.0f, arrowY + 3.0f, 1.5f);

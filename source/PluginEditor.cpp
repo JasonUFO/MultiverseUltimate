@@ -28,6 +28,11 @@ PluginEditor::PluginEditor (PluginProcessor& p)
 
     // Register for skin changes
     SkinManager::instance().addListener(this);
+    SkinManager::instance().addSkinChangeCallback([this]()
+    {
+        mvTheme.applySkinColours();
+        repaint();
+    });
 
     // Panel array
     panels[0]  = &synthPanel;
@@ -196,6 +201,10 @@ void PluginEditor::switchToPanel (int panelIndex)
 void PluginEditor::paint (juce::Graphics& g)
 {
     g.fillAll (MultiverseFlatTheme::bgVoid());
+
+    // Draw image-based header background
+    constexpr int headerH = MultiverseFlatTheme::Metrics::headerH;
+    MultiverseFlatTheme::drawHeaderBackground (g, getLocalBounds().toFloat().removeFromTop (headerH));
 }
 
 void PluginEditor::resized()
@@ -357,10 +366,8 @@ void PluginEditor::showMainMenu()
     for (int i = 0; i < sm.numSkins(); ++i)
     {
         const bool isSelected = (sm.getSkinIndex() == i);
-        skinMenu.addItem (sm.skinName(i), true, isSelected, [this, i] {
+        skinMenu.addItem (sm.skinName(i), true, isSelected, [i] {
             SkinManager::instance().setSkin(i);
-            mvTheme.applySkinColours();
-            repaint();
         });
     }
     menu.addSubMenu ("Skins", skinMenu);

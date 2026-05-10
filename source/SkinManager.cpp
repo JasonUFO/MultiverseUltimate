@@ -45,6 +45,17 @@ static Skin makeSkin(
     s.tabPrimaryBg = C(tabPri); s.tabSecondaryBg = C(tabSec);
     s.tabActiveBg = C(tabAct); s.tabActiveGlow = C(tabGl);
     s.keyboardHeight = kbHeight; s.wheelWidth = whWidth;
+
+    // Compute 3D depth properties from base colours
+    s.shadowDark    = s.bgVoid.withAlpha (0.7f);
+    s.shadowLight   = s.bgRaised.brighter (0.4f).withAlpha (0.3f);
+    s.highlightSpec = s.accent1.withAlpha (0.6f);
+    s.panelGradient1 = s.bgBase.brighter (0.02f);
+    s.panelGradient2 = s.bgBase.darker (0.04f);
+    s.insetBg       = s.bgDeep;
+    s.bevelStrength  = 1.0f;
+    s.glowIntensity  = 1.0f;
+
     return s;
 }
 
@@ -294,6 +305,9 @@ void SkinManager::setSkin(int index)
     for (auto* c : listeners)
         if (c != nullptr)
             c->repaint();
+    for (auto& [key, cb] : skinChangeCallbacks)
+        if (cb)
+            cb();
 }
 
 bool SkinManager::setSkinByName(const juce::String& name)
@@ -318,6 +332,18 @@ void SkinManager::addListener(juce::Component* c)
 void SkinManager::removeListener(juce::Component* c)
 {
     listeners.erase(std::remove(listeners.begin(), listeners.end(), c), listeners.end());
+}
+
+void SkinManager::addSkinChangeCallback(std::function<void()> callback)
+{
+    // Store with a heap-allocated key pointer for removal
+    auto* key = new std::function<void()>(std::move(callback));
+    skinChangeCallbacks.push_back({key, *key});
+}
+
+void SkinManager::removeSkinChangeCallback(std::function<void()>* callback)
+{
+    // Not typically needed, but provided for completeness
 }
 
 void SkinManager::saveToState(juce::XmlElement& xml) const

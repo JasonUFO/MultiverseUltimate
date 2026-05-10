@@ -107,6 +107,15 @@ private:
     juce::Rectangle<int> fmSectionRect, voiceSectionRect;
     juce::Rectangle<int> modeBadgeRect;
 
+    // Collapsible section state (default: OSC and ENV expanded, others collapsed)
+    enum SectionID { kOSC, kSubNoise, kUnison, kFilter, kEnv, kChord, kNumSections };
+    bool sectionExpanded[kNumSections] = { true, false, false, true, true, false };
+    static const char* sectionNames[kNumSections];
+    static const int sectionDefaultHeights[kNumSections]; // full expanded heights
+    static const int sectionCollapsedH; // collapsed height (header only)
+    juce::Rectangle<int> sectionHeaderRects[kNumSections]; // for click detection
+    int getSectionHeight(SectionID id) const;
+
     // OSC count buttons (replaces OscTabBar)
     juce::TextButton addOscButton   { "+" };
     juce::TextButton removeOscButton { "\xe2\x88\x92" }; // −
@@ -156,7 +165,9 @@ private:
     void setupSlider(juce::Slider& s, double min, double max, double value, double skew = 1.0);
     void setupLabel(juce::Label& l, const juce::String& text);
     void drawSection(juce::Graphics& g, juce::Rectangle<int> r, const juce::String& title) const;
+    void drawSection(juce::Graphics& g, juce::Rectangle<int> r, const juce::String& title, bool expanded) const;
     void updateVisibility();
+    void mouseDown(const juce::MouseEvent& e) override;
 
     // FM
     juce::Label    algorithmLabel;
@@ -237,26 +248,26 @@ private:
         void paint(juce::Graphics& g) override
         {
             auto b = getLocalBounds().toFloat();
-            g.setColour(MultiverseFlatTheme::bgDeep);
+            g.setColour(MultiverseFlatTheme::bgDeep());
             g.fillRoundedRectangle(b, 4.0f);
-            g.setColour(MultiverseFlatTheme::borderLight);
+            g.setColour(MultiverseFlatTheme::borderLight());
             g.drawRoundedRectangle(b, 4.0f, 1.0f);
 
             if (paramName.isNotEmpty())
             {
-                g.setColour(MultiverseFlatTheme::accentCyan);
+                g.setColour(MultiverseFlatTheme::accentCyan());
                 g.setFont(MultiverseFlatTheme::headerFont());
                 g.drawText(paramName, b.toNearestInt().reduced(8, 0),
                            juce::Justification::centredLeft, false);
 
-                g.setColour(MultiverseFlatTheme::textPrimary);
+                g.setColour(MultiverseFlatTheme::textPrimary());
                 g.setFont(MultiverseFlatTheme::valueFont());
                 g.drawText(paramValue, b.toNearestInt().reduced(8, 0),
                            juce::Justification::centredRight, false);
             }
             else
             {
-                g.setColour(MultiverseFlatTheme::textMuted);
+                g.setColour(MultiverseFlatTheme::textMuted());
                 g.setFont(MultiverseFlatTheme::labelFont());
                 g.drawText("Hover a knob to see its value", b.toNearestInt(),
                            juce::Justification::centred, false);

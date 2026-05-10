@@ -102,8 +102,6 @@ void MultiverseFlatTheme::applySkinColours()
 }
 
 //==============================================================================
-// Flat card helper
-
 void MultiverseFlatTheme::drawCard (juce::Graphics& g,
                                      juce::Rectangle<float> bounds,
                                      float cornerRadius, bool isActive,
@@ -112,24 +110,33 @@ void MultiverseFlatTheme::drawCard (juce::Graphics& g,
     const Skin& s = skin();
     juce::Colour fill = fillColor.isTransparent() ? s.bgRaised : fillColor;
 
-    // Neon glow behind active cards
     if (isActive)
-    {
-        g.setColour (s.accent1.withAlpha (0.08f));
-        g.fillRoundedRectangle (bounds.expanded (4.0f), cornerRadius + 2.0f);
-    }
+        drawGlow (g, bounds, s.accent1, bounds.getWidth() * 0.5f, 0.12f);
 
-    g.setColour (fill);
+    auto gradient = juce::ColourGradient (fill.brighter (0.03f), bounds.getX(), bounds.getY(),
+                                          fill.darker (0.06f), bounds.getX(), bounds.getBottom(), false);
+    g.setGradientFill (gradient);
     g.fillRoundedRectangle (bounds, cornerRadius);
+    drawBevel (g, bounds, cornerRadius);
 
-    // Border with neon glow for active cards
     if (isActive)
     {
-        g.setColour (s.accent1.withAlpha (0.4f));
+        g.setColour (s.accent1.withAlpha (0.5f * glowIntensity()));
         g.drawRoundedRectangle (bounds.expanded (1.0f).reduced (0.5f), cornerRadius + 1.0f, 1.0f);
     }
+
     g.setColour (isActive ? s.borderActive : s.borderLight);
-    g.drawRoundedRectangle (bounds.reduced (0.5f), cornerRadius, 1.5f);
+    g.drawRoundedRectangle (bounds.reduced (0.5f), cornerRadius, 1.0f);
+}
+
+//==============================================================================
+
+void MultiverseFlatTheme::drawContentBackground (juce::Graphics& g, juce::Rectangle<float> bounds)
+{
+    const Skin& s = skin();
+    g.setColour (s.bgBase);
+    g.fillRect (bounds);
+    drawInset (g, bounds, 0.0f);
 }
 
 //==============================================================================
@@ -225,12 +232,18 @@ void MultiverseFlatTheme::drawRotarySlider (juce::Graphics& g,
         const float tipX = cx + arcRadius * std::sin (currentAngle);
         const float tipY = cy - arcRadius * std::cos (currentAngle);
 
-        g.setColour (arcColour.withAlpha (0.25f));
-        g.fillEllipse (tipX - 7.0f, tipY - 7.0f, 14.0f, 14.0f);
-        g.setColour (arcColour.withAlpha (0.12f));
-        g.fillEllipse (tipX - 11.0f, tipY - 11.0f, 22.0f, 22.0f);
+        // 3D bloom layers — outer glow, mid glow, inner dot, specular core
+        g.setColour (arcColour.withAlpha (0.06f));
+        g.fillEllipse (tipX - 14.0f, tipY - 14.0f, 28.0f, 28.0f);
+        g.setColour (arcColour.withAlpha (0.15f));
+        g.fillEllipse (tipX - 9.0f, tipY - 9.0f, 18.0f, 18.0f);
+        g.setColour (arcColour.withAlpha (0.35f));
+        g.fillEllipse (tipX - 5.5f, tipY - 5.5f, 11.0f, 11.0f);
         g.setColour (arcColour);
-        g.fillEllipse (tipX - 3.5f, tipY - 3.5f, 7.0f, 7.0f);
+        g.fillEllipse (tipX - 3.0f, tipY - 3.0f, 6.0f, 6.0f);
+        // Specular white core for LED brightness
+        g.setColour (juce::Colours::white.withAlpha (0.7f));
+        g.fillEllipse (tipX - 1.5f, tipY - 1.5f, 3.0f, 3.0f);
     }
 }
 
@@ -317,19 +330,30 @@ void MultiverseFlatTheme::drawToggleButton (juce::Graphics& g, juce::ToggleButto
     auto bounds = button.getLocalBounds().toFloat().reduced (2.0f);
     const float corner = bounds.getHeight() / 2.0f;
 
-    g.setColour (on ? s.bgDeep : s.bgRaised);
-    g.fillRoundedRectangle (bounds, corner);
-
+    // ── 3D procedural toggle ─────────────────────────────────────────
+    // Background: raised surface (off) or inset surface with glow (on)
     if (on)
     {
-        g.setColour (s.accent1.withAlpha (0.12f));
+        // Outer glow
+        drawGlow (g, bounds.expanded (3.0f), s.accent1, corner + 3.0f, 0.2f);
+        // Inset fill
+        drawInset (g, bounds, corner);
+        g.setColour (s.accent1.withAlpha (0.15f));
         g.fillRoundedRectangle (bounds, corner);
-        g.setColour (s.accent1.withAlpha (0.2f));
-        g.drawRoundedRectangle (bounds.expanded (1.5f), corner + 1.5f, 1.5f);
     }
+    else
+    {
+        // Raised surface
+        drawBevel (g, bounds, corner);
+        g.setColour (s.bgRaised);
+        g.fillRoundedRectangle (bounds, corner);
+    }
+
+    // Border
     g.setColour (on ? s.accent1.withAlpha (0.6f) : s.borderLight);
     g.drawRoundedRectangle (bounds, corner, 1.0f);
 
+    // ── Dot indicator ──────────────────────────────────────────────
     const float dotSize = 6.0f;
     const float dotX = bounds.getX() + 8.0f;
     const float dotY = bounds.getCentreY() - dotSize / 2.0f;
@@ -341,6 +365,7 @@ void MultiverseFlatTheme::drawToggleButton (juce::Graphics& g, juce::ToggleButto
     g.setColour (on ? s.accent1 : s.textMuted);
     g.fillEllipse (dotX, dotY, dotSize, dotSize);
 
+    // ── Text label ─────────────────────────────────────────────────
     g.setColour (on ? s.textPrimary : s.textSecondary);
     g.setFont (juce::Font (juce::FontOptions{}.withHeight (11.0f)));
     const int textX = (int)(dotX + dotSize + 5.0f);
@@ -358,34 +383,45 @@ void MultiverseFlatTheme::drawButtonBackground (juce::Graphics& g, juce::Button&
     auto bounds = button.getLocalBounds().toFloat().reduced (1.0f);
     const float corner = 4.0f;
     const bool active = isDown || button.getToggleState();
+    const bool enabled = button.isEnabled();
+
+    // ── 3D procedural button ─────────────────────────────────────────
+    if (!enabled)
+    {
+        // Disabled: flat, dimmed
+        g.setColour (s.bgRaised.withAlpha (0.5f));
+        g.fillRoundedRectangle (bounds, corner);
+        g.setColour (s.borderLight.withAlpha (0.3f));
+        g.drawRoundedRectangle (bounds, corner, 1.0f);
+        return;
+    }
 
     if (active)
     {
-        g.setColour (s.accent1.withAlpha (0.08f));
-        g.fillRoundedRectangle (bounds.expanded (3.0f), corner + 2.0f);
-
-        g.setColour (s.bgDeep);
+        // Pressed/active: inset with accent glow
+        drawGlow (g, bounds.expanded (3.0f), s.accent1, corner + 2.0f, 0.15f);
+        drawInset (g, bounds, corner);
+        g.setColour (s.accent1.withAlpha (0.12f));
         g.fillRoundedRectangle (bounds, corner);
-        g.setColour (s.accent1.withAlpha (0.1f));
-        g.fillRoundedRectangle (bounds, corner);
-
-        g.setColour (s.accent1.withAlpha (0.4f));
+        g.setColour (s.accent1.withAlpha (0.5f));
         g.drawRoundedRectangle (bounds, corner, 1.0f);
     }
     else if (highlight)
     {
-        g.setColour (s.accent1.withAlpha (0.04f));
-        g.fillRoundedRectangle (bounds.expanded (2.0f), corner + 1.0f);
-
+        // Hover: raised with subtle glow
+        drawBevel (g, bounds, corner);
         g.setColour (s.bgHover);
         g.fillRoundedRectangle (bounds, corner);
-        g.setColour (s.borderLight.withAlpha (0.6f));
+        g.setColour (s.accent1.withAlpha (0.08f));
+        g.fillRoundedRectangle (bounds, corner);
+        g.setColour (s.borderLight);
         g.drawRoundedRectangle (bounds, corner, 1.0f);
     }
     else
     {
-        g.setColour (s.bgRaised);
-        g.fillRoundedRectangle (bounds, corner);
+        // Normal: raised surface with gradient
+        drawBevel (g, bounds, corner);
+        drawGradientFill (g, bounds.reduced (1.0f));
         g.setColour (s.borderLight);
         g.drawRoundedRectangle (bounds, corner, 1.0f);
     }
@@ -413,19 +449,41 @@ void MultiverseFlatTheme::drawComboBox (juce::Graphics& g, int width, int height
     const float corner = 4.0f;
     const bool hasFocus = box.hasKeyboardFocus (true);
 
-    if (hasFocus)
+    // ── 3D procedural dropdown ────────────────────────────────────────
+    if (isButtonDown)
     {
+        // Pressed: inset with accent glow
+        drawInset (g, bounds, corner);
         g.setColour (s.accent1.withAlpha (0.1f));
-        g.fillRoundedRectangle (bounds.expanded (3.0f), corner + 2.0f);
+        g.fillRoundedRectangle (bounds, corner);
+        g.setColour (s.accent1.withAlpha (0.5f));
+        g.drawRoundedRectangle (bounds, corner, 1.0f);
+    }
+    else if (hasFocus)
+    {
+        // Focused: raised with glow ring
+        drawGlow (g, bounds.expanded (3.0f), s.accent1, corner + 2.0f, 0.15f);
+        drawBevel (g, bounds, corner);
+        g.setColour (s.bgRaised);
+        g.fillRoundedRectangle (bounds, corner);
+        g.setColour (s.accent1.withAlpha (0.08f));
+        g.fillRoundedRectangle (bounds, corner);
+        g.setColour (s.accent1.withAlpha (0.5f));
+        g.drawRoundedRectangle (bounds, corner, 1.0f);
+    }
+    else
+    {
+        // Normal: raised surface
+        drawBevel (g, bounds, corner);
+        g.setColour (s.bgRaised);
+        g.fillRoundedRectangle (bounds, corner);
+        g.setColour (s.borderLight);
+        g.drawRoundedRectangle (bounds, corner, 1.0f);
     }
 
-    g.setColour (isButtonDown ? s.bgDeep : s.bgRaised);
-    g.fillRoundedRectangle (bounds, corner);
-    g.setColour (hasFocus ? s.accent1 : s.borderLight);
-    g.drawRoundedRectangle (bounds, corner, 1.0f);
-
-    const float arrowX = buttonX + buttonW / 2.0f;
-    const float arrowY = buttonY + height / 2.0f;
+    // ── Procedural dropdown arrow ─────────────────────────────────────
+    const float arrowX = static_cast<float> (width) - 16.0f;
+    const float arrowY = static_cast<float> (height) / 2.0f;
     juce::Path arrow;
     arrow.addTriangle (arrowX - 4.0f, arrowY - 2.0f,
                        arrowX + 4.0f, arrowY - 2.0f,
@@ -593,11 +651,134 @@ void MultiverseFlatTheme::drawScrollbar (juce::Graphics& g, juce::ScrollBar& /*b
 }
 
 //==============================================================================
-// Section divider line
 void MultiverseFlatTheme::drawDivider (juce::Graphics& g, float y, float x1, float x2)
 {
+    draw3DSeparator (g, y, x1, x2);
+}
+
+//==============================================================================
+// 3D rendering primitives
+
+void MultiverseFlatTheme::drawBevel (juce::Graphics& g, juce::Rectangle<float> bounds,
+                                       float cornerRadius, float strength)
+{
+    const float s = bevelStrength() * strength;
+
+    // Top-left highlight (light from upper-left)
+    g.setColour (shadowLight().withAlpha (0.25f * s));
+    g.drawRoundedRectangle (bounds.reduced (0.5f), cornerRadius, 1.0f);
+
+    // Bottom-right shadow (dark on lower-right)
+    auto shadowBounds = bounds.translated (0.5f, 0.5f);
+    g.setColour (shadowDark().withAlpha (0.35f * s));
+    g.drawRoundedRectangle (shadowBounds.reduced (0.5f), cornerRadius, 1.0f);
+
+    // Inner highlight at top edge
+    g.setColour (shadowLight().withAlpha (0.12f * s));
+    g.drawHorizontalLine (static_cast<int>(bounds.getY() + 1.0f),
+                          bounds.getX() + cornerRadius, bounds.getRight() - cornerRadius);
+}
+
+void MultiverseFlatTheme::drawInset (juce::Graphics& g, juce::Rectangle<float> bounds,
+                                       float cornerRadius, float strength)
+{
+    const float s = bevelStrength() * strength;
+
+    // Inner shadow all around (sunken effect)
+    auto inner = bounds.reduced (1.0f);
+
+    // Top shadow
+    g.setColour (shadowDark().withAlpha (0.3f * s));
+    g.drawHorizontalLine (static_cast<int>(bounds.getY()),
+                          bounds.getX() + cornerRadius, bounds.getRight() - cornerRadius);
+
+    // Left shadow
+    g.drawVerticalLine (static_cast<int>(bounds.getX()),
+                        bounds.getY() + cornerRadius, bounds.getBottom() - cornerRadius);
+
+    // Bottom highlight
+    g.setColour (shadowLight().withAlpha (0.15f * s));
+    g.drawHorizontalLine (static_cast<int>(bounds.getBottom() - 1.0f),
+                          bounds.getX() + cornerRadius, bounds.getRight() - cornerRadius);
+
+    // Right highlight
+    g.drawVerticalLine (static_cast<int>(bounds.getRight() - 1.0f),
+                        bounds.getY() + cornerRadius, bounds.getBottom() - cornerRadius);
+}
+
+void MultiverseFlatTheme::drawGlow (juce::Graphics& g, juce::Rectangle<float> bounds,
+                                      juce::Colour colour, float radius, float alpha)
+{
+    const float intensity = glowIntensity();
+    if (intensity <= 0.0f)
+        return;
+
+    const float a = alpha * intensity;
+    const float cx = bounds.getCentreX();
+    const float cy = bounds.getCentreY();
+    const float rx = radius > 0.0f ? radius : bounds.getWidth() * 0.5f;
+    const float ry = radius > 0.0f ? radius : bounds.getHeight() * 0.5f;
+
+    // Multi-pass glow: wide outer, medium mid, tight inner
+    for (int i = 3; i >= 1; --i)
+    {
+        const float scale = static_cast<float>(i);
+        const float passAlpha = a * (0.15f / scale);
+        g.setColour (colour.withAlpha (passAlpha));
+        g.fillRoundedRectangle (bounds.expanded (rx * scale * 0.25f, ry * scale * 0.25f),
+                                bounds.getHeight() * 0.5f + scale * 3.0f);
+    }
+}
+
+void MultiverseFlatTheme::draw3DSeparator (juce::Graphics& g, float y, float x1, float x2)
+{
+    const float s = bevelStrength();
+
+    // Light line above (lit from top)
+    g.setColour (shadowLight().withAlpha (0.2f * s));
+    g.drawHorizontalLine (static_cast<int>(y - 1.0f), x1, x2);
+
+    // Dark line (the separator itself)
     g.setColour (borderLight().withAlpha (Metrics::dividerAlpha));
     g.drawHorizontalLine (static_cast<int>(y), x1, x2);
+}
+
+void MultiverseFlatTheme::drawGradientFill (juce::Graphics& g, juce::Rectangle<float> bounds)
+{
+    auto gradient = juce::ColourGradient (panelGradient1(), bounds.getX(), bounds.getY(),
+                                           panelGradient2(), bounds.getX(), bounds.getBottom(), false);
+    g.setGradientFill (gradient);
+    g.fillRect (bounds);
+}
+
+void MultiverseFlatTheme::drawHeaderBackground (juce::Graphics& g, juce::Rectangle<float> bounds)
+{
+    const Skin& s = skin();
+
+    // 3D gradient header with bottom glow line
+    auto gradient = juce::ColourGradient (s.bgRaised.brighter (0.15f), bounds.getX(), bounds.getY(),
+                                           s.bgDeep.darker (0.1f), bounds.getX(), bounds.getBottom(), false);
+    g.setGradientFill (gradient);
+    g.fillRect (bounds);
+
+    // Bottom accent line
+    g.setColour (s.accent1.withAlpha (0.4f * glowIntensity()));
+    g.drawHorizontalLine (static_cast<int>(bounds.getBottom() - 1.0f), bounds.getX(), bounds.getRight());
+
+    // Subtle inner shadow at top edge
+    g.setColour (shadowDark().withAlpha (0.3f));
+    g.drawHorizontalLine (static_cast<int>(bounds.getY()), bounds.getX(), bounds.getRight());
+}
+
+void MultiverseFlatTheme::drawTabBarBackground (juce::Graphics& g, juce::Rectangle<float> bounds)
+{
+    const Skin& s = skin();
+
+    // 3D gradient for tab bar
+    auto gradient = juce::ColourGradient (s.tabPrimaryBg.brighter (0.05f), bounds.getX(), bounds.getY(),
+                                           s.tabPrimaryBg.darker (0.08f), bounds.getX(), bounds.getBottom(), false);
+    g.setGradientFill (gradient);
+    g.fillRect (bounds);
 }
 
 void MultiverseFlatTheme::drawOverlayBackdrop (juce::Graphics& g, juce::Rectangle<float> bounds)
@@ -622,15 +803,16 @@ void MultiverseFlatTheme::drawPrimaryTabButton (juce::Graphics& g, juce::Rectang
 {
     const Skin& s = skin();
 
+    // 3D gradient background
     if (isActive)
     {
-        // Active: bright background + vivid glow line at bottom
-        g.setColour (s.tabActiveBg);
+        auto gradient = juce::ColourGradient (s.tabActiveBg.brighter (0.08f), bounds.getX(), bounds.getY(),
+                                               s.tabActiveBg, bounds.getX(), bounds.getBottom(), false);
+        g.setGradientFill (gradient);
         g.fillRect (bounds);
 
         // Glow band
-        g.setColour (s.tabActiveGlow.withAlpha (0.35f));
-        g.fillRect (bounds.getX(), bounds.getBottom() - 6.0f, bounds.getWidth(), 6.0f);
+        drawGlow (g, bounds.reduced (0, bounds.getHeight() * 0.5f), s.accent1, bounds.getWidth() * 0.3f, 0.08f);
 
         // Solid accent line
         g.setColour (s.accent1);
@@ -638,8 +820,15 @@ void MultiverseFlatTheme::drawPrimaryTabButton (juce::Graphics& g, juce::Rectang
     }
     else
     {
-        g.setColour (isHover ? s.bgHover : s.tabPrimaryBg);
+        auto bg = isHover ? s.bgHover : s.tabPrimaryBg;
+        auto gradient = juce::ColourGradient (bg.brighter (0.03f), bounds.getX(), bounds.getY(),
+                                               bg.darker (0.03f), bounds.getX(), bounds.getBottom(), false);
+        g.setGradientFill (gradient);
         g.fillRect (bounds);
+
+        // Subtle bevel at top
+        g.setColour (shadowLight().withAlpha (0.12f));
+        g.drawHorizontalLine (static_cast<int>(bounds.getY()), bounds.getX(), bounds.getRight());
     }
 
     g.setFont (juce::Font (juce::FontOptions{}.withHeight (14.0f).withStyle ("Bold")));
@@ -656,8 +845,13 @@ void MultiverseFlatTheme::drawSecondaryTabButton (juce::Graphics& g, juce::Recta
 
     if (isActive)
     {
-        g.setColour (s.tabActiveBg);
+        auto gradient = juce::ColourGradient (s.tabActiveBg.brighter (0.06f), bounds.getX(), bounds.getY(),
+                                               s.tabActiveBg.darker (0.04f), bounds.getX(), bounds.getBottom(), false);
+        g.setGradientFill (gradient);
         g.fillRect (bounds);
+
+        // Accent underline with glow
+        drawGlow (g, bounds.withTop (bounds.getBottom() - 6.0f), s.accent1, bounds.getWidth() * 0.25f, 0.06f);
         g.setColour (s.accent1.withAlpha (0.2f));
         g.fillRect (bounds.getX(), bounds.getBottom() - 4.0f, bounds.getWidth(), 4.0f);
         g.setColour (s.accent1.withAlpha (0.7f));
@@ -665,7 +859,10 @@ void MultiverseFlatTheme::drawSecondaryTabButton (juce::Graphics& g, juce::Recta
     }
     else
     {
-        g.setColour (isHover ? s.bgHover : s.tabSecondaryBg);
+        auto bg = isHover ? s.bgHover : s.tabSecondaryBg;
+        auto gradient = juce::ColourGradient (bg.brighter (0.02f), bounds.getX(), bounds.getY(),
+                                               bg.darker (0.02f), bounds.getX(), bounds.getBottom(), false);
+        g.setGradientFill (gradient);
         g.fillRect (bounds);
     }
 
@@ -684,23 +881,33 @@ void MultiverseFlatTheme::drawSubTabButton (juce::Graphics& g, juce::Rectangle<f
 
     if (isActive)
     {
-        g.setColour (s.accent1.withAlpha (0.06f));
-        g.fillRoundedRectangle (bounds.expanded (3.0f), corner + 2.0f);
-        g.setColour (s.accent1.withAlpha (0.15f));
+        // Glow behind pill
+        drawGlow (g, bounds, s.accent1, bounds.getHeight() * 0.4f, 0.06f);
+
+        // 3D raised pill
+        auto gradient = juce::ColourGradient (s.accent1.withAlpha (0.18f), bounds.getX(), bounds.getY(),
+                                               s.accent1.withAlpha (0.08f), bounds.getX(), bounds.getBottom(), false);
+        g.setGradientFill (gradient);
         g.fillRoundedRectangle (bounds, corner);
+
+        // Accent border
         g.setColour (s.accent1.withAlpha (0.5f));
         g.drawRoundedRectangle (bounds, corner, 1.0f);
     }
     else if (isHover)
     {
-        g.setColour (s.bgHover);
+        auto gradient = juce::ColourGradient (s.bgHover.brighter (0.03f), bounds.getX(), bounds.getY(),
+                                               s.bgHover.darker (0.03f), bounds.getX(), bounds.getBottom(), false);
+        g.setGradientFill (gradient);
         g.fillRoundedRectangle (bounds, corner);
         g.setColour (s.borderLight);
         g.drawRoundedRectangle (bounds, corner, 1.0f);
     }
     else
     {
-        g.setColour (s.bgRaised);
+        auto gradient = juce::ColourGradient (s.bgRaised.brighter (0.02f), bounds.getX(), bounds.getY(),
+                                               s.bgRaised.darker (0.03f), bounds.getX(), bounds.getBottom(), false);
+        g.setGradientFill (gradient);
         g.fillRoundedRectangle (bounds, corner);
         g.setColour (s.borderLight.withAlpha (0.5f));
         g.drawRoundedRectangle (bounds, corner, 1.0f);
@@ -713,6 +920,7 @@ void MultiverseFlatTheme::drawSubTabButton (juce::Graphics& g, juce::Rectangle<f
 }
 
 //==============================================================================
+// Font getters
 // Font getters
 juce::Font MultiverseFlatTheme::headerFont()
 {

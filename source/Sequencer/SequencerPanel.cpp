@@ -17,18 +17,18 @@ void StepButton::paint (juce::Graphics& g)
     juce::Colour bg, border;
     if (highlighted)
     {
-        bg = MultiverseFlatTheme::accentAmber;
-        border = MultiverseFlatTheme::accentAmber.brighter (0.3f);
+        bg = MultiverseFlatTheme::accentAmber();
+        border = MultiverseFlatTheme::accentAmber().brighter (0.3f);
     }
     else if (active)
     {
-        bg = MultiverseFlatTheme::accentBlue.darker (0.2f);
-        border = MultiverseFlatTheme::accentBlue;
+        bg = MultiverseFlatTheme::accentBlue().darker (0.2f);
+        border = MultiverseFlatTheme::accentBlue();
     }
     else
     {
-        bg = MultiverseFlatTheme::bgRaised;
-        border = MultiverseFlatTheme::borderLight;
+        bg = MultiverseFlatTheme::bgRaised();
+        border = MultiverseFlatTheme::borderLight();
     }
 
     g.setColour (bg);
@@ -47,8 +47,8 @@ void StepButton::paint (juce::Graphics& g)
     if (probability < 0.99f)
     {
         juce::Colour dotCol = probability < 0.3f ? juce::Colours::red.withAlpha (0.9f)
-                            : probability < 0.6f ? MultiverseFlatTheme::accentAmber.withAlpha (0.9f)
-                                                 : MultiverseFlatTheme::accentBlue.withAlpha (0.9f);
+                            : probability < 0.6f ? MultiverseFlatTheme::accentAmber().withAlpha (0.9f)
+                                                 : MultiverseFlatTheme::accentBlue().withAlpha (0.9f);
         g.setColour (dotCol);
         g.fillEllipse (bounds.getRight() - 6.0f, bounds.getBottom() - 6.0f, 5.0f, 5.0f);
     }
@@ -125,12 +125,12 @@ void DragMidiButton::paint (juce::Graphics& g)
     auto b = getLocalBounds().toFloat().reduced (1.0f);
     bool hovered = isMouseOver();
 
-    g.setColour (hovered ? MultiverseFlatTheme::bgRaised.brighter (0.15f) : MultiverseFlatTheme::bgRaised);
+    g.setColour (hovered ? MultiverseFlatTheme::bgRaised().brighter (0.15f) : MultiverseFlatTheme::bgRaised());
     g.fillRoundedRectangle (b, 4.0f);
-    g.setColour (MultiverseFlatTheme::accentBlue.withAlpha (hovered ? 0.9f : 0.5f));
+    g.setColour (MultiverseFlatTheme::accentBlue().withAlpha (hovered ? 0.9f : 0.5f));
     g.drawRoundedRectangle (b.reduced (0.5f), 4.0f, 1.0f);
 
-    g.setColour (MultiverseFlatTheme::accentBlue.withAlpha (hovered ? 1.0f : 0.7f));
+    g.setColour (MultiverseFlatTheme::accentBlue().withAlpha (hovered ? 1.0f : 0.7f));
     g.setFont (juce::Font (9.5f, juce::Font::bold));
     g.drawText ("^ DRAG", getLocalBounds(), juce::Justification::centred);
 }
@@ -173,7 +173,7 @@ SequencerPanel::SequencerPanel (Sequencer& seq) : sequencer (seq)
 
     bpmLabel.setText ("BPM", juce::dontSendNotification);
     bpmLabel.setJustificationType (juce::Justification::centredRight);
-    bpmLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    bpmLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     addAndMakeVisible (bpmLabel);
 
     bpmSlider.setRange (40.0, 240.0, 0.5);
@@ -215,7 +215,7 @@ SequencerPanel::SequencerPanel (Sequencer& seq) : sequencer (seq)
     // Step length combo
     stepLengthLabel.setText ("STEP", juce::dontSendNotification);
     stepLengthLabel.setJustificationType (juce::Justification::centredRight);
-    stepLengthLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    stepLengthLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     addAndMakeVisible (stepLengthLabel);
 
     stepLengthCombo.addItem ("32nd",  1);
@@ -281,7 +281,7 @@ SequencerPanel::SequencerPanel (Sequencer& seq) : sequencer (seq)
 
     // Chord label
     chordLabel.setJustificationType (juce::Justification::centred);
-    chordLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::accentBlue);
+    chordLabel.setColour (juce::Label::textColourId, MultiverseFlatTheme::accentBlue());
     addAndMakeVisible (chordLabel);
 
     // Tooltips
@@ -542,17 +542,13 @@ void SequencerPanel::importMidiFile (const juce::File& file)
 
 void SequencerPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (MultiverseFlatTheme::bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
     const float cr = 8.0f;
     auto drawCard = [&] (juce::Rectangle<int> bounds)
     {
         if (bounds.getHeight() <= 0) return;
         MultiverseFlatTheme::drawCard (g, bounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle (bounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
-        g.drawRoundedRectangle (bounds.toFloat().reduced (0.5f), cr, 1.0f);
     };
 
     drawCard (transportBounds);
@@ -561,24 +557,12 @@ void SequencerPanel::paint (juce::Graphics& g)
     // Step grid card — cyan border glow when drag is active
     if (stepGridBounds.getHeight() > 0)
     {
-        MultiverseFlatTheme::drawCard (g, stepGridBounds.toFloat(), cr);
-        g.setColour (MultiverseFlatTheme::bgRaised);
-        g.fillRoundedRectangle (stepGridBounds.toFloat(), cr);
-        if (dragOver)
-        {
-            g.setColour (MultiverseFlatTheme::accentBlue.withAlpha (0.6f));
-            g.drawRoundedRectangle (stepGridBounds.toFloat().reduced (0.5f), cr, 2.0f);
-        }
-        else
-        {
-            g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
-            g.drawRoundedRectangle (stepGridBounds.toFloat().reduced (0.5f), cr, 1.0f);
-        }
+        MultiverseFlatTheme::drawCard (g, stepGridBounds.toFloat(), cr, dragOver);
     }
 
     drawCard (exportBounds);
 
-    g.setColour (MultiverseFlatTheme::textSecondary);
+    g.setColour (MultiverseFlatTheme::textSecondary());
     g.setFont (juce::Font (10.5f, juce::Font::bold));
     g.drawText ("SEQUENCER / ARPEGGIATOR", getLocalBounds().removeFromTop (20), juce::Justification::centred);
 }

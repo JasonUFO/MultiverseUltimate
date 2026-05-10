@@ -72,8 +72,8 @@ SamplerPanel::SamplerPanel (PluginProcessor& p, SamplerEngine& engine)
     tstrToggle.setToggleState (false, juce::dontSendNotification);
     tstrToggle.setEnabled (false);
     tstrToggle.setTooltip ("Timestretch: decouple pitch from speed (requires loop mode)");
-    tstrToggle.setColour (juce::ToggleButton::textColourId, MultiverseFlatTheme::textSecondary);
-    tstrToggle.setColour (juce::ToggleButton::tickColourId, MultiverseFlatTheme::accentCyan);
+    tstrToggle.setColour (juce::ToggleButton::textColourId, MultiverseFlatTheme::textSecondary());
+    tstrToggle.setColour (juce::ToggleButton::tickColourId, MultiverseFlatTheme::accentCyan());
     tstrToggle.onClick = [this]
     {
         if (selectedZoneIndex < 0 || selectedZoneIndex >= static_cast<int> (ownedZones.size())) return;
@@ -221,13 +221,13 @@ SamplerPanel::~SamplerPanel()
 
  void SamplerPanel::paint (juce::Graphics& g)
 {
-     g.fillAll (MultiverseFlatTheme::bgBase);
+     MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
       // Title bar
        auto titleArea = getLocalBounds().removeFromTop (24);
-       g.setColour (MultiverseFlatTheme::bgRaised.darker (0.2f));
+       g.setColour (MultiverseFlatTheme::bgRaised().darker (0.2f));
        g.fillRect (titleArea);
-       g.setColour (MultiverseFlatTheme::textPrimary);
+       g.setColour (MultiverseFlatTheme::textPrimary());
        g.setFont (juce::Font (13.0f, juce::Font::bold));
        g.drawText ("SAMPLER", titleArea, juce::Justification::centred);
 
@@ -236,26 +236,14 @@ SamplerPanel::~SamplerPanel()
       if (dropZoneBounds.getHeight() > 0)
       {
           MultiverseFlatTheme::drawCard (g, dropZoneBounds.toFloat(), cr);
-          g.setColour (MultiverseFlatTheme::bgRaised);
-          g.fillRoundedRectangle (dropZoneBounds.toFloat(), cr);
-          g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
-          g.drawRoundedRectangle (dropZoneBounds.toFloat().reduced (0.5f), cr, 1.0f);
       }
       if (zoneListBounds.getHeight() > 0)
       {
           MultiverseFlatTheme::drawCard (g, zoneListBounds.toFloat(), cr);
-          g.setColour (MultiverseFlatTheme::bgRaised);
-          g.fillRoundedRectangle (zoneListBounds.toFloat(), cr);
-          g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
-          g.drawRoundedRectangle (zoneListBounds.toFloat().reduced (0.5f), cr, 1.0f);
       }
       if (controlsBounds.getHeight() > 0)
       {
           MultiverseFlatTheme::drawCard (g, controlsBounds.toFloat(), cr);
-          g.setColour (MultiverseFlatTheme::bgRaised);
-          g.fillRoundedRectangle (controlsBounds.toFloat(), cr);
-          g.setColour (MultiverseFlatTheme::borderLight.withAlpha (0.3f));
-          g.drawRoundedRectangle (controlsBounds.toFloat().reduced (0.5f), cr, 1.0f);
       }
 
       // Drop zone (shown when empty or dragging) — drawn on top of card
@@ -263,11 +251,11 @@ SamplerPanel::~SamplerPanel()
       {
           auto dropArea = dropZoneBounds.reduced (8, 4);
 
-          g.setColour (isDragOver ? MultiverseFlatTheme::accentBlue.withAlpha (0.3f) : MultiverseFlatTheme::bgRaised);
+          g.setColour (isDragOver ? MultiverseFlatTheme::accentBlue().withAlpha (0.3f) : MultiverseFlatTheme::bgRaised());
           g.fillRoundedRectangle (dropArea.toFloat(), 5.0f);
-          g.setColour (isDragOver ? MultiverseFlatTheme::accentBlue.withAlpha (0.6f) : MultiverseFlatTheme::textMuted);
+          g.setColour (isDragOver ? MultiverseFlatTheme::accentBlue().withAlpha (0.6f) : MultiverseFlatTheme::textMuted());
           g.drawRoundedRectangle (dropArea.toFloat(), 5.0f, 1.5f);
-          g.setColour (isDragOver ? MultiverseFlatTheme::textPrimary : MultiverseFlatTheme::textMuted);
+          g.setColour (isDragOver ? MultiverseFlatTheme::textPrimary() : MultiverseFlatTheme::textMuted());
           g.setFont (12.0f);
           g.drawText (isDragOver ? "Release to load" : "Drop audio files here",
                       dropArea, juce::Justification::centred);
@@ -450,13 +438,13 @@ int SamplerPanel::ZoneListModel::getNumRows()
  void SamplerPanel::ZoneListModel::paintListBoxItem (
      int row, juce::Graphics& g, int w, int h, bool selected)
 {
-     g.fillAll (selected ? MultiverseFlatTheme::accentBlue.withAlpha (0.25f) : MultiverseFlatTheme::bgDeep);
+     g.fillAll (selected ? MultiverseFlatTheme::accentBlue().withAlpha (0.25f) : MultiverseFlatTheme::bgDeep());
 
      if (row < 0 || row >= static_cast<int> (panel.ownedZones.size()))
          return;
 
      const auto& zone = *panel.ownedZones[static_cast<size_t> (row)];
-     g.setColour (MultiverseFlatTheme::textPrimary.withAlpha (0.85f));
+     g.setColour (MultiverseFlatTheme::textPrimary().withAlpha (0.85f));
      g.setFont (11.5f);
 
      juce::String text = zone.name + "   ["

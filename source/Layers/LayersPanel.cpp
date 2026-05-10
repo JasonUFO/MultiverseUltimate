@@ -139,7 +139,7 @@ void LayersPanel::createRow(int index)
 
 void LayersPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
     drawSection(g, getLocalBounds().reduced(8), "LAYERS");
 }
@@ -148,11 +148,7 @@ void LayersPanel::drawSection(juce::Graphics& g, juce::Rectangle<int> r, const j
 {
     const float cr = 8.0f;
     MultiverseFlatTheme::drawCard(g, r.toFloat(), cr);
-    g.setColour(MultiverseFlatTheme::bgRaised);
-    g.fillRoundedRectangle(r.toFloat(), cr);
-    g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.3f));
-    g.drawRoundedRectangle(r.toFloat().reduced(0.5f), cr, 1.0f);
-    g.setColour(MultiverseFlatTheme::textLabel);
+    g.setColour(MultiverseFlatTheme::textLabel());
     g.setFont(MultiverseFlatTheme::headerFont());
     g.drawText(title, r.getX() + 8, r.getY() + 5, 100, 14, juce::Justification::centredLeft);
     MultiverseFlatTheme::drawDivider(g, static_cast<float>(r.getY() + 18), static_cast<float>(r.getX() + 8), static_cast<float>(r.getRight() - 8));

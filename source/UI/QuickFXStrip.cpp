@@ -10,8 +10,8 @@ QuickFXStrip::QuickFXStrip(PluginProcessor& p) : proc(p)
     auto setupToggle = [&](juce::ToggleButton& btn)
     {
         btn.setToggleState(false, juce::dontSendNotification);
-        btn.setColour(juce::ToggleButton::tickColourId, MultiverseFlatTheme::accentCyan);
-        btn.setColour(juce::ToggleButton::textColourId, MultiverseFlatTheme::textSecondary);
+        btn.setColour(juce::ToggleButton::tickColourId, MultiverseFlatTheme::accentCyan());
+        btn.setColour(juce::ToggleButton::textColourId, MultiverseFlatTheme::textSecondary());
         addAndMakeVisible(btn);
     };
     setupToggle(filterModEnable);
@@ -55,7 +55,7 @@ QuickFXStrip::QuickFXStrip(PluginProcessor& p) : proc(p)
     auto setupHeader = [&](juce::Label& lbl)
     {
         lbl.setFont(hdrFont);
-        lbl.setColour(juce::Label::textColourId, MultiverseFlatTheme::accentCyan);
+        lbl.setColour(juce::Label::textColourId, MultiverseFlatTheme::accentCyan());
         lbl.setJustificationType(juce::Justification::centredLeft);
         addAndMakeVisible(lbl);
     };
@@ -77,14 +77,14 @@ void QuickFXStrip::setupKnob(KnobGroup& g, const juce::String& paramID, const ju
 
     g.label.setText(shortName, juce::dontSendNotification);
     g.label.setFont(MultiverseFlatTheme::labelFont());
-    g.label.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    g.label.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     g.label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(g.label);
 }
 
 void QuickFXStrip::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgDeep);
+    g.fillAll(MultiverseFlatTheme::bgDeep());
 
     // Draw section cards
     for (const auto& rect : { filterModRect, ampModRect, delayRect, reverbRect, mainFilterRect })

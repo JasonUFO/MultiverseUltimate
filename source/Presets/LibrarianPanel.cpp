@@ -4,16 +4,16 @@
 
 namespace
 {
-    const auto& bgBase      = MultiverseFlatTheme::bgBase;
-    const auto& bgRaised    = MultiverseFlatTheme::bgRaised;
-    const auto& bgDeep      = MultiverseFlatTheme::bgDeep;
-    const auto& accentCyan  = MultiverseFlatTheme::accentCyan;
-    const auto& accentPink  = MultiverseFlatTheme::accentPink;
-    const auto& accentAmber = MultiverseFlatTheme::accentAmber;
-    const auto& textPrimary = MultiverseFlatTheme::textPrimary;
-    const auto& textSecondary=MultiverseFlatTheme::textSecondary;
-    const auto& textMuted   = MultiverseFlatTheme::textMuted;
-    const auto& borderLight = MultiverseFlatTheme::borderLight;
+    const auto& bgBase      = MultiverseFlatTheme::bgBase();
+    const auto& bgRaised    = MultiverseFlatTheme::bgRaised();
+    const auto& bgDeep      = MultiverseFlatTheme::bgDeep();
+    const auto& accentCyan  = MultiverseFlatTheme::accentCyan();
+    const auto& accentPink  = MultiverseFlatTheme::accentPink();
+    const auto& accentAmber = MultiverseFlatTheme::accentAmber();
+    const auto& textPrimary = MultiverseFlatTheme::textPrimary();
+    const auto& textSecondary=MultiverseFlatTheme::textSecondary();
+    const auto& textMuted   = MultiverseFlatTheme::textMuted();
+    const auto& borderLight = MultiverseFlatTheme::borderLight();
 
     static const juce::StringArray factoryCategories = { "Init", "Bass", "Lead", "Pad", "Drums", "FX", "Keys", "Arp" };
 }
@@ -242,7 +242,7 @@ void LibrarianPresetList::rebuildSections()
 
 void LibrarianPresetList::paint(juce::Graphics& g)
 {
-    g.fillAll(bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
     int y = 0;
     int w = getWidth();
@@ -524,16 +524,16 @@ LibrarianPanel::LibrarianPanel(PluginProcessor& p)
     searchEditor.addListener(this);
     addAndMakeVisible(searchEditor);
 
-    // Category buttons
+    // Category buttons — pill-style matching ModBar sub-tabs
     categoryButtons = { &catAll, &catBass, &catLead, &catPad, &catDrums, &catFX, &catKeys, &catArp };
     for (auto* btn : categoryButtons)
     {
         btn->setClickingTogglesState(true);
         btn->setRadioGroupId(101);
-        btn->setColour(juce::TextButton::buttonColourId, juce::Colours::transparentBlack);
-        btn->setColour(juce::TextButton::buttonOnColourId, juce::Colours::transparentBlack);
+        btn->setColour(juce::TextButton::buttonColourId, MultiverseFlatTheme::bgRaised());
+        btn->setColour(juce::TextButton::buttonOnColourId, MultiverseFlatTheme::accentCyan().withAlpha(0.15f));
         btn->setColour(juce::TextButton::textColourOffId, textSecondary);
-        btn->setColour(juce::TextButton::textColourOnId, textPrimary);
+        btn->setColour(juce::TextButton::textColourOnId, MultiverseFlatTheme::accentCyan());
         btn->addListener(this);
         addAndMakeVisible(btn);
     }
@@ -552,7 +552,7 @@ LibrarianPanel::LibrarianPanel(PluginProcessor& p)
     for (auto* cp : characterPills)
     {
         cp->button.setClickingTogglesState(false);
-        cp->button.setColour(juce::TextButton::buttonColourId, bgDeep);
+        cp->button.setColour(juce::TextButton::buttonColourId, MultiverseFlatTheme::bgRaised());
         cp->button.setColour(juce::TextButton::textColourOffId, textMuted);
         cp->button.addListener(this);
         addAndMakeVisible(cp->button);
@@ -566,7 +566,7 @@ LibrarianPanel::LibrarianPanel(PluginProcessor& p)
 
     // Favorite filter button
     favFilterButton.setClickingTogglesState(false);
-    favFilterButton.setColour(juce::TextButton::buttonColourId, bgDeep);
+    favFilterButton.setColour(juce::TextButton::buttonColourId, MultiverseFlatTheme::bgRaised());
     favFilterButton.setColour(juce::TextButton::textColourOffId, textMuted);
     favFilterButton.addListener(this);
     addAndMakeVisible(favFilterButton);
@@ -614,22 +614,18 @@ LibrarianPanel::LibrarianPanel(PluginProcessor& p)
 //==============================================================================
 void LibrarianPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(bgBase);
+    MultiverseFlatTheme::drawContentBackground(g, getLocalBounds().toFloat());
 
     // Tag filter area background
     if (activeTagFilters.size() > 0)
     {
         auto ta = tagFilterArea.getBounds().toFloat().reduced(2, 2);
-        MultiverseFlatTheme::drawCard(g, ta, 6.0f);
-        g.setColour(bgDeep);
-        g.fillRoundedRectangle(ta, 6.0f);
+        MultiverseFlatTheme::drawCard(g, ta, 6.0f, false, MultiverseFlatTheme::bgDeep());
     }
 
     // Metadata strip background
     auto metaArea = getLocalBounds().removeFromBottom(48).toFloat().reduced(6, 4);
     MultiverseFlatTheme::drawCard(g, metaArea, 8.0f);
-    g.setColour(bgRaised);
-    g.fillRoundedRectangle(metaArea, 8.0f);
 }
 
 //==============================================================================
@@ -734,7 +730,7 @@ void LibrarianPanel::cycleCharacter(CharPill& pill)
     else
     {
         pill.state = CharFilter::None;
-        pill.button.setColour(juce::TextButton::buttonColourId, bgDeep);
+        pill.button.setColour(juce::TextButton::buttonColourId, MultiverseFlatTheme::bgRaised());
         pill.button.setColour(juce::TextButton::textColourOffId, textMuted);
         pill.button.setColour(juce::TextButton::textColourOnId, textMuted);
     }

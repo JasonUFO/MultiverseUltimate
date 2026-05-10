@@ -1,27 +1,75 @@
 #include "BottomBar.h"
+#include "../Assets/AssetManager.h"
 #include "../PluginProcessor.h"
 #include "../Synth/LFOShapeEditor.h"
 
 //==============================================================================
-// PitchWheel / ModWheel (unchanged)
+// PitchWheel — wheel sprite with skin-aware accent overlay
 
 void PitchWheel::paint(juce::Graphics& g)
 {
+    const Skin& s = MultiverseFlatTheme::skin();
     auto bounds = getLocalBounds().toFloat().reduced(2.0f);
-    g.setColour(MultiverseFlatTheme::bgDeep);
-    g.fillRoundedRectangle(bounds, 4.0f);
-    g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.4f));
-    g.drawRoundedRectangle(bounds, 4.0f, 0.8f);
+
+    // Track background with gradient
+    juce::ColourGradient trackGrad(s.bgDeep.contrasting(0.02f), bounds.getTopLeft(),
+                                    s.bgDeep, bounds.getBottomLeft(), false);
+    g.setGradientFill(trackGrad);
+    g.fillRoundedRectangle(bounds, 6.0f);
+
+    // Track border
+    g.setColour(s.borderLight.withAlpha(0.5f));
+    g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
+
+    // Center line
     const float cy = bounds.getCentreY();
-    g.setColour(MultiverseFlatTheme::textMuted.withAlpha(0.3f));
-    g.drawHorizontalLine(static_cast<int>(cy), bounds.getX() + 3.0f, bounds.getRight() - 3.0f);
-    const float thumbH = 14.0f;
-    const float thumbY = cy - value * (bounds.getHeight() / 2.0f - thumbH / 2.0f) - thumbH / 2.0f;
-    auto thumb = juce::Rectangle<float>(bounds.getX() + 3.0f, thumbY, bounds.getWidth() - 6.0f, thumbH);
-    g.setColour(value != 0.0f ? MultiverseFlatTheme::accentCyan : MultiverseFlatTheme::bgRaised);
-    g.fillRoundedRectangle(thumb, 3.0f);
-    g.setColour(value != 0.0f ? MultiverseFlatTheme::accentCyan.withAlpha(0.6f) : MultiverseFlatTheme::borderLight);
-    g.drawRoundedRectangle(thumb, 3.0f, 0.8f);
+    g.setColour(s.textMuted.withAlpha(0.25f));
+    g.drawHorizontalLine(static_cast<int>(cy), bounds.getX() + 4.0f, bounds.getRight() - 4.0f);
+
+    // Tick marks
+    g.setColour(s.textMuted.withAlpha(0.15f));
+    for (int i = 1; i < 8; ++i)
+    {
+        float y = bounds.getY() + bounds.getHeight() * i / 8.0f;
+        g.drawHorizontalLine(static_cast<int>(y), bounds.getX() + 6.0f, bounds.getRight() - 6.0f);
+    }
+
+    // Wheel sprite thumb indicator
+    const float wheelSize = juce::jmin(bounds.getWidth() - 4.0f, 30.0f);
+    const float thumbY = cy - value * (bounds.getHeight() / 2.0f - wheelSize / 2.0f) - wheelSize / 2.0f;
+    auto wheelRect = juce::Rectangle<float>(
+        bounds.getCentreX() - wheelSize / 2.0f,
+        thumbY,
+        wheelSize,
+        wheelSize
+    );
+
+    AssetManager::instance().drawWheelFrame(g, wheelRect, value, true);
+
+    // Accent glow and fill overlay
+    if (value != 0.0f)
+    {
+        // Fill from center to thumb
+        auto fillRect = juce::Rectangle<float>(bounds.getX() + 4.0f,
+            juce::jmin(cy, thumbY + wheelSize / 2.0f),
+            bounds.getWidth() - 8.0f,
+            std::abs(thumbY + wheelSize / 2.0f - cy));
+
+        juce::ColourGradient grad(s.accent1.withAlpha(0.0f), 0, fillRect.getY(),
+                                   s.accent1.withAlpha(0.4f), 0, fillRect.getBottom(), false);
+        g.setGradientFill(grad);
+        g.fillRoundedRectangle(fillRect, 3.0f);
+
+        // Glow around wheel thumb
+        g.setColour(s.accent1.withAlpha(0.25f));
+        g.fillRoundedRectangle(wheelRect.expanded(2.0f), 5.0f);
+    }
+    else
+    {
+        // Neutral glow at center
+        g.setColour(s.bgRaised.withAlpha(0.3f));
+        g.fillRoundedRectangle(wheelRect.expanded(1.0f), 4.0f);
+    }
 }
 
 void PitchWheel::mouseDown(const juce::MouseEvent& e) { lastY = e.y; }
@@ -40,41 +88,78 @@ void PitchWheel::mouseUp(const juce::MouseEvent&)
     if (onValueChange) onValueChange(value);
 }
 
+//==============================================================================
+// ModWheel — wheel sprite with skin-aware accent overlay, stays where released
+
 void ModWheel::paint(juce::Graphics& g)
 {
+    const Skin& s = MultiverseFlatTheme::skin();
     auto bounds = getLocalBounds().toFloat().reduced(2.0f);
-    g.setColour(MultiverseFlatTheme::bgDeep);
-    g.fillRoundedRectangle(bounds, 4.0f);
-    g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.4f));
-    g.drawRoundedRectangle(bounds, 4.0f, 0.8f);
-    const float fillH = value * (bounds.getHeight() - 12.0f);
-    const float fillY = bounds.getBottom() - 6.0f - fillH;
+
+    // Track background with gradient (matches PitchWheel)
+    juce::ColourGradient trackGrad(s.bgDeep.contrasting(0.02f), bounds.getTopLeft(),
+                                    s.bgDeep, bounds.getBottomLeft(), false);
+    g.setGradientFill(trackGrad);
+    g.fillRoundedRectangle(bounds, 6.0f);
+    g.setColour(s.borderLight.withAlpha(0.5f));
+    g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
+
+    // Tick marks
+    g.setColour(s.textMuted.withAlpha(0.15f));
+    for (int i = 1; i < 8; ++i)
+    {
+        float y = bounds.getY() + bounds.getHeight() * i / 8.0f;
+        g.drawHorizontalLine(static_cast<int>(y), bounds.getX() + 6.0f, bounds.getRight() - 6.0f);
+    }
+
+    // Wheel sprite thumb indicator
+    const float wheelSize = juce::jmin(bounds.getWidth() - 4.0f, 30.0f);
+    const float trackH = bounds.getHeight() - 16.0f;
+    const float thumbY = bounds.getBottom() - 8.0f - value * trackH - wheelSize / 2.0f;
+    auto wheelRect = juce::Rectangle<float>(
+        bounds.getCentreX() - wheelSize / 2.0f,
+        thumbY,
+        wheelSize,
+        wheelSize
+    );
+
+    AssetManager::instance().drawWheelFrame(g, wheelRect, value, false);
+
+    // Fill from bottom and glow overlay
     if (value > 0.001f)
     {
-        auto fill = juce::Rectangle<float>(bounds.getX() + 3.0f, fillY, bounds.getWidth() - 6.0f, fillH);
-        g.setColour(MultiverseFlatTheme::accentCyan.withAlpha(0.25f));
-        g.fillRoundedRectangle(fill, 2.0f);
+        const float fillH = value * trackH;
+        const float fillY = bounds.getBottom() - 8.0f - fillH;
+        auto fill = juce::Rectangle<float>(bounds.getX() + 4.0f, fillY, bounds.getWidth() - 8.0f, fillH);
+
+        juce::ColourGradient grad(s.accent1.withAlpha(0.05f), 0, fill.getY(),
+                                   s.accent1.withAlpha(0.4f), 0, fill.getBottom(), false);
+        g.setGradientFill(grad);
+        g.fillRoundedRectangle(fill, 3.0f);
+
+        // Glow around wheel thumb
+        g.setColour(s.accent1.withAlpha(0.25f));
+        g.fillRoundedRectangle(wheelRect.expanded(2.0f), 5.0f);
     }
-    const float thumbH = 14.0f;
-    const float thumbY = bounds.getBottom() - 6.0f - value * (bounds.getHeight() - 12.0f) - thumbH / 2.0f;
-    auto thumb = juce::Rectangle<float>(bounds.getX() + 3.0f, thumbY, bounds.getWidth() - 6.0f, thumbH);
-    g.setColour(value > 0.001f ? MultiverseFlatTheme::accentCyan : MultiverseFlatTheme::bgRaised);
-    g.fillRoundedRectangle(thumb, 3.0f);
-    g.setColour(value > 0.001f ? MultiverseFlatTheme::accentCyan.withAlpha(0.6f) : MultiverseFlatTheme::borderLight);
-    g.drawRoundedRectangle(thumb, 3.0f, 0.8f);
+    else
+    {
+        // Neutral glow at bottom
+        g.setColour(s.bgRaised.withAlpha(0.3f));
+        g.fillRoundedRectangle(wheelRect.expanded(1.0f), 4.0f);
+    }
 }
 
 void ModWheel::mouseDown(const juce::MouseEvent& e)
 {
-    const float boundsH = static_cast<float>(getHeight() - 12);
-    value = juce::jlimit(0.0f, 1.0f, (boundsH / 2.0f + 6.0f - static_cast<float>(e.y)) / boundsH);
+    const float boundsH = static_cast<float>(getHeight() - 16);
+    value = juce::jlimit(0.0f, 1.0f, (boundsH / 2.0f + 8.0f - static_cast<float>(e.y)) / boundsH);
     repaint();
     if (onValueChange) onValueChange(value);
 }
 void ModWheel::mouseDrag(const juce::MouseEvent& e)
 {
-    const float boundsH = static_cast<float>(getHeight() - 12);
-    value = juce::jlimit(0.0f, 1.0f, (boundsH / 2.0f + 6.0f - static_cast<float>(e.y)) / boundsH);
+    const float boundsH = static_cast<float>(getHeight() - 16);
+    value = juce::jlimit(0.0f, 1.0f, (boundsH / 2.0f + 8.0f - static_cast<float>(e.y)) / boundsH);
     repaint();
     if (onValueChange) onValueChange(value);
 }
@@ -88,7 +173,6 @@ EnvSubPanel::EnvSubPanel(PluginProcessor& p, int idx)
 {
     auto& apvts = p.apvts;
 
-    // Select parameter IDs based on envelope index
     juce::String prefix = (idx == 0) ? "" : (idx == 1) ? "modEnv2" : "modEnv3";
     juce::String aID = (idx == 0) ? "attack"  : prefix + "Attack";
     juce::String dID = (idx == 0) ? "decay"   : prefix + "Decay";
@@ -104,7 +188,7 @@ EnvSubPanel::EnvSubPanel(PluginProcessor& p, int idx)
         g.knob.init(p, paramID);
         g.label.setText(name, juce::dontSendNotification);
         g.label.setFont(MultiverseFlatTheme::labelFont());
-        g.label.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+        g.label.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
         g.label.setJustificationType(juce::Justification::centred);
         addAndMakeVisible(g.label);
     };
@@ -120,10 +204,9 @@ EnvSubPanel::EnvSubPanel(PluginProcessor& p, int idx)
 
 void EnvSubPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgDeep);
-    // Section label
+    g.fillAll(MultiverseFlatTheme::bgDeep());
     const juce::String labels[] = { "AMP ENV", "ENV 2", "ENV 3" };
-    g.setColour(MultiverseFlatTheme::accentCyan);
+    g.setColour(MultiverseFlatTheme::accent1());
     g.setFont(MultiverseFlatTheme::headerFont());
     g.drawText(labels[envIndex], getLocalBounds().removeFromTop(18).toFloat(),
               juce::Justification::centred);
@@ -132,13 +215,11 @@ void EnvSubPanel::paint(juce::Graphics& g)
 void EnvSubPanel::resized()
 {
     auto area = getLocalBounds().reduced(MultiverseFlatTheme::Metrics::outerMargin, 2);
-    area.removeFromTop(18); // label
+    area.removeFromTop(18);
 
-    // Display on left, knobs on right
     auto displayArea = area.removeFromLeft(area.getWidth() * 2 / 5);
     envelopeDisplay.setBounds(displayArea.reduced(2));
 
-    // 4 knobs in a row on the right
     auto knobArea = area;
     const int knobW = knobArea.getWidth() / 4;
     auto setupKnobBounds = [&](KnobGroup& g, juce::Rectangle<int> col)
@@ -162,18 +243,13 @@ LFOSubPanel::LFOSubPanel(PluginProcessor& p)
 {
     auto& apvts = p.apvts;
 
-    // Bank selector buttons
     for (int i = 0; i < 8; ++i)
     {
-        bankButtons[i].setButtonText("LFO" + juce::String(i + 1));
-        bankButtons[i].setClickingTogglesState(false);
-        bankButtons[i].setRadioGroupId(1001);
-        bankButtons[i].addListener(this);
+        bankButtons[i].onClick = [this, i] { switchBank(i); };
         addAndMakeVisible(bankButtons[i]);
     }
-    bankButtons[0].setToggleState(true, juce::dontSendNotification);
+    bankButtons[0].isActive = true;
 
-    // Controls
     rateKnob.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     rateKnob.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     addAndMakeVisible(rateKnob);
@@ -191,12 +267,12 @@ LFOSubPanel::LFOSubPanel(PluginProcessor& p)
     addAndMakeVisible(drawButton);
 
     rateLabel.setFont(MultiverseFlatTheme::labelFont());
-    rateLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    rateLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     rateLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(rateLabel);
 
     shapeLabel.setFont(MultiverseFlatTheme::labelFont());
-    shapeLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    shapeLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     shapeLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(shapeLabel);
 
@@ -208,31 +284,28 @@ LFOSubPanel::LFOSubPanel(PluginProcessor& p)
 
 void LFOSubPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgDeep);
+    g.fillAll(MultiverseFlatTheme::bgDeep());
 
-    // LFO label
-    g.setColour(MultiverseFlatTheme::accentCyan);
+    g.setColour(MultiverseFlatTheme::accent1());
     g.setFont(MultiverseFlatTheme::headerFont());
     auto topArea = getLocalBounds().removeFromTop(18).toFloat();
     g.drawText("LFO " + juce::String(activeBank + 1), topArea, juce::Justification::centredLeft);
 
-    // Waveform preview area
     if (wavePathDirty)
     {
         rebuildWavePath();
         wavePathDirty = false;
     }
     auto previewArea = getLocalBounds().reduced(MultiverseFlatTheme::Metrics::outerMargin, 2);
-    previewArea.removeFromTop(22 + 26 + 4); // bank buttons + gap
+    previewArea.removeFromTop(22 + 26 + 4);
     previewArea = previewArea.removeFromLeft(previewArea.getWidth() * 2 / 5);
 
-    g.setColour(MultiverseFlatTheme::bgBase);
+    g.setColour(MultiverseFlatTheme::bgBase());
     g.fillRoundedRectangle(previewArea.toFloat().reduced(2), 4.0f);
-    g.setColour(MultiverseFlatTheme::borderLight.withAlpha(0.4f));
+    g.setColour(MultiverseFlatTheme::borderLight().withAlpha(0.4f));
     g.drawRoundedRectangle(previewArea.toFloat().reduced(2), 4.0f, 0.8f);
 
-    auto previewInner = previewArea.reduced(4);
-    g.setColour(MultiverseFlatTheme::accentCyan);
+    g.setColour(MultiverseFlatTheme::accent1());
     g.strokePath(wavePath, juce::PathStrokeType(1.5f));
 }
 
@@ -240,10 +313,8 @@ void LFOSubPanel::resized()
 {
     auto area = getLocalBounds().reduced(MultiverseFlatTheme::Metrics::outerMargin, 2);
 
-    // Label row
-    area.removeFromTop(18);
+    dragArea = area.removeFromTop(18);
 
-    // Bank selector row
     auto bankRow = area.removeFromTop(26);
     const int btnW = bankRow.getWidth() / 8;
     for (int i = 0; i < 8; ++i)
@@ -251,47 +322,43 @@ void LFOSubPanel::resized()
 
     area.removeFromTop(4);
 
-    // Left: waveform preview, Right: controls
     auto leftArea = area.removeFromLeft(area.getWidth() * 2 / 5);
     auto rightArea = area;
 
-    // Controls layout (vertical: Rate knob, Shape combo, Sync row, Draw button)
     auto controlArea = rightArea;
 
-    // Rate knob
     auto rateRow = controlArea.removeFromTop(KNOB_SZ + 16);
     rateKnob.setBounds(rateRow.removeFromTop(KNOB_SZ).withSizeKeepingCentre(KNOB_SZ, KNOB_SZ));
     rateLabel.setBounds(rateRow.removeFromTop(14));
 
     controlArea.removeFromTop(4);
 
-    // Shape combo
-    auto shapeRow = controlArea.removeFromTop(22);
+    auto shapeRow = controlArea.removeFromTop(26);
     shapeLabel.setBounds(shapeRow.removeFromLeft(40));
     shapeCombo.setBounds(shapeRow);
 
     controlArea.removeFromTop(4);
 
-    // Sync row
-    auto syncRow = controlArea.removeFromTop(22);
+    auto syncRow = controlArea.removeFromTop(26);
     syncButton.setBounds(syncRow.removeFromLeft(50));
     syncDivCombo.setBounds(syncRow);
 
     controlArea.removeFromTop(4);
 
-    // Draw button
     drawButton.setBounds(controlArea.removeFromTop(24));
 }
 
-void LFOSubPanel::buttonClicked(juce::Button* btn)
+void LFOSubPanel::mouseDrag(const juce::MouseEvent& e)
 {
-    for (int i = 0; i < 8; ++i)
+    if (!dragArea.contains(e.getMouseDownPosition()))
+        return;
+
+    if (auto* container = juce::DragAndDropContainer::findParentDragContainerFor(this))
     {
-        if (btn == &bankButtons[i])
-        {
-            switchBank(i);
-            return;
-        }
+        static const int lfoSourceMap[] = { 0, 1, 2, 3, 15, 16, 17, 18 };
+        int sourceInt = (activeBank >= 0 && activeBank < 8) ? lfoSourceMap[activeBank] : 0;
+        auto dragDescription = juce::String("modsrc:") + juce::String(sourceInt);
+        container->startDragging(dragDescription, this);
     }
 }
 
@@ -301,7 +368,6 @@ void LFOSubPanel::switchBank(int newBank)
     auto& apvts = proc.apvts;
     const juce::String idx = juce::String(newBank + 1);
 
-    // Rebuild attachments
     rateAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         apvts, "lfo" + idx + "Rate", rateKnob);
     rateKnob.init(proc, "lfo" + idx + "Rate");
@@ -315,14 +381,10 @@ void LFOSubPanel::switchBank(int newBank)
     syncDivAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
         apvts, "lfo" + idx + "SyncDiv", syncDivCombo);
 
-    // Update button colors
     for (int i = 0; i < 8; ++i)
     {
-        const bool active = (i == newBank);
-        bankButtons[i].setColour(juce::TextButton::buttonColourId,
-            active ? MultiverseFlatTheme::accentCyan.withAlpha(0.2f) : MultiverseFlatTheme::bgRaised);
-        bankButtons[i].setColour(juce::TextButton::textColourOffId,
-            active ? MultiverseFlatTheme::accentCyan : MultiverseFlatTheme::textSecondary);
+        bankButtons[i].isActive = (i == newBank);
+        bankButtons[i].repaint();
     }
 
     wavePathDirty = true;
@@ -343,7 +405,6 @@ void LFOSubPanel::rebuildWavePath()
     const float h = static_cast<float>(inner.getHeight());
     const float cy = inner.getY() + h / 2.0f;
 
-    // Read LFO shape from APVTS
     auto* shapeParam = proc.apvts.getRawParameterValue("lfo" + juce::String(activeBank + 1) + "Shape");
     int shape = shapeParam ? static_cast<int>(shapeParam->load()) : 0;
 
@@ -355,17 +416,12 @@ void LFOSubPanel::rebuildWavePath()
         float val = 0.0f;
         switch (shape)
         {
-            case 0: val = std::sin(phase); break; // Sine
-            case 1: val = 1.0f - 2.0f * std::abs(phase / juce::MathConstants<float>::pi - 1.0f); break; // Triangle
-            case 2: val = phase / juce::MathConstants<float>::pi - 1.0f; break; // Saw
-            case 3: val = phase < juce::MathConstants<float>::pi ? 1.0f : -1.0f; break; // Square
-            case 4: val = std::sin(phase + static_cast<float>(activeBank) * 0.7f); break; // S&H (approx)
-            case 5: // Custom - read from table if available
-            {
-                auto* tableParam = proc.apvts.getRawParameterValue("lfo" + juce::String(activeBank + 1) + "Shape");
-                val = std::sin(phase); // fallback for now
-                break;
-            }
+            case 0: val = std::sin(phase); break;
+            case 1: val = 1.0f - 2.0f * std::abs(phase / juce::MathConstants<float>::pi - 1.0f); break;
+            case 2: val = phase / juce::MathConstants<float>::pi - 1.0f; break;
+            case 3: val = phase < juce::MathConstants<float>::pi ? 1.0f : -1.0f; break;
+            case 4: val = std::sin(phase + static_cast<float>(activeBank) * 0.7f); break;
+            case 5: val = std::sin(phase); break;
             default: val = std::sin(phase); break;
         }
         const float x = inner.getX() + static_cast<float>(i) / 100.0f * w;
@@ -383,10 +439,7 @@ void LFOSubPanel::timerCallback()
 
 void LFOSubPanel::showShapeEditor()
 {
-    // Get the wavetable oscillator for LFO shape editing
     auto* shapeEditor = new LFOShapeEditor();
-    auto* tableRaw = proc.apvts.getRawParameterValue("lfo" + juce::String(activeBank + 1) + "CustomTable");
-    // For now, just launch the editor with default settings
     shapeEditor->setSize(310, 160);
     juce::CallOutBox::launchAsynchronously(
         std::unique_ptr<juce::Component>(shapeEditor),
@@ -417,7 +470,7 @@ MacroSubPanel::MacroSubPanel(PluginProcessor& p) : proc(p)
         g.nameLabel.setJustificationType(juce::Justification::centred);
         g.nameLabel.setFont(MultiverseFlatTheme::headerFont());
         g.nameLabel.setEditable(false, true);
-        g.nameLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+        g.nameLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
         g.nameLabel.setColour(juce::Label::backgroundColourId, juce::Colours::transparentBlack);
         g.nameLabel.setColour(juce::Label::outlineColourId, juce::Colours::transparentBlack);
         g.nameLabel.setTooltip("Double-click to rename this macro");
@@ -429,7 +482,7 @@ MacroSubPanel::MacroSubPanel(PluginProcessor& p) : proc(p)
 
         g.valueLabel.setJustificationType(juce::Justification::centred);
         g.valueLabel.setFont(MultiverseFlatTheme::valueFont());
-        g.valueLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textMuted);
+        g.valueLabel.setColour(juce::Label::textColourId, MultiverseFlatTheme::textMuted());
         g.valueLabel.setColour(juce::Label::backgroundColourId, juce::Colours::transparentBlack);
         g.valueLabel.setColour(juce::Label::outlineColourId, juce::Colours::transparentBlack);
         addAndMakeVisible(g.valueLabel);
@@ -440,7 +493,7 @@ MacroSubPanel::MacroSubPanel(PluginProcessor& p) : proc(p)
 
 void MacroSubPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgDeep);
+    g.fillAll(MultiverseFlatTheme::bgDeep());
 }
 
 void MacroSubPanel::resized()
@@ -464,7 +517,6 @@ void MacroSubPanel::timerCallback()
     auto& mgr   = proc.getMacroManager();
     auto& apvts = proc.apvts;
 
-    // Push macro values to assigned target params
     for (int i = 0; i < MacroManager::NUM_MACROS; ++i)
     {
         const auto targets = mgr.getTargets(i);
@@ -484,7 +536,6 @@ void MacroSubPanel::timerCallback()
         }
     }
 
-    // Update name and value labels
     for (int i = 0; i < MacroManager::NUM_MACROS; ++i)
     {
         const juce::String name = mgr.getName(i);
@@ -544,8 +595,8 @@ QuickFXSubPanel::QuickFXSubPanel(PluginProcessor& p) : proc(p)
     auto setupToggle = [&](juce::ToggleButton& btn)
     {
         btn.setToggleState(false, juce::dontSendNotification);
-        btn.setColour(juce::ToggleButton::tickColourId, MultiverseFlatTheme::accentCyan);
-        btn.setColour(juce::ToggleButton::textColourId, MultiverseFlatTheme::textSecondary);
+        btn.setColour(juce::ToggleButton::tickColourId, MultiverseFlatTheme::accent1());
+        btn.setColour(juce::ToggleButton::textColourId, MultiverseFlatTheme::textSecondary());
         addAndMakeVisible(btn);
     };
     setupToggle(filterModEnable);
@@ -578,7 +629,7 @@ QuickFXSubPanel::QuickFXSubPanel(PluginProcessor& p) : proc(p)
     auto setupHeader = [&](juce::Label& lbl)
     {
         lbl.setFont(MultiverseFlatTheme::headerFont());
-        lbl.setColour(juce::Label::textColourId, MultiverseFlatTheme::accentCyan);
+        lbl.setColour(juce::Label::textColourId, MultiverseFlatTheme::accent1());
         lbl.setJustificationType(juce::Justification::centredLeft);
         addAndMakeVisible(lbl);
     };
@@ -598,25 +649,23 @@ void QuickFXSubPanel::setupKnob(KnobGroup& g, const juce::String& paramID, const
     g.knob.init(proc, paramID);
     g.label.setText(shortName, juce::dontSendNotification);
     g.label.setFont(MultiverseFlatTheme::labelFont());
-    g.label.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary);
+    g.label.setColour(juce::Label::textColourId, MultiverseFlatTheme::textSecondary());
     g.label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(g.label);
 }
 
 void QuickFXSubPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgDeep);
+    g.fillAll(MultiverseFlatTheme::bgDeep());
 }
 
 void QuickFXSubPanel::resized()
 {
     auto area = getLocalBounds().reduced(MultiverseFlatTheme::Metrics::outerMargin, 2);
 
-    // 5 sections horizontally
     const int numSections = 5;
     const int sectionW = area.getWidth() / numSections;
 
-    // Helper: layout a section with enable toggle, header, and knob rows
     auto layoutSection = [&](juce::Label& header, juce::ToggleButton* enable,
                              std::initializer_list<std::pair<KnobGroup*, KnobGroup*>> pairs,
                              juce::Rectangle<int> sec)
@@ -626,7 +675,6 @@ void QuickFXSubPanel::resized()
         if (enable)
             enable->setBounds(topRow.removeFromRight(36).withSizeKeepingCentre(28, TOGGLE_H));
 
-        // Knob rows
         for (auto& [left, right] : pairs)
         {
             auto row = sec.removeFromTop(KNOB_SZ + LABEL_H + 2);
@@ -650,35 +698,26 @@ void QuickFXSubPanel::resized()
         }
     };
 
-    // FLT MOD section
     {
         auto sec = area.removeFromLeft(sectionW);
         layoutSection(filterModLabel, &filterModEnable,
             { {&fmCutoff, &fmResonance}, {&fmEnvDepth, nullptr} }, sec);
     }
-
-    // AMP MOD section
     {
         auto sec = area.removeFromLeft(sectionW);
         layoutSection(ampModLabel, &ampModEnable,
             { {&amVolume, &amPan} }, sec);
     }
-
-    // DELAY section
     {
         auto sec = area.removeFromLeft(sectionW);
         layoutSection(delayLabel, nullptr,
             { {&delayMix, &delayTime}, {&delayFeedback, nullptr} }, sec);
     }
-
-    // REVERB section
     {
         auto sec = area.removeFromLeft(sectionW);
         layoutSection(reverbLabel, nullptr,
             { {&reverbWet, &reverbRoom}, {&reverbDamp, nullptr} }, sec);
     }
-
-    // MAIN FILTER section
     {
         auto sec = area;
         layoutSection(mainFilterLabel, &mainFilterEnable,
@@ -688,9 +727,9 @@ void QuickFXSubPanel::resized()
 }
 
 //==============================================================================
-// KeyboardSubPanel
+// KeyboardStrip — always-visible bottom strip with wheels + keyboard
 
-KeyboardSubPanel::KeyboardSubPanel(PluginProcessor& p)
+KeyboardStrip::KeyboardStrip(PluginProcessor& p)
     : proc(p),
       keyboard(p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
 {
@@ -703,29 +742,47 @@ KeyboardSubPanel::KeyboardSubPanel(PluginProcessor& p)
     keyboard.setOctaveForMiddleC(5);
     keyboard.setAvailableRange(24, 108);
     keyboard.setLowestVisibleKey(36);
+    keyboard.setColour(juce::MidiKeyboardComponent::whiteNoteColourId, MultiverseFlatTheme::keyboardWhite());
+    keyboard.setColour(juce::MidiKeyboardComponent::blackNoteColourId, MultiverseFlatTheme::keyboardBlack());
     addAndMakeVisible(keyboard);
 }
 
-void KeyboardSubPanel::paint(juce::Graphics& g)
+void KeyboardStrip::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgDeep);
+    const Skin& s = MultiverseFlatTheme::skin();
+    g.fillAll(s.bgDeep);
+
+    // Top border with accent glow
+    g.setColour(s.borderLight);
+    g.drawHorizontalLine(0, 0.0f, static_cast<float>(getWidth()));
+
+    // Glow line along top
+    g.setColour(s.accent1.withAlpha(0.15f));
+    g.drawHorizontalLine(1, 0.0f, static_cast<float>(getWidth()));
 }
 
-void KeyboardSubPanel::resized()
+void KeyboardStrip::resized()
 {
-    auto area = getLocalBounds().reduced(MultiverseFlatTheme::Metrics::outerMargin, 2);
+    const Skin& s = MultiverseFlatTheme::skin();
+    const int wheelW = static_cast<int>(s.wheelWidth);
+    const int kbH = static_cast<int>(s.keyboardHeight * 0.65f); // keyboard portion of strip
+    const int wheelGap = 4;
+    const int margin = 4;
 
-    // Keyboard at the bottom
-    auto kbArea = area.removeFromBottom(KEYBOARD_H);
+    auto area = getLocalBounds().reduced(margin, 2);
+
+    // Wheels on the left
+    auto wheelArea = area.removeFromLeft(wheelW * 2 + wheelGap);
+    pitchWheel.setBounds(wheelArea.removeFromLeft(wheelW).reduced(2, 6));
+    wheelArea.removeFromLeft(wheelGap);
+    modWheel.setBounds(wheelArea.removeFromLeft(wheelW).reduced(2, 6));
+
+    // Keyboard fills the rest
+    auto kbArea = area.removeFromBottom(kbH);
     keyboard.setBounds(kbArea);
-
-    // Wheels on the left side
-    auto wheelArea = area.removeFromLeft(WHEEL_W * 2 + 4);
-    pitchWheel.setBounds(wheelArea.removeFromLeft(WHEEL_W).reduced(2, 6));
-    modWheel.setBounds(wheelArea.removeFromLeft(WHEEL_W).reduced(2, 6));
 }
 
-void KeyboardSubPanel::sendPitchBend(float value)
+void KeyboardStrip::sendPitchBend(float value)
 {
     const int midiValue = static_cast<int>(8192 + value * 8191);
     juce::MidiMessage msg = juce::MidiMessage::pitchWheel(1, midiValue);
@@ -733,7 +790,7 @@ void KeyboardSubPanel::sendPitchBend(float value)
     proc.uiMidiBuffer.addEvent(msg, 0);
 }
 
-void KeyboardSubPanel::sendModWheel(float value)
+void KeyboardStrip::sendModWheel(float value)
 {
     const int midiValue = static_cast<int>(value * 127);
     juce::MidiMessage msg = juce::MidiMessage::controllerEvent(1, 1, midiValue);
@@ -742,7 +799,7 @@ void KeyboardSubPanel::sendModWheel(float value)
 }
 
 //==============================================================================
-// ModBar
+// ModBar — sub-tabs without KEY (keyboard is now always visible)
 
 ModBar::ModBar(PluginProcessor& p)
     : proc(p),
@@ -751,37 +808,26 @@ ModBar::ModBar(PluginProcessor& p)
       env3Panel(p, 2),
       lfoPanel(p),
       macroPanel(p),
-      quickFXPanel(p),
-      keyboardPanel(p)
+      quickFXPanel(p)
 {
-    // Initialize sub-panels array
     subPanels[kEnv1]  = &env1Panel;
     subPanels[kEnv2]  = &env2Panel;
     subPanels[kEnv3]  = &env3Panel;
     subPanels[kLfo]    = &lfoPanel;
     subPanels[kMacro]  = &macroPanel;
     subPanels[kQfx]    = &quickFXPanel;
-    subPanels[kKey]    = &keyboardPanel;
 
-    // Sub-tab buttons
-    const juce::String tabNames[] = {"ENV1", "ENV2", "ENV3", "LFO", "MACRO", "QFX", "KEY"};
     for (int i = 0; i < kNumSubTabs; ++i)
     {
-        subTabButtons[i].setButtonText(tabNames[i]);
-        subTabButtons[i].setClickingTogglesState(true);
-        subTabButtons[i].setRadioGroupId(2001);
-        subTabButtons[i].addListener(this);
+        subTabButtons[i].onClick = [this, i] { switchSubTab(i); };
         addAndMakeVisible(subTabButtons[i]);
     }
-    subTabButtons[kMacro].setToggleState(true, juce::dontSendNotification);
+    subTabButtons[kMacro].isActive = true;
 
-    // Sub-panels (all added as children, only active one visible)
     for (int i = 0; i < kNumSubTabs; ++i)
         addAndMakeVisible(*subPanels[i]);
 
-    // Show only the active sub-panel
     switchSubTab(kMacro);
-
     startTimerHz(15);
 }
 
@@ -792,14 +838,19 @@ ModBar::~ModBar()
 
 void ModBar::paint(juce::Graphics& g)
 {
-    g.fillAll(MultiverseFlatTheme::bgDeep);
+    const Skin& s = MultiverseFlatTheme::skin();
+    auto bounds = getLocalBounds().toFloat();
 
-    // Top border
-    g.setColour(MultiverseFlatTheme::borderLight);
+    // 3D procedural background: inset panel with gradient
+    MultiverseFlatTheme::drawInset(g, bounds, 4.0f);
+    MultiverseFlatTheme::drawGradientFill(g, bounds.reduced(1.0f));
+
+    // Top border line
+    g.setColour(s.borderLight);
     g.drawHorizontalLine(0, 0.0f, static_cast<float>(getWidth()));
 
-    // Sub-tab strip background
-    g.setColour(MultiverseFlatTheme::bgBase);
+    // Sub-tab row background
+    g.setColour(s.bgBase);
     g.fillRect(0, 0, getWidth(), SUB_TAB_H);
 }
 
@@ -807,13 +858,11 @@ void ModBar::resized()
 {
     auto area = getLocalBounds();
 
-    // Sub-tab strip
     auto tabRow = area.removeFromTop(SUB_TAB_H);
     const int tabW = tabRow.getWidth() / kNumSubTabs;
     for (int i = 0; i < kNumSubTabs; ++i)
         subTabButtons[i].setBounds(tabRow.removeFromLeft(tabW));
 
-    // Content area
     for (int i = 0; i < kNumSubTabs; ++i)
         subPanels[i]->setBounds(area);
 }
@@ -824,13 +873,8 @@ void ModBar::switchSubTab(int newIndex)
     for (int i = 0; i < kNumSubTabs; ++i)
     {
         subPanels[i]->setVisible(i == newIndex);
-        const bool active = (i == newIndex);
-        subTabButtons[i].setColour(juce::TextButton::buttonColourId,
-            active ? MultiverseFlatTheme::accentCyan.withAlpha(0.2f) : MultiverseFlatTheme::bgBase);
-        subTabButtons[i].setColour(juce::TextButton::textColourOffId,
-            active ? MultiverseFlatTheme::accentCyan : MultiverseFlatTheme::textSecondary);
-        subTabButtons[i].setColour(juce::TextButton::textColourOnId,
-            MultiverseFlatTheme::accentCyan);
+        subTabButtons[i].isActive = (i == newIndex);
+        subTabButtons[i].repaint();
     }
     repaint();
     resized();
@@ -838,17 +882,5 @@ void ModBar::switchSubTab(int newIndex)
 
 void ModBar::timerCallback()
 {
-    // Nothing extra needed — sub-panels have their own timers
-}
-
-void ModBar::buttonClicked(juce::Button* btn)
-{
-    for (int i = 0; i < kNumSubTabs; ++i)
-    {
-        if (btn == &subTabButtons[i])
-        {
-            switchSubTab(i);
-            return;
-        }
-    }
+    // Nothing extra needed
 }

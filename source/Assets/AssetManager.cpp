@@ -30,39 +30,6 @@ void AssetManager::loadAllImages()
     LOAD_IMG ("knob_large",    Knob_png);
     LOAD_IMG ("knob_small",    Knob_Small_png);
 
-    // Buttons
-    LOAD_IMG ("button_big_on",   button_big_on_png);
-    LOAD_IMG ("button_big_off",  button_big_off_png);
-    LOAD_IMG ("button_normal",   Button_png);
-    LOAD_IMG ("button_hover",    Button_1_png);
-    LOAD_IMG ("button_pressed",  Button_2_png);
-    LOAD_IMG ("button_disabled", Button_3_png);
-
-    // Radio / toggle
-    LOAD_IMG ("radio_off",  Radio_Button_png);
-    LOAD_IMG ("radio_on",   Radio_Button_1_png);
-
-    // Dropdown
-    LOAD_IMG ("dropdown",        Dropdown_png);
-    LOAD_IMG ("dropdown_arrow",  Dropdown_6_png);
-
-    // Header
-    LOAD_IMG ("header_big",    Header_Big_png);
-    LOAD_IMG ("header_small",  Header_Small_png);
-
-    // Panel backgrounds
-    LOAD_IMG ("content",     Content_png);
-    LOAD_IMG ("box",         Box_png);
-    LOAD_IMG ("frame_34",    Frame_34_png);
-    LOAD_IMG ("frame_38",    Frame_38_png);
-    LOAD_IMG ("frame_482",   Frame_482_png);
-    LOAD_IMG ("frame_488",   Frame_488_png);
-
-    // Dividers & tabs
-    LOAD_IMG ("frame_1",   Frame_1_png);
-    LOAD_IMG ("frame_11",  Frame_11_png);
-    LOAD_IMG ("frame_37",  Frame_37_png);
-
     // Specialty
     LOAD_IMG ("eq_graph",  EQ_Graph_png);
     LOAD_IMG ("lphp",      LpHp_png);
@@ -75,9 +42,20 @@ void AssetManager::generateTintedVariants()
 {
     const auto& s = MultiverseFlatTheme::skin();
 
-    // Generate tinted box for active card state
-    if (images.count ("box") && images.at ("box").isValid())
-        tintedImages["box_active"] = tintImage (images.at ("box"), s.accent1.withAlpha (0.15f));
+    // Helper lambda: generate tinted variant only if source image exists and is valid
+    auto tint = [this](const char* srcKey, const char* dstKey, juce::Colour colour, float alpha)
+    {
+        if (images.count(srcKey) && images.at(srcKey).isValid())
+            tintedImages[dstKey] = tintImageOverlay(images.at(srcKey), colour, alpha);
+    };
+
+    // Knobs
+    tint("knob_large",  "knob_large_tinted",  s.bgRaised, 0.55f);
+    tint("knob_small",  "knob_small_tinted",  s.bgRaised, 0.55f);
+
+    // Specialty
+    tint("eq_graph",    "eq_graph_tinted",    s.bgDeep,      0.60f);
+    tint("lphp",        "lphp_tinted",        s.accent1,     0.65f);
 }
 
 juce::Image AssetManager::tintImage (const juce::Image& source, juce::Colour tint)
@@ -103,6 +81,36 @@ juce::Image AssetManager::tintImage (const juce::Image& source, juce::Colour tin
                 src.getFloatGreen() * gTint,
                 src.getFloatBlue()  * bTint,
                 src.getFloatAlpha()));
+        }
+    }
+
+    return result;
+}
+
+juce::Image AssetManager::tintImageOverlay (const juce::Image& source, juce::Colour tintColor, float blendAlpha)
+{
+    if (! source.isValid())
+        return {};
+
+    juce::Image result (juce::Image::ARGB, source.getWidth(), source.getHeight(), true);
+    juce::Image::BitmapData srcData (source, juce::Image::BitmapData::readOnly);
+    juce::Image::BitmapData dstData (result, juce::Image::BitmapData::readWrite);
+
+    const float rTint = tintColor.getFloatRed();
+    const float gTint = tintColor.getFloatGreen();
+    const float bTint = tintColor.getFloatBlue();
+
+    for (int y = 0; y < source.getHeight(); ++y)
+    {
+        for (int x = 0; x < source.getWidth(); ++x)
+        {
+            juce::Colour src = srcData.getPixelColour (x, y);
+            const float a = src.getFloatAlpha();
+            // Alpha-composite blend: lerp source toward tint color
+            const float r = src.getFloatRed()   * (1.0f - blendAlpha) + rTint * blendAlpha;
+            const float g = src.getFloatGreen() * (1.0f - blendAlpha) + gTint * blendAlpha;
+            const float b = src.getFloatBlue()  * (1.0f - blendAlpha) + bTint * blendAlpha;
+            dstData.setPixelColour (x, y, juce::Colour::fromFloatRGBA (r, g, b, a));
         }
     }
 

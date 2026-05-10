@@ -20,9 +20,9 @@ public:
     {
         auto bounds = getLocalBounds().toFloat().reduced (2.0f);
 
-        g.setColour (MultiverseFlatTheme::bgDeep);
+        g.setColour (MultiverseFlatTheme::bgDeep());
         g.fillRoundedRectangle (bounds, 4.0f);
-        g.setColour (MultiverseFlatTheme::borderLight);
+        g.setColour (MultiverseFlatTheme::borderLight());
         g.drawRoundedRectangle (bounds, 4.0f, 1.0f);
 
         auto inner = bounds.reduced (6.0f);
@@ -32,7 +32,7 @@ public:
         const float oy = inner.getY();
 
         // Centre line (sustain level reference)
-        g.setColour (MultiverseFlatTheme::textMuted.withAlpha (0.3f));
+        g.setColour (MultiverseFlatTheme::textMuted().withAlpha (0.3f));
         g.drawHorizontalLine (juce::roundToInt (oy + h * 0.5f), ox, ox + w);
 
         // Map ADSR to normalized time
@@ -72,16 +72,16 @@ public:
         fill.lineTo (ox, oy + h);
         fill.closeSubPath();
 
-        g.setColour (MultiverseFlatTheme::accentCyan.withAlpha (0.12f));
+        g.setColour (MultiverseFlatTheme::accentCyan().withAlpha (0.12f));
         g.fillPath (fill);
 
-        g.setColour (MultiverseFlatTheme::accentCyan);
+        g.setColour (MultiverseFlatTheme::accentCyan());
         g.strokePath (curve, juce::PathStrokeType (1.8f,
             juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
         // Segment labels
         g.setFont (MultiverseFlatTheme::labelFont());
-        g.setColour (MultiverseFlatTheme::textMuted);
+        g.setColour (MultiverseFlatTheme::textMuted());
 
         const float labelY = oy + h + 2.0f;
         if (aNorm > 0.02f)

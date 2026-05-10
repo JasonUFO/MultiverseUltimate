@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include "../Assets/AssetManager.h"
 #include "../MultiverseFlatTheme.h"
 #include "../PluginProcessor.h"
 
@@ -24,9 +25,17 @@ public:
     {
         auto bounds = getLocalBounds().toFloat().reduced(2.0f);
 
-        g.setColour(MultiverseFlatTheme::bgDeep);
-        g.fillRoundedRectangle(bounds, 4.0f);
-        g.setColour(MultiverseFlatTheme::borderLight);
+        // EQ_Graph background image
+        auto& am = AssetManager::instance();
+        auto eqImg = am.getEQGraph();
+        if (eqImg.isValid())
+            AssetManager::drawImage9Slice(g, eqImg, bounds, 40, 40, 30, 30);
+        else
+        {
+            g.setColour(MultiverseFlatTheme::bgDeep());
+            g.fillRoundedRectangle(bounds, 4.0f);
+        }
+        g.setColour(MultiverseFlatTheme::borderLight());
         g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
         auto inner = bounds.reduced(4.0f, 4.0f);
@@ -36,13 +45,13 @@ public:
         const float oy = inner.getY();
 
         // Horizontal grid lines (quiet, subtle)
-        g.setColour(MultiverseFlatTheme::textMuted.withAlpha(0.15f));
+        g.setColour(MultiverseFlatTheme::textMuted().withAlpha(0.15f));
         for (float t : {0.25f, 0.5f, 0.75f})
             g.drawHorizontalLine(juce::roundToInt(oy + t * h), ox, ox + w);
 
         // Frequency labels
         g.setFont(MultiverseFlatTheme::labelFont());
-        g.setColour(MultiverseFlatTheme::textMuted.withAlpha(0.5f));
+        g.setColour(MultiverseFlatTheme::textMuted().withAlpha(0.5f));
         const char* freqLabels[] = {"100", "1k", "10k"};
         for (int i = 0; i < 3; ++i)
         {
@@ -79,16 +88,30 @@ public:
         fillPath.closeSubPath();
 
         // Fill under curve
-        g.setColour(MultiverseFlatTheme::accentCyan.withAlpha(0.12f));
+        g.setColour(MultiverseFlatTheme::accentCyan().withAlpha(0.12f));
         g.fillPath(fillPath);
 
         // Stroke the curve
-        g.setColour(MultiverseFlatTheme::accentCyan);
+        g.setColour(MultiverseFlatTheme::accentCyan());
         g.strokePath(curvePath, juce::PathStrokeType(1.8f,
             juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
+        // LpHp filter type indicator overlay
+        auto lphpImg = am.getLpHp();
+        if (lphpImg.isValid())
+        {
+            // Draw LpHp image in the top-right corner as a small type indicator
+            const float indicatorW = 24.0f;
+            const float indicatorH = 50.0f;
+            auto indicatorRect = juce::Rectangle<float>(
+                ox + w - indicatorW - 2.0f, oy + 2.0f, indicatorW, indicatorH);
+            g.drawImage(lphpImg, indicatorRect.getX(), indicatorRect.getY(),
+                        indicatorRect.getWidth(), indicatorRect.getHeight(),
+                        0, 0, lphpImg.getWidth(), lphpImg.getHeight());
+        }
+
         // Filter type label
-        g.setColour(MultiverseFlatTheme::accentCyan.withAlpha(0.7f));
+        g.setColour(MultiverseFlatTheme::accentCyan().withAlpha(0.7f));
         g.setFont(MultiverseFlatTheme::headerFont());
         const char* typeNames[] = {"LP", "HP", "BP", "NOTCH"};
         if (filterType >= 0 && filterType <= 3)

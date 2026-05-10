@@ -1,7 +1,7 @@
 # MultiverseUltimate — AI RULES
 
 ## Current Phase
-**Serum 2-Style UI Redesign** — Phases 1–4 shipped. Remaining: Phase 6 (Theme polish — primary/secondary tab styles, sub-tab buttons, overlay backdrop, visual polish).
+**Progressive Disclosure UI — Phase 1 shipped (collapsible sections in SynthPanel).** Next: Phase 2 (single-tier tab bar).
 
 ---
 

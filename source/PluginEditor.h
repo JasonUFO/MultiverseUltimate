@@ -79,10 +79,11 @@ private:
             const Skin& s = MultiverseFlatTheme::skin();
             auto area = getLocalBounds();
 
-            // Primary row background
+            // Full tab bar background image
+            MultiverseFlatTheme::drawTabBarBackground (g, area.toFloat());
+
+            // Primary row
             auto primaryArea = area.removeFromTop (MultiverseFlatTheme::Metrics::primaryTabH);
-            g.setColour (s.tabPrimaryBg);
-            g.fillRect (primaryArea);
 
             // Draw primary tabs
             int numPrimary = primaryTabs.size();
@@ -103,10 +104,8 @@ private:
                 }
             }
 
-            // Secondary row background
+            // Secondary row
             auto secondaryArea = area.removeFromTop (MultiverseFlatTheme::Metrics::secondaryTabH);
-            g.setColour (s.tabSecondaryBg);
-            g.fillRect (secondaryArea);
 
             // Bottom border
             g.setColour (s.borderLight);
