@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include "SkinManager.h"
 
 class MultiverseFlatTheme : public juce::LookAndFeel_V4
 {
@@ -46,49 +47,87 @@ public:
                         bool isVertical, int thumbPos, int thumbSize,
                         bool isMouseOver, bool isMouseDown) override;
 
-    // Palette — accessible from panels
-    static const juce::Colour bgVoid;
-    static const juce::Colour bgBase;
-    static const juce::Colour bgRaised;
-    static const juce::Colour bgDeep;
-    static const juce::Colour bgHover;
+    // ── Skin-aware colour access ──────────────────────────────────────────
+    // All colour getters now delegate to the current skin via SkinManager.
+    // These static methods replace the old static const Colour members.
 
-    // Accent colors
-    static const juce::Colour accentCyan;
-    static const juce::Colour accentPink;
-    static const juce::Colour accentPurple;
-    static const juce::Colour accentGreen;
-    static const juce::Colour accentAmber;
+    static const Skin& skin() { return SkinManager::instance().current(); }
 
-    // Legacy aliases for backward compatibility
-    static const juce::Colour accentBlue;    // alias for accentCyan
-    static const juce::Colour neonCyan;     // alias for accentCyan
-    static const juce::Colour neonPink;     // alias for accentPink
-    static const juce::Colour neonPurple;   // alias for accentPurple
-    static const juce::Colour neonGreen;    // alias for accentGreen
+    // Backgrounds
+    static juce::Colour bgVoid()      { return skin().bgVoid; }
+    static juce::Colour bgBase()      { return skin().bgBase; }
+    static juce::Colour bgRaised()    { return skin().bgRaised; }
+    static juce::Colour bgDeep()      { return skin().bgDeep; }
+    static juce::Colour bgHover()     { return skin().bgHover; }
+
+    // Accents
+    static juce::Colour accent1()     { return skin().accent1; }
+    static juce::Colour accent2()     { return skin().accent2; }
+    static juce::Colour accent3()     { return skin().accent3; }
+    static juce::Colour accent4()     { return skin().accent4; }
+    static juce::Colour accent5()     { return skin().accent5; }
+
+    // Legacy aliases
+    static juce::Colour accentCyan()   { return skin().accentCyan; }
+    static juce::Colour accentPink()   { return skin().accentPink; }
+    static juce::Colour accentPurple() { return skin().accentPurple; }
+    static juce::Colour accentGreen()  { return skin().accentGreen; }
+    static juce::Colour accentAmber()  { return skin().accentAmber; }
+    static juce::Colour accentBlue()   { return skin().accent1; }   // alias
+    static juce::Colour neonCyan()     { return skin().accent1; }   // alias
+    static juce::Colour neonPink()     { return skin().accent2; }   // alias
+    static juce::Colour neonPurple()   { return skin().accent3; }   // alias
+    static juce::Colour neonGreen()    { return skin().accent4; }   // alias
 
     // Borders
-    static const juce::Colour borderLight;
-    static const juce::Colour borderActive;
+    static juce::Colour borderLight()  { return skin().borderLight; }
+    static juce::Colour borderActive() { return skin().borderActive; }
 
     // Text
-    static const juce::Colour textPrimary;
-    static const juce::Colour textSecondary;
-    static const juce::Colour textMuted;
-    static const juce::Colour textLabel;
+    static juce::Colour textPrimary()   { return skin().textPrimary; }
+    static juce::Colour textSecondary() { return skin().textSecondary; }
+    static juce::Colour textMuted()     { return skin().textMuted; }
+    static juce::Colour textLabel()     { return skin().textLabel; }
 
-    // Flat card helper (replaces drawNeumorphicRect)
+    // Glow / extras
+    static juce::Colour glowStrong()   { return skin().glowStrong; }
+    static juce::Colour glowSoft()      { return skin().glowSoft; }
+    static juce::Colour keyboardWhite() { return skin().keyboardWhite; }
+    static juce::Colour keyboardBlack() { return skin().keyboardBlack; }
+    static juce::Colour keyboardHighlight() { return skin().keyboardHighlight; }
+    static juce::Colour wheelTrack()    { return skin().wheelTrack; }
+    static juce::Colour wheelFill()     { return skin().wheelFill; }
+
+    // Tab colours
+    static juce::Colour tabPrimaryBg()   { return skin().tabPrimaryBg; }
+    static juce::Colour tabSecondaryBg() { return skin().tabSecondaryBg; }
+    static juce::Colour tabActiveBg()     { return skin().tabActiveBg; }
+    static juce::Colour tabActiveGlow()   { return skin().tabActiveGlow; }
+
+    // Flat card helper
     static void drawCard (juce::Graphics&, juce::Rectangle<float>,
-                          float cornerRadius, bool isActive = false);
+                          float cornerRadius, bool isActive = false,
+                          juce::Colour fillColor = juce::Colour());
+
+    // Overlay backdrop
+    static void drawOverlayBackdrop (juce::Graphics& g, juce::Rectangle<float> bounds);
+
+    // Two-tier tab drawing methods
+    static void drawPrimaryTabButton (juce::Graphics& g, juce::Rectangle<float> bounds,
+                                      const juce::String& text, bool isActive, bool isHover);
+    static void drawSecondaryTabButton (juce::Graphics& g, juce::Rectangle<float> bounds,
+                                         const juce::String& text, bool isActive, bool isHover);
+    static void drawSubTabButton (juce::Graphics& g, juce::Rectangle<float> bounds,
+                                   const juce::String& text, bool isActive, bool isHover);
 
     // Section divider line
     static void drawDivider (juce::Graphics& g, float y, float x1, float x2);
 
-    // Font getters (single source of truth for the design system)
-    static juce::Font headerFont();   // 12pt bold — section headers, panel titles
-    static juce::Font labelFont();    // 10pt plain — parameter labels, axis labels
-    static juce::Font valueFont();    // 11pt mono — knob values, readouts
-    static juce::Font titleFont();    // 14pt bold — large panel headings
+    // Font getters
+    static juce::Font headerFont();
+    static juce::Font labelFont();
+    static juce::Font valueFont();
+    static juce::Font titleFont();
 
     // Design system constants
     struct Metrics
@@ -105,7 +144,17 @@ public:
         static constexpr int sectionHeaderH   = 20;
 
         static constexpr float dividerAlpha    = 0.6f;
+
+        static constexpr int headerH          = 36;
+        static constexpr int primaryTabH     = 36;   // was 28, now bigger
+        static constexpr int secondaryTabH   = 28;   // was 24, now bigger
+        static constexpr int tabBarH         = 64;   // was 52, now primaryTabH + secondaryTabH
+        static constexpr int modBarH         = 160;
+        static constexpr int modSubTabH      = 28;
     };
+
+    // Re-apply all JUCE colours from current skin (call after skin change)
+    void applySkinColours();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MultiverseFlatTheme)
 };

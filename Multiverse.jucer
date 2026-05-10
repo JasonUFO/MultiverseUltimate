@@ -4,170 +4,281 @@
               companyName="Multiphase Audio" companyCopyright="Multiphase Audio"
               pluginFormats="buildAU,buildVST3" pluginCharacteristicsValue="pluginIsSynth pluginWantsMidiInput"
               pluginName="MultiverseUltimate" pluginDesc="Multiverse Synth"
-              pluginManufacturerCode="MpAu" pluginCode="MvUl"
-              jucerFormatVersion="1">
+              pluginManufacturerCode="MpAu" pluginCode="MvUl" jucerFormatVersion="1">
   <MAINGROUP id="Pk6433" name="MultiverseUltimate">
     <GROUP id="kaksjs" name="source">
-      <FILE id="Aa0001" name="PluginEditor.h"    compile="0" resource="0" file="source/PluginEditor.h"/>
-      <FILE id="Aa0002" name="PluginEditor.cpp"  compile="1" resource="0" file="source/PluginEditor.cpp"/>
-      <FILE id="Aa0003" name="PluginProcessor.h"   compile="0" resource="0" file="source/PluginProcessor.h"/>
-      <FILE id="Aa0004" name="PluginProcessor.cpp" compile="1" resource="0" file="source/PluginProcessor.cpp"/>
-      <FILE id="Aa0005" name="MidiLearnSlider.h"   compile="0" resource="0" file="source/MidiLearnSlider.h"/>
-      <FILE id="Aa0006" name="MidiLearnSlider.cpp" compile="1" resource="0" file="source/MidiLearnSlider.cpp"/>
-      <FILE id="Aa0007" name="CyberpunkTheme.h"   compile="0" resource="0" file="source/CyberpunkTheme.h"/>
-      <FILE id="Aa0008" name="CyberpunkTheme.cpp" compile="1" resource="0" file="source/CyberpunkTheme.cpp"/>
-      <FILE id="Aa0011" name="MultiverseFlatTheme.h"   compile="0" resource="0" file="source/MultiverseFlatTheme.h"/>
-      <FILE id="Aa0012" name="MultiverseFlatTheme.cpp" compile="1" resource="0" file="source/MultiverseFlatTheme.cpp"/>
-      <FILE id="Aa0009" name="NeuKnob.h"           compile="0" resource="0" file="source/NeuKnob.h"/>
-      <FILE id="Aa0010" name="NeuKnob.cpp"         compile="1" resource="0" file="source/NeuKnob.cpp"/>
+      <FILE id="Aa0001" name="PluginEditor.h" compile="0" resource="0" file="source/PluginEditor.h"/>
+      <FILE id="Aa0002" name="PluginEditor.cpp" compile="1" resource="0"
+            file="source/PluginEditor.cpp"/>
+      <FILE id="Aa0003" name="PluginProcessor.h" compile="0" resource="0"
+            file="source/PluginProcessor.h"/>
+      <FILE id="Aa0004" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="source/PluginProcessor.cpp"/>
+      <FILE id="Aa0005" name="MidiLearnSlider.h" compile="0" resource="0"
+            file="source/MidiLearnSlider.h"/>
+      <FILE id="Aa0006" name="MidiLearnSlider.cpp" compile="1" resource="0"
+            file="source/MidiLearnSlider.cpp"/>
+      <FILE id="Aa0007" name="CyberpunkTheme.h" compile="0" resource="0"
+            file="source/CyberpunkTheme.h"/>
+      <FILE id="Aa0008" name="CyberpunkTheme.cpp" compile="1" resource="0"
+            file="source/CyberpunkTheme.cpp"/>
+      <FILE id="Aa0011" name="MultiverseFlatTheme.h" compile="0" resource="0"
+            file="source/MultiverseFlatTheme.h"/>
+      <FILE id="Aa0012" name="MultiverseFlatTheme.cpp" compile="1" resource="0"
+            file="source/MultiverseFlatTheme.cpp"/>
+      <FILE id="Aa0009" name="NeuKnob.h" compile="0" resource="0" file="source/NeuKnob.h"/>
+      <FILE id="Aa0010" name="NeuKnob.cpp" compile="1" resource="0" file="source/NeuKnob.cpp"/>
+      <FILE id="Aa0013" name="SkinManager.h" compile="0" resource="0" file="source/SkinManager.h"/>
+      <FILE id="Aa0014" name="SkinManager.cpp" compile="1" resource="0" file="source/SkinManager.cpp"/>
       <GROUP id="GrpDrm" name="DrumSequencer">
-        <FILE id="Bb0001" name="DrumSequencer.h"       compile="0" resource="0" file="source/DrumSequencer/DrumSequencer.h"/>
-        <FILE id="Bb0002" name="DrumSequencer.cpp"     compile="1" resource="0" file="source/DrumSequencer/DrumSequencer.cpp"/>
-        <FILE id="Bb0003" name="DrumSequencerPanel.h"  compile="0" resource="0" file="source/DrumSequencer/DrumSequencerPanel.h"/>
-        <FILE id="Bb0004" name="DrumSequencerPanel.cpp" compile="1" resource="0" file="source/DrumSequencer/DrumSequencerPanel.cpp"/>
+        <FILE id="Bb0001" name="DrumSequencer.h" compile="0" resource="0" file="source/DrumSequencer/DrumSequencer.h"/>
+        <FILE id="Bb0002" name="DrumSequencer.cpp" compile="1" resource="0"
+              file="source/DrumSequencer/DrumSequencer.cpp"/>
+        <FILE id="Bb0003" name="DrumSequencerPanel.h" compile="0" resource="0"
+              file="source/DrumSequencer/DrumSequencerPanel.h"/>
+        <FILE id="Bb0004" name="DrumSequencerPanel.cpp" compile="1" resource="0"
+              file="source/DrumSequencer/DrumSequencerPanel.cpp"/>
       </GROUP>
       <GROUP id="GrpFx" name="Effects">
-        <FILE id="Cc0001" name="Effect.h"   compile="0" resource="0" file="source/Effects/Effect.h"/>
-        <FILE id="Cc0002" name="Reverb.h"   compile="0" resource="0" file="source/Effects/Reverb.h"/>
+        <FILE id="Cc0001" name="Effect.h" compile="0" resource="0" file="source/Effects/Effect.h"/>
+        <FILE id="Cc0002" name="Reverb.h" compile="0" resource="0" file="source/Effects/Reverb.h"/>
         <FILE id="Cc0003" name="Reverb.cpp" compile="1" resource="0" file="source/Effects/Reverb.cpp"/>
-        <FILE id="Cc0004" name="Delay.h"    compile="0" resource="0" file="source/Effects/Delay.h"/>
-        <FILE id="Cc0005" name="Delay.cpp"         compile="1" resource="0" file="source/Effects/Delay.cpp"/>
-        <FILE id="Cc0006" name="EffectsPanel.h"   compile="0" resource="0" file="source/Effects/EffectsPanel.h"/>
-        <FILE id="Cc0007" name="EffectsPanel.cpp" compile="1" resource="0" file="source/Effects/EffectsPanel.cpp"/>
-        <FILE id="Cc0008" name="Chorus.h"         compile="0" resource="0" file="source/Effects/Chorus.h"/>
-        <FILE id="Cc0009" name="Chorus.cpp"       compile="1" resource="0" file="source/Effects/Chorus.cpp"/>
-        <FILE id="Cc0010" name="Distortion.h"     compile="0" resource="0" file="source/Effects/Distortion.h"/>
-        <FILE id="Cc0011" name="Distortion.cpp"   compile="1" resource="0" file="source/Effects/Distortion.cpp"/>
-        <FILE id="Cc0012" name="EQ.h"             compile="0" resource="0" file="source/Effects/EQ.h"/>
-        <FILE id="Cc0013" name="EQ.cpp"           compile="1" resource="0" file="source/Effects/EQ.cpp"/>
-        <FILE id="Cc0014" name="Compressor.h"     compile="0" resource="0" file="source/Effects/Compressor.h"/>
-        <FILE id="Cc0015" name="Compressor.cpp"   compile="1" resource="0" file="source/Effects/Compressor.cpp"/>
+        <FILE id="Cc0004" name="Delay.h" compile="0" resource="0" file="source/Effects/Delay.h"/>
+        <FILE id="Cc0005" name="Delay.cpp" compile="1" resource="0" file="source/Effects/Delay.cpp"/>
+        <FILE id="Cc0006" name="EffectsPanel.h" compile="0" resource="0" file="source/Effects/EffectsPanel.h"/>
+        <FILE id="Cc0007" name="EffectsPanel.cpp" compile="1" resource="0"
+              file="source/Effects/EffectsPanel.cpp"/>
+        <FILE id="Cc0008" name="Chorus.h" compile="0" resource="0" file="source/Effects/Chorus.h"/>
+        <FILE id="Cc0009" name="Chorus.cpp" compile="1" resource="0" file="source/Effects/Chorus.cpp"/>
+        <FILE id="Cc0010" name="Distortion.h" compile="0" resource="0" file="source/Effects/Distortion.h"/>
+        <FILE id="Cc0011" name="Distortion.cpp" compile="1" resource="0" file="source/Effects/Distortion.cpp"/>
+        <FILE id="Cc0012" name="EQ.h" compile="0" resource="0" file="source/Effects/EQ.h"/>
+        <FILE id="Cc0013" name="EQ.cpp" compile="1" resource="0" file="source/Effects/EQ.cpp"/>
+        <FILE id="Cc0014" name="Compressor.h" compile="0" resource="0" file="source/Effects/Compressor.h"/>
+        <FILE id="Cc0015" name="Compressor.cpp" compile="1" resource="0" file="source/Effects/Compressor.cpp"/>
       </GROUP>
       <GROUP id="GrpMac" name="Macros">
-        <FILE id="Mm0001" name="MacroManager.h"   compile="0" resource="0" file="source/Macros/MacroManager.h"/>
-        <FILE id="Mm0002" name="MacroManager.cpp" compile="1" resource="0" file="source/Macros/MacroManager.cpp"/>
-        <FILE id="Mm0003" name="MacroPanel.h"     compile="0" resource="0" file="source/Macros/MacroPanel.h"/>
-        <FILE id="Mm0004" name="MacroPanel.cpp"   compile="1" resource="0" file="source/Macros/MacroPanel.cpp"/>
+        <FILE id="Mm0001" name="MacroManager.h" compile="0" resource="0" file="source/Macros/MacroManager.h"/>
+        <FILE id="Mm0002" name="MacroManager.cpp" compile="1" resource="0"
+              file="source/Macros/MacroManager.cpp"/>
+        <FILE id="Mm0003" name="MacroPanel.h" compile="0" resource="0" file="source/Macros/MacroPanel.h"/>
+        <FILE id="Mm0004" name="MacroPanel.cpp" compile="1" resource="0" file="source/Macros/MacroPanel.cpp"/>
       </GROUP>
       <GROUP id="GrpGran" name="Granular">
-        <FILE id="Gr0001" name="GrainState.h"       compile="0" resource="0" file="source/Granular/GrainState.h"/>
-        <FILE id="Gr0002" name="GranularVoice.h"    compile="0" resource="0" file="source/Granular/GranularVoice.h"/>
-        <FILE id="Gr0003" name="GranularVoice.cpp"  compile="1" resource="0" file="source/Granular/GranularVoice.cpp"/>
-        <FILE id="Gr0004" name="GranularEngine.h"   compile="0" resource="0" file="source/Granular/GranularEngine.h"/>
-        <FILE id="Gr0005" name="GranularEngine.cpp" compile="1" resource="0" file="source/Granular/GranularEngine.cpp"/>
-        <FILE id="Gr0006" name="GranularPanel.h"    compile="0" resource="0" file="source/Granular/GranularPanel.h"/>
-        <FILE id="Gr0007" name="GranularPanel.cpp"  compile="1" resource="0" file="source/Granular/GranularPanel.cpp"/>
+        <FILE id="Gr0001" name="GrainState.h" compile="0" resource="0" file="source/Granular/GrainState.h"/>
+        <FILE id="Gr0002" name="GranularVoice.h" compile="0" resource="0" file="source/Granular/GranularVoice.h"/>
+        <FILE id="Gr0003" name="GranularVoice.cpp" compile="1" resource="0"
+              file="source/Granular/GranularVoice.cpp"/>
+        <FILE id="Gr0004" name="GranularEngine.h" compile="0" resource="0"
+              file="source/Granular/GranularEngine.h"/>
+        <FILE id="Gr0005" name="GranularEngine.cpp" compile="1" resource="0"
+              file="source/Granular/GranularEngine.cpp"/>
+        <FILE id="Gr0006" name="GranularPanel.h" compile="0" resource="0" file="source/Granular/GranularPanel.h"/>
+        <FILE id="Gr0007" name="GranularPanel.cpp" compile="1" resource="0"
+              file="source/Granular/GranularPanel.cpp"/>
       </GROUP>
       <GROUP id="GrpPst" name="Presets">
-        <FILE id="Dd0001" name="Preset.h"          compile="0" resource="0" file="source/Presets/Preset.h"/>
-        <FILE id="Dd0002" name="Preset.cpp"        compile="1" resource="0" file="source/Presets/Preset.cpp"/>
-        <FILE id="Dd0003" name="PresetManager.h"        compile="0" resource="0" file="source/Presets/PresetManager.h"/>
-        <FILE id="Dd0004" name="PresetManager.cpp"       compile="1" resource="0" file="source/Presets/PresetManager.cpp"/>
-        <FILE id="Dd0005" name="PresetBrowserPanel.h"   compile="0" resource="0" file="source/Presets/PresetBrowserPanel.h"/>
-        <FILE id="Dd0006" name="PresetBrowserPanel.cpp" compile="1" resource="0" file="source/Presets/PresetBrowserPanel.cpp"/>
-        <FILE id="Dd0009" name="LibrarianPanel.h"       compile="0" resource="0" file="source/Presets/LibrarianPanel.h"/>
-        <FILE id="Dd0010" name="LibrarianPanel.cpp"     compile="1" resource="0" file="source/Presets/LibrarianPanel.cpp"/>
-        <FILE id="Dd0007" name="FactoryPresets.h"       compile="0" resource="0" file="source/Presets/FactoryPresets.h"/>
-        <FILE id="Dd0008" name="FactoryPresets.cpp"     compile="1" resource="0" file="source/Presets/FactoryPresets.cpp"/>
+        <FILE id="Dd0001" name="Preset.h" compile="0" resource="0" file="source/Presets/Preset.h"/>
+        <FILE id="Dd0002" name="Preset.cpp" compile="1" resource="0" file="source/Presets/Preset.cpp"/>
+        <FILE id="Dd0003" name="PresetManager.h" compile="0" resource="0" file="source/Presets/PresetManager.h"/>
+        <FILE id="Dd0004" name="PresetManager.cpp" compile="1" resource="0"
+              file="source/Presets/PresetManager.cpp"/>
+        <FILE id="Dd0005" name="PresetBrowserPanel.h" compile="0" resource="0"
+              file="source/Presets/PresetBrowserPanel.h"/>
+        <FILE id="Dd0006" name="PresetBrowserPanel.cpp" compile="1" resource="0"
+              file="source/Presets/PresetBrowserPanel.cpp"/>
+        <FILE id="Dd0009" name="LibrarianPanel.h" compile="0" resource="0"
+              file="source/Presets/LibrarianPanel.h"/>
+        <FILE id="Dd0010" name="LibrarianPanel.cpp" compile="1" resource="0"
+              file="source/Presets/LibrarianPanel.cpp"/>
+        <FILE id="Dd0007" name="FactoryPresets.h" compile="0" resource="0"
+              file="source/Presets/FactoryPresets.h"/>
+        <FILE id="Dd0008" name="FactoryPresets.cpp" compile="1" resource="0"
+              file="source/Presets/FactoryPresets.cpp"/>
+        <FILE id="Dd0009b" name="PresetOverlay.h" compile="0" resource="0"
+              file="source/Presets/PresetOverlay.h"/>
+        <FILE id="Dd0009c" name="PresetOverlay.cpp" compile="1" resource="0"
+              file="source/Presets/PresetOverlay.cpp"/>
       </GROUP>
       <GROUP id="GrpSmp" name="Sampler">
-        <FILE id="Ee0001" name="SamplerEngine.h"   compile="0" resource="0" file="source/Sampler/SamplerEngine.h"/>
-        <FILE id="Ee0002" name="SamplerEngine.cpp" compile="1" resource="0" file="source/Sampler/SamplerEngine.cpp"/>
-        <FILE id="Ee0003" name="SamplerVoice.h"    compile="0" resource="0" file="source/Sampler/SamplerVoice.h"/>
-        <FILE id="Ee0004" name="SamplerVoice.cpp"  compile="1" resource="0" file="source/Sampler/SamplerVoice.cpp"/>
-        <FILE id="Ee0005" name="SamplerZone.h"     compile="0" resource="0" file="source/Sampler/SamplerZone.h"/>
-        <FILE id="Ee0006" name="SamplerPanel.h"    compile="0" resource="0" file="source/Sampler/SamplerPanel.h"/>
-        <FILE id="Ee0007" name="SamplerPanel.cpp"  compile="1" resource="0" file="source/Sampler/SamplerPanel.cpp"/>
+        <FILE id="Ee0001" name="SamplerEngine.h" compile="0" resource="0" file="source/Sampler/SamplerEngine.h"/>
+        <FILE id="Ee0002" name="SamplerEngine.cpp" compile="1" resource="0"
+              file="source/Sampler/SamplerEngine.cpp"/>
+        <FILE id="Ee0003" name="SamplerVoice.h" compile="0" resource="0" file="source/Sampler/SamplerVoice.h"/>
+        <FILE id="Ee0004" name="SamplerVoice.cpp" compile="1" resource="0"
+              file="source/Sampler/SamplerVoice.cpp"/>
+        <FILE id="Ee0005" name="SamplerZone.h" compile="0" resource="0" file="source/Sampler/SamplerZone.h"/>
+        <FILE id="Ee0006" name="SamplerPanel.h" compile="0" resource="0" file="source/Sampler/SamplerPanel.h"/>
+        <FILE id="Ee0007" name="SamplerPanel.cpp" compile="1" resource="0"
+              file="source/Sampler/SamplerPanel.cpp"/>
       </GROUP>
       <GROUP id="GrpSeq" name="Sequencer">
-        <FILE id="Ff0001" name="Sequencer.h"          compile="0" resource="0" file="source/Sequencer/Sequencer.h"/>
-        <FILE id="Ff0002" name="Sequencer.cpp"        compile="1" resource="0" file="source/Sequencer/Sequencer.cpp"/>
-        <FILE id="Ff0003" name="SequencerPanel.h"     compile="0" resource="0" file="source/Sequencer/SequencerPanel.h"/>
-        <FILE id="Ff0004" name="SequencerPanel.cpp"   compile="1" resource="0" file="source/Sequencer/SequencerPanel.cpp"/>
-        <FILE id="Ff0005" name="ProSequencer.h"          compile="0" resource="0" file="source/Sequencer/ProSequencer.h"/>
-        <FILE id="Ff0006" name="ProSequencer.cpp"        compile="1" resource="0" file="source/Sequencer/ProSequencer.cpp"/>
-        <FILE id="Ff0007" name="ProSequencerPanel.h"     compile="0" resource="0" file="source/Sequencer/ProSequencerPanel.h"/>
-        <FILE id="Ff0008" name="ProSequencerPanel.cpp"   compile="1" resource="0" file="source/Sequencer/ProSequencerPanel.cpp"/>
-        <FILE id="Ff0009" name="Arpeggiator.h"           compile="0" resource="0" file="source/Sequencer/Arpeggiator.h"/>
-        <FILE id="Ff0010" name="Arpeggiator.cpp"         compile="1" resource="0" file="source/Sequencer/Arpeggiator.cpp"/>
-        <FILE id="Ff0011" name="ArpeggiatorPanel.h"     compile="0" resource="0" file="source/Sequencer/ArpeggiatorPanel.h"/>
-        <FILE id="Ff0012" name="ArpeggiatorPanel.cpp"   compile="1" resource="0" file="source/Sequencer/ArpeggiatorPanel.cpp"/>
-        <FILE id="Ff0013" name="PatternEngine.h"        compile="0" resource="0" file="source/Sequencer/PatternEngine.h"/>
-        <FILE id="Ff0014" name="PatternEngine.cpp"      compile="1" resource="0" file="source/Sequencer/PatternEngine.cpp"/>
+        <FILE id="Ff0001" name="Sequencer.h" compile="0" resource="0" file="source/Sequencer/Sequencer.h"/>
+        <FILE id="Ff0002" name="Sequencer.cpp" compile="1" resource="0" file="source/Sequencer/Sequencer.cpp"/>
+        <FILE id="Ff0003" name="SequencerPanel.h" compile="0" resource="0"
+              file="source/Sequencer/SequencerPanel.h"/>
+        <FILE id="Ff0004" name="SequencerPanel.cpp" compile="1" resource="0"
+              file="source/Sequencer/SequencerPanel.cpp"/>
+        <FILE id="Ff0005" name="ProSequencer.h" compile="0" resource="0" file="source/Sequencer/ProSequencer.h"/>
+        <FILE id="Ff0006" name="ProSequencer.cpp" compile="1" resource="0"
+              file="source/Sequencer/ProSequencer.cpp"/>
+        <FILE id="Ff0007" name="ProSequencerPanel.h" compile="0" resource="0"
+              file="source/Sequencer/ProSequencerPanel.h"/>
+        <FILE id="Ff0008" name="ProSequencerPanel.cpp" compile="1" resource="0"
+              file="source/Sequencer/ProSequencerPanel.cpp"/>
+        <FILE id="Ff0009" name="Arpeggiator.h" compile="0" resource="0" file="source/Sequencer/Arpeggiator.h"/>
+        <FILE id="Ff0010" name="Arpeggiator.cpp" compile="1" resource="0" file="source/Sequencer/Arpeggiator.cpp"/>
+        <FILE id="Ff0011" name="ArpeggiatorPanel.h" compile="0" resource="0"
+              file="source/Sequencer/ArpeggiatorPanel.h"/>
+        <FILE id="Ff0012" name="ArpeggiatorPanel.cpp" compile="1" resource="0"
+              file="source/Sequencer/ArpeggiatorPanel.cpp"/>
+        <FILE id="Ff0013" name="PatternEngine.h" compile="0" resource="0" file="source/Sequencer/PatternEngine.h"/>
+        <FILE id="Ff0014" name="PatternEngine.cpp" compile="1" resource="0"
+              file="source/Sequencer/PatternEngine.cpp"/>
       </GROUP>
       <GROUP id="GrpSyn" name="Synth">
-        <FILE id="Gg0001" name="SynthEngine.h"          compile="0" resource="0" file="source/Synth/SynthEngine.h"/>
-        <FILE id="Gg0002" name="SynthEngine.cpp"        compile="1" resource="0" file="source/Synth/SynthEngine.cpp"/>
-        <FILE id="Gg0003" name="Voice.h"                compile="0" resource="0" file="source/Synth/Voice.h"/>
-        <FILE id="Gg0004" name="Voice.cpp"              compile="1" resource="0" file="source/Synth/Voice.cpp"/>
-        <FILE id="Gg0005" name="Oscillator.h"           compile="0" resource="0" file="source/Synth/Oscillator.h"/>
-        <FILE id="Gg0006" name="Oscillator.cpp"         compile="1" resource="0" file="source/Synth/Oscillator.cpp"/>
-        <FILE id="Gg0017" name="WavetableOscillator.h"   compile="0" resource="0" file="source/Synth/WavetableOscillator.h"/>
-        <FILE id="Gg0018" name="WavetableOscillator.cpp" compile="1" resource="0" file="source/Synth/WavetableOscillator.cpp"/>
-        <FILE id="Gg0007" name="Envelope.h"             compile="0" resource="0" file="source/Synth/Envelope.h"/>
-        <FILE id="Gg0008" name="Envelope.cpp"           compile="1" resource="0" file="source/Synth/Envelope.cpp"/>
-        <FILE id="Gg0009" name="Filter.h"               compile="0" resource="0" file="source/Synth/Filter.h"/>
-        <FILE id="Gg0010" name="Filter.cpp"             compile="1" resource="0" file="source/Synth/Filter.cpp"/>
-        <FILE id="Gg0011" name="FMOperator.h"           compile="0" resource="0" file="source/Synth/FMOperator.h"/>
-        <FILE id="Gg0012" name="FMOperator.cpp"         compile="1" resource="0" file="source/Synth/FMOperator.cpp"/>
-        <FILE id="Gg0013" name="FMVoice.h"              compile="0" resource="0" file="source/Synth/FMVoice.h"/>
-        <FILE id="Gg0014" name="FMVoice.cpp"            compile="1" resource="0" file="source/Synth/FMVoice.cpp"/>
-        <FILE id="Gg0015" name="FMAlgorithm.h"          compile="0" resource="0" file="source/Synth/FMAlgorithm.h"/>
-        <FILE id="Gg0016" name="ModulationMatrix.h"     compile="0" resource="0" file="source/Synth/ModulationMatrix.h"/>
-        <FILE id="Gg0017" name="ModulationMatrix.cpp"   compile="1" resource="0" file="source/Synth/ModulationMatrix.cpp"/>
-        <FILE id="Gg0018" name="ModulationMatrixPanel.h"   compile="0" resource="0" file="source/Synth/ModulationMatrixPanel.h"/>
-        <FILE id="Gg0019" name="ModulationMatrixPanel.cpp" compile="1" resource="0" file="source/Synth/ModulationMatrixPanel.cpp"/>
-        <FILE id="Gg0020" name="SynthPanel.h"              compile="0" resource="0" file="source/Synth/SynthPanel.h"/>
-        <FILE id="Gg0021" name="SynthPanel.cpp"            compile="1" resource="0" file="source/Synth/SynthPanel.cpp"/>
-        <FILE id="Gg0022" name="SynthDisplay.h"            compile="0" resource="0" file="source/Synth/SynthDisplay.h"/>
-        <FILE id="Gg0023" name="SynthDisplay.cpp"          compile="1" resource="0" file="source/Synth/SynthDisplay.cpp"/>
-        <FILE id="Gg0024" name="WavetableEditor.h"         compile="0" resource="0" file="source/Synth/WavetableEditor.h"/>
-        <FILE id="Gg0025" name="WavetableEditor.cpp"       compile="1" resource="0" file="source/Synth/WavetableEditor.cpp"/>
-        <FILE id="Gg0026" name="LFOShapeEditor.h"          compile="0" resource="0" file="source/Synth/LFOShapeEditor.h"/>
-        <FILE id="Gg0027" name="LFOShapeEditor.cpp"        compile="1" resource="0" file="source/Synth/LFOShapeEditor.cpp"/>
-        <FILE id="Gg0028" name="SignalFlowBar.h"           compile="0" resource="0" file="source/Synth/SignalFlowBar.h"/>
+        <FILE id="Gg0001" name="SynthEngine.h" compile="0" resource="0" file="source/Synth/SynthEngine.h"/>
+        <FILE id="Gg0002" name="SynthEngine.cpp" compile="1" resource="0" file="source/Synth/SynthEngine.cpp"/>
+        <FILE id="Gg0003" name="Voice.h" compile="0" resource="0" file="source/Synth/Voice.h"/>
+        <FILE id="Gg0004" name="Voice.cpp" compile="1" resource="0" file="source/Synth/Voice.cpp"/>
+        <FILE id="Gg0005" name="Oscillator.h" compile="0" resource="0" file="source/Synth/Oscillator.h"/>
+        <FILE id="Gg0006" name="Oscillator.cpp" compile="1" resource="0" file="source/Synth/Oscillator.cpp"/>
+        <FILE id="Gg0017" name="WavetableOscillator.h" compile="0" resource="0"
+              file="source/Synth/WavetableOscillator.h"/>
+        <FILE id="Gg0018" name="WavetableOscillator.cpp" compile="1" resource="0"
+              file="source/Synth/WavetableOscillator.cpp"/>
+        <FILE id="Gg0007" name="Envelope.h" compile="0" resource="0" file="source/Synth/Envelope.h"/>
+        <FILE id="Gg0008" name="Envelope.cpp" compile="1" resource="0" file="source/Synth/Envelope.cpp"/>
+        <FILE id="Gg0009" name="Filter.h" compile="0" resource="0" file="source/Synth/Filter.h"/>
+        <FILE id="Gg0010" name="Filter.cpp" compile="1" resource="0" file="source/Synth/Filter.cpp"/>
+        <FILE id="Gg0011" name="FMOperator.h" compile="0" resource="0" file="source/Synth/FMOperator.h"/>
+        <FILE id="Gg0012" name="FMOperator.cpp" compile="1" resource="0" file="source/Synth/FMOperator.cpp"/>
+        <FILE id="Gg0013" name="FMVoice.h" compile="0" resource="0" file="source/Synth/FMVoice.h"/>
+        <FILE id="Gg0014" name="FMVoice.cpp" compile="1" resource="0" file="source/Synth/FMVoice.cpp"/>
+        <FILE id="Gg0015" name="FMAlgorithm.h" compile="0" resource="0" file="source/Synth/FMAlgorithm.h"/>
+        <FILE id="Gg0016" name="ModulationMatrix.h" compile="0" resource="0"
+              file="source/Synth/ModulationMatrix.h"/>
+        <FILE id="Gg0017" name="ModulationMatrix.cpp" compile="1" resource="0"
+              file="source/Synth/ModulationMatrix.cpp"/>
+        <FILE id="Gg0018" name="ModulationMatrixPanel.h" compile="0" resource="0"
+              file="source/Synth/ModulationMatrixPanel.h"/>
+        <FILE id="Gg0019" name="ModulationMatrixPanel.cpp" compile="1" resource="0"
+              file="source/Synth/ModulationMatrixPanel.cpp"/>
+        <FILE id="Gg0020" name="SynthPanel.h" compile="0" resource="0" file="source/Synth/SynthPanel.h"/>
+        <FILE id="Gg0021" name="SynthPanel.cpp" compile="1" resource="0" file="source/Synth/SynthPanel.cpp"/>
+        <FILE id="Gg0022" name="SynthDisplay.h" compile="0" resource="0" file="source/Synth/SynthDisplay.h"/>
+        <FILE id="Gg0023" name="SynthDisplay.cpp" compile="1" resource="0"
+              file="source/Synth/SynthDisplay.cpp"/>
+        <FILE id="Gg0024" name="WavetableEditor.h" compile="0" resource="0"
+              file="source/Synth/WavetableEditor.h"/>
+        <FILE id="Gg0025" name="WavetableEditor.cpp" compile="1" resource="0"
+              file="source/Synth/WavetableEditor.cpp"/>
+        <FILE id="Gg0026" name="LFOShapeEditor.h" compile="0" resource="0"
+              file="source/Synth/LFOShapeEditor.h"/>
+        <FILE id="Gg0027" name="LFOShapeEditor.cpp" compile="1" resource="0"
+              file="source/Synth/LFOShapeEditor.cpp"/>
+        <FILE id="Gg0028" name="SignalFlowBar.h" compile="0" resource="0" file="source/Synth/SignalFlowBar.h"/>
       </GROUP>
       <GROUP id="GrpLyr" name="Layers">
-        <FILE id="Ly0001" name="LayerEngine.h"   compile="0" resource="0" file="source/Layers/LayerEngine.h"/>
+        <FILE id="Ly0001" name="LayerEngine.h" compile="0" resource="0" file="source/Layers/LayerEngine.h"/>
         <FILE id="Ly0002" name="LayerEngine.cpp" compile="1" resource="0" file="source/Layers/LayerEngine.cpp"/>
-        <FILE id="Ly0003" name="LayerManager.h"  compile="0" resource="0" file="source/Layers/LayerManager.h"/>
-        <FILE id="Ly0004" name="LayerManager.cpp" compile="1" resource="0" file="source/Layers/LayerManager.cpp"/>
-        <FILE id="Ly0005" name="LayersPanel.h"        compile="0" resource="0" file="source/Layers/LayersPanel.h"/>
-        <FILE id="Ly0006" name="LayersPanel.cpp"       compile="1" resource="0" file="source/Layers/LayersPanel.cpp"/>
-        <FILE id="Ly0007" name="LayerEffectChain.h"    compile="0" resource="0" file="source/Layers/LayerEffectChain.h"/>
-        <FILE id="Ly0008" name="LayerEffectChain.cpp"  compile="1" resource="0" file="source/Layers/LayerEffectChain.cpp"/>
+        <FILE id="Ly0003" name="LayerManager.h" compile="0" resource="0" file="source/Layers/LayerManager.h"/>
+        <FILE id="Ly0004" name="LayerManager.cpp" compile="1" resource="0"
+              file="source/Layers/LayerManager.cpp"/>
+        <FILE id="Ly0005" name="LayersPanel.h" compile="0" resource="0" file="source/Layers/LayersPanel.h"/>
+        <FILE id="Ly0006" name="LayersPanel.cpp" compile="1" resource="0" file="source/Layers/LayersPanel.cpp"/>
+        <FILE id="Ly0007" name="LayerEffectChain.h" compile="0" resource="0"
+              file="source/Layers/LayerEffectChain.h"/>
+        <FILE id="Ly0008" name="LayerEffectChain.cpp" compile="1" resource="0"
+              file="source/Layers/LayerEffectChain.cpp"/>
       </GROUP>
       <GROUP id="GrpPrf" name="Performance">
-        <FILE id="Pf0001" name="PerformancePanel.h"   compile="0" resource="0" file="source/Performance/PerformancePanel.h"/>
-        <FILE id="Pf0002" name="PerformancePanel.cpp" compile="1" resource="0" file="source/Performance/PerformancePanel.cpp"/>
+        <FILE id="Pf0001" name="PerformancePanel.h" compile="0" resource="0"
+              file="source/Performance/PerformancePanel.h"/>
+        <FILE id="Pf0002" name="PerformancePanel.cpp" compile="1" resource="0"
+              file="source/Performance/PerformancePanel.cpp"/>
       </GROUP>
       <GROUP id="GrpRou" name="Routing">
-        <FILE id="Rt0001" name="RoutingPanel.h"   compile="0" resource="0" file="source/Routing/RoutingPanel.h"/>
-        <FILE id="Rt0002" name="RoutingPanel.cpp"  compile="1" resource="0" file="source/Routing/RoutingPanel.cpp"/>
+        <FILE id="Rt0001" name="RoutingPanel.h" compile="0" resource="0" file="source/Routing/RoutingPanel.h"/>
+        <FILE id="Rt0002" name="RoutingPanel.cpp" compile="1" resource="0"
+              file="source/Routing/RoutingPanel.cpp"/>
+      </GROUP>
+      <GROUP id="GrpGlo" name="Global">
+        <FILE id="Glo001" name="GlobalPanel.h" compile="0" resource="0" file="source/Global/GlobalPanel.h"/>
+        <FILE id="Glo002" name="GlobalPanel.cpp" compile="1" resource="0" file="source/Global/GlobalPanel.cpp"/>
       </GROUP>
       <GROUP id="GrpUIt" name="UI">
-        <FILE id="Ui0001" name="BottomBar.h"      compile="0" resource="0" file="source/UI/BottomBar.h"/>
-        <FILE id="Ui0002" name="BottomBar.cpp"    compile="1" resource="0" file="source/UI/BottomBar.cpp"/>
-        <FILE id="Ui0003" name="QuickFXStrip.h"  compile="0" resource="0" file="source/UI/QuickFXStrip.h"/>
-        <FILE id="Ui0004" name="QuickFXStrip.cpp" compile="1" resource="0" file="source/UI/QuickFXStrip.cpp"/>
+        <FILE id="Ui0001" name="BottomBar.h" compile="0" resource="0" file="source/UI/BottomBar.h"/>
+        <FILE id="Ui0002" name="BottomBar.cpp" compile="1" resource="0" file="source/UI/BottomBar.cpp"/>
+        <FILE id="Ui0003" name="QuickFXStrip.h" compile="0" resource="0" file="source/UI/QuickFXStrip.h"/>
+        <FILE id="Ui0004" name="QuickFXStrip.cpp" compile="1" resource="0"
+              file="source/UI/QuickFXStrip.cpp"/>
       </GROUP>
+      <GROUP id="GrpAst" name="Assets">
+        <FILE id="As0001" name="AssetManager.h" compile="0" resource="0" file="source/Assets/AssetManager.h"/>
+        <FILE id="As0002" name="AssetManager.cpp" compile="1" resource="0"
+              file="source/Assets/AssetManager.cpp"/>
+      </GROUP>
+    </GROUP>
+    <GROUP id="GrpRes" name="Resources">
+      <FILE id="Rp001" name="Knob.png" compile="0" resource="1" file="Resources/ReaPlugs/Knob.png"/>
+      <FILE id="Rp002" name="Knob_Small.png" compile="0" resource="1" file="Resources/ReaPlugs/Knob_Small.png"/>
+      <FILE id="Rp003" name="RoundController_Med.png" compile="0" resource="1"
+            file="Resources/ReaPlugs/RoundController_Med.png"/>
+      <FILE id="Rp004" name="button_big_on.png" compile="0" resource="1"
+            file="Resources/ReaPlugs/button_big_on.png"/>
+      <FILE id="Rp005" name="button_big_off.png" compile="0" resource="1"
+            file="Resources/ReaPlugs/button_big_off.png"/>
+      <FILE id="Rp006" name="Button.png" compile="0" resource="1" file="Resources/ReaPlugs/Button.png"/>
+      <FILE id="Rp007" name="Button_1.png" compile="0" resource="1" file="Resources/ReaPlugs/Button_1.png"/>
+      <FILE id="Rp008" name="Button_2.png" compile="0" resource="1" file="Resources/ReaPlugs/Button_2.png"/>
+      <FILE id="Rp009" name="Button_3.png" compile="0" resource="1" file="Resources/ReaPlugs/Button_3.png"/>
+      <FILE id="Rp010" name="Button_4.png" compile="0" resource="1" file="Resources/ReaPlugs/Button_4.png"/>
+      <FILE id="Rp011" name="Button_5.png" compile="0" resource="1" file="Resources/ReaPlugs/Button_5.png"/>
+      <FILE id="Rp012" name="Button_6.png" compile="0" resource="1" file="Resources/ReaPlugs/Button_6.png"/>
+      <FILE id="Rp013" name="Button_7.png" compile="0" resource="1" file="Resources/ReaPlugs/Button_7.png"/>
+      <FILE id="Rp014" name="Radio_Button.png" compile="0" resource="1" file="Resources/ReaPlugs/Radio_Button.png"/>
+      <FILE id="Rp015" name="Radio_Button_1.png" compile="0" resource="1"
+            file="Resources/ReaPlugs/Radio_Button_1.png"/>
+      <FILE id="Rp016" name="Dropdown.png" compile="0" resource="1" file="Resources/ReaPlugs/Dropdown.png"/>
+      <FILE id="Rp017" name="Dropdown_4.png" compile="0" resource="1" file="Resources/ReaPlugs/Dropdown_4.png"/>
+      <FILE id="Rp018" name="Dropdown_5.png" compile="0" resource="1" file="Resources/ReaPlugs/Dropdown_5.png"/>
+      <FILE id="Rp019" name="Dropdown_6.png" compile="0" resource="1" file="Resources/ReaPlugs/Dropdown_6.png"/>
+      <FILE id="Rp020" name="Header_Big.png" compile="0" resource="1" file="Resources/ReaPlugs/Header_Big.png"/>
+      <FILE id="Rp021" name="Header_Small.png" compile="0" resource="1" file="Resources/ReaPlugs/Header_Small.png"/>
+      <FILE id="Rp022" name="Content.png" compile="0" resource="1" file="Resources/ReaPlugs/Content.png"/>
+      <FILE id="Rp023" name="Box.png" compile="0" resource="1" file="Resources/ReaPlugs/Box.png"/>
+      <FILE id="Rp024" name="Box_1.png" compile="0" resource="1" file="Resources/ReaPlugs/Box_1.png"/>
+      <FILE id="Rp025" name="Box_2.png" compile="0" resource="1" file="Resources/ReaPlugs/Box_2.png"/>
+      <FILE id="Rp026" name="Frame_1.png" compile="0" resource="1" file="Resources/ReaPlugs/Frame_1.png"/>
+      <FILE id="Rp027" name="Frame_11.png" compile="0" resource="1" file="Resources/ReaPlugs/Frame_11.png"/>
+      <FILE id="Rp028" name="Frame_34.png" compile="0" resource="1" file="Resources/ReaPlugs/Frame_34.png"/>
+      <FILE id="Rp029" name="Frame_37.png" compile="0" resource="1" file="Resources/ReaPlugs/Frame_37.png"/>
+      <FILE id="Rp030" name="Frame_38.png" compile="0" resource="1" file="Resources/ReaPlugs/Frame_38.png"/>
+      <FILE id="Rp031" name="Frame_482.png" compile="0" resource="1" file="Resources/ReaPlugs/Frame_482.png"/>
+      <FILE id="Rp032" name="Frame_488.png" compile="0" resource="1" file="Resources/ReaPlugs/Frame_488.png"/>
+      <FILE id="Rp033" name="EQ_Graph.png" compile="0" resource="1" file="Resources/ReaPlugs/EQ_Graph.png"/>
+      <FILE id="Rp034" name="LpHp.png" compile="0" resource="1" file="Resources/ReaPlugs/LpHp.png"/>
+      <FILE id="Rp035" name="wheel.png" compile="0" resource="1" file="Resources/ReaPlugs/wheel.png"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>
-    <MODULE id="juce_audio_basics"              showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_devices"             showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_formats"             showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_plugin_client"       showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_processors"          showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_utils"               showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_core"                      showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_data_structures"           showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_dsp"                       showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_events"                    showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_graphics"                  showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_gui_basics"                showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_gui_extra"                 showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
   </MODULES>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX">
@@ -176,20 +287,20 @@
         <CONFIGURATION isDebug="0" name="Release" optimisation="3" defines="JucePlugin_IsSynth=1&#10;JucePlugin_WantsMidiInput=1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics"              path="JUCE/modules"/>
-        <MODULEPATH id="juce_audio_devices"             path="JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats"             path="JUCE/modules"/>
-        <MODULEPATH id="juce_audio_plugin_client"       path="JUCE/modules"/>
-        <MODULEPATH id="juce_audio_processors"          path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="JUCE/modules"/>
         <MODULEPATH id="juce_audio_processors_headless" path="JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils"               path="JUCE/modules"/>
-        <MODULEPATH id="juce_core"                      path="JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures"           path="JUCE/modules"/>
-        <MODULEPATH id="juce_dsp"                       path="JUCE/modules"/>
-        <MODULEPATH id="juce_events"                    path="JUCE/modules"/>
-        <MODULEPATH id="juce_graphics"                  path="JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics"                path="JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra"                 path="JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>

@@ -862,10 +862,129 @@ Compared existing plugin features against `MULTIVERSE SYNTH BREIF.txt`:
 - **BottomBar.h/.cpp** — renamed class from `BottomBar` to `ModBar`; file names unchanged; PitchWheel and ModWheel classes preserved
 - **Build verified:** VST3 + AU both build and install successfully ✅
 
+## Completed (Serum 2-Style UI Redesign — Phase 2: Header Redesign) (2026-05-10)
+
+- **36px header** with visible controls: ☰ menu (left), preset nav (◄◄ ◄ NAME ► ★ ►►), Scale combo, Quality combo, FX toggle, RAND button
+- **Clickable preset name** — `presetNameButton` (TextButton) replaces old `presetNameLabel` (Label); click opens PresetOverlay
+- **Visible header controls** — Scale combo (75%/100%/125%/150%), Quality combo (Off/2x/4x), FX Mode toggle button moved from menu to header
+- **Scale combo listener** — `comboBoxChanged` handles resize on scale change
+- **PresetOverlay** (`Source/Presets/PresetOverlay.h/.cpp`) — full-content-area overlay wrapping LibrarianPanel
+  - Semi-transparent bgVoid backdrop (85% opacity) via `MultiverseFlatTheme::drawOverlayBackdrop()`
+  - X close button top-right
+  - ESC key closes overlay (handled in `PluginEditor::keyPressed`)
+  - Cmd+F opens overlay and focuses search
+  - Click on backdrop (outside librarian) closes overlay
+- **PRE tab removed** — librarian panel only accessible via overlay, no longer a tab
+- **MultiverseFlatTheme::Metrics::headerH** — new constant (36px)
+- **MultiverseFlatTheme::drawOverlayBackdrop()** — new static method for overlay backdrop
+- **Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (Serum 2-Style UI Redesign — Phase 3: Two-tier Tab System) (2026-05-10)
+
+- **TwoTierTabBar** replaces `juce::TabbedComponent` — custom painted two-row tab bar
+  - Primary row (28px): OSC, FX, MOD, GLOBAL — bold text, cyan bottom accent when active, bgDeep when inactive
+  - Secondary row (24px): DRM, GRN, SMP, LYR, SEQ, ARP, ROU — smaller text, cyan text when active, textMuted when inactive
+  - Click detection: primary and secondary rows split evenly across their tabs
+  - Hover highlighting via `mouseMove`/`mouseExit` tracking
+- **GlobalPanel** (`Source/Global/GlobalPanel.h/.cpp`) — NEW: consolidates global settings from SynthPanel header and header bar
+  - Voice Mode: Poly/Mono/Legato selector + Portamento knob + Porta Always toggle + MPE toggle
+  - Unison: Voices combo + Detune/Width knobs + Spread mode combo
+  - Chord/Strum: Enable toggle + Shape selector (12 shapes) + Strum delay knob
+  - Scale: Key selector (C-B) + Scale type selector (10 scales) — UI-only for now
+  - Quality: Oversampling combo (Off/2x/4x) — moved from header
+  - FX Mode: Toggle — moved from header
+  - Neumorphic section cards via `drawCard()`, theme fonts and spacing
+- **PluginEditor restructured**: removed `juce::TabbedComponent tabs`, added `TwoTierTabBar tabBar` inner class
+  - `panels[11]` array holds all panel pointers (indexed 0-10)
+  - `switchToPanel(int)` shows/hides panels; `tabBar` calls this on click
+  - `resized()` layout: header 36px → tabBar 52px → content area → ModBar 160px
+  - Routing panel callback `onSwitchToTab` now calls `switchToPanel()`
+- **MultiverseFlatTheme** new methods:
+  - `drawPrimaryTabButton()` — bold 12pt, cyan bottom accent, bgBase fill when active
+  - `drawSecondaryTabButton()` — 10pt, cyan text when active, textMuted when inactive
+  - `drawSubTabButton()` — pill-shaped for ModBar sub-tabs
+  - `Metrics::primaryTabH = 28`, `secondaryTabH = 24`, `tabBarH = 52`, `modBarH = 160`, `modSubTabH = 28`
+- **Multiverse.jucer**: GlobalPanel.h/.cpp added (GrpGlo group)
+- **Scale/FX Mode/Quality controls duplicated**: GlobalPanel has its own APVTS attachments; header controls (scaleCombo, qualCombo, fxModeButton) kept for backward compatibility
+- **Scale Key/Scale Type selectors**: UI-only in GlobalPanel (no APVTS params yet — future feature)
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (Serum 2-Style UI Redesign — Phase 4: Modulation Restructure) (2026-05-10)
+
+- **ModulationMatrixPanel simplified to connections-only** — removed LFORow struct and all 8 LFO bank rows; panel now shows only the connection matrix (SOURCE | TARGET | AMOUNT columns with +/- rows); LFO banks are exclusively in ModBar's LFOSubPanel
+- **LFOSubPanel drag-from-LFO** — added `mouseDrag()` override; dragging from the "LFO N" title area starts a mod-source drag (same `modsrc:` protocol as ModulationMatrixPanel::LFORow::mouseDrag); maps LFO1-4 → sources 0-3, LFO5-8 → sources 15-18; `dragArea` tracked in `resized()`
+- **ModulationMatrixPanel.h/.cpp** — removed `LFORow` struct, `lfoRows` array, LFO section header/separator in paint(), LFO row layout in resized(); kept only `Row` (connection rows), `titleLabel`, `addButton`, `rebuild()`
+- **Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (Serum 2-Style UI Redesign — Phase 6: Theme Polish) (2026-05-10)
+
+- **SubTabButton custom component** — replaced `juce::TextButton` sub-tab buttons in ModBar with custom `SubTabButton` class that calls `MultiverseFlatTheme::drawSubTabButton()` in `paint()`, with hover tracking; pill-shaped with accent highlight
+- **BankButton custom component** — replaced `juce::TextButton` bank buttons in LFOSubPanel with custom `BankButton` class that paints per-LFO accent colors via `NeuKnob::getModSourceColour()`; LFO1-4 = sources 0-3, LFO5-8 = sources 15-18
+- **drawCard() fillColor parameter** — `MultiverseFlatTheme::drawCard()` now accepts optional `fillColor` parameter (default `bgRaised`), eliminating double-fill bugs where callers painted over `drawCard`'s fill
+- **Double-fill bugs fixed** — removed redundant `fillRoundedRectangle`/`drawRoundedRectangle` after `drawCard()` calls in SynthPanel::drawSection(), ModulationMatrixPanel::paint(), LibrarianPanel::paint() (tag area uses `drawCard(fillColor=bgDeep)`, metadata strip uses default `bgRaised`)
+- **GlobalPanel section headers** — changed all section labels from `textSecondary` to `accentCyan` to match EnvSubPanel, LFOSubPanel, QuickFXSubPanel
+- **SynthPanel setupLabel()** — now sets `labelFont()` and `textSecondary` color explicitly, ensuring consistent label styling
+- **ModulationMatrixPanel layout** — replaced `PADDING`/`ROW_GAP`/`INNER_GAP` with `Metrics::outerMargin`/`Metrics::smallGap`; changed "No connections" font from `valueFont()` to `labelFont()`
+- **Overlay backdrop vignette** — `drawOverlayBackdrop()` enhanced with radial gradient vignette effect (dark edges, transparent center) for visual depth; accent line added at top of PresetOverlay content area
+- **LibrarianPanel category buttons** — pill-style colors matching ModBar sub-tabs (`bgRaised` inactive, `accentCyan.withAlpha(0.15f)` active); character pill inactive state changed from `bgDeep` to `bgRaised`
+- **ModBar/BottomBar** — removed `juce::Button::Listener` from `LFOSubPanel` and `ModBar`; sub-tab switching uses `onClick` callbacks instead of `buttonClicked`; `switchSubTab()` sets `isActive`/`repaint()` instead of `setColour()`
+- **Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (Neon Glow + Viewport + ComboBox Fix — 2026-05-10)
+
+- **Viewport for scrollable content** — `juce::Viewport contentViewport` added to PluginEditor; active panel is the viewport's viewed component; SynthPanel set to 960px height (scrollable), other panels fill viewport (no scrollbar needed); `switchToPanel()` manages viewport viewed component reparenting
+- **Neon lighting effects** — `MultiverseFlatTheme` enhanced with glow/bloom on all interactive elements:
+  - **Knobs**: 3-layer glow behind arc (wide, low-alpha strokes) + halo around tip dot (2 concentric glow circles)
+  - **Cards**: Active cards get expanded glow fill behind border + neon border outline
+  - **Toggle buttons**: Active toggles get glow halo behind pill + LED dot glow
+  - **Buttons**: Active buttons get expanded glow fill behind background; hover state gets subtle glow
+  - **ComboBoxes**: Focused dropdowns get neon cyan glow behind border + cyan border + cyan arrow
+  - **Linear sliders**: Fill track gets expanded glow behind solid fill (both horizontal and vertical)
+  - **Primary tabs**: Active tab gets 4px neon glow band behind accent line
+  - **Secondary tabs**: Active tab gets 3.5px neon glow band behind accent line
+  - **Sub-tab pills**: Active pills get expanded glow fill behind background
+- **ComboBox proportions** — SynthPanel ComboBoxes increased from 22px to 26px height and 72px to 80px width; ModBar LFO shape/sync combos increased from 22px to 26px
+- **Build verified:** VST3 + AU both build and install successfully ✅
+
+## Completed (ReaPlugs Image-Based UI — Phases 1-2) (2026-05-10)
+
+- **AssetManager** (`Source/Assets/AssetManager.h/.cpp`) — NEW: centralized asset loading/caching/tinting system
+  - Singleton with `initialise()` (load from BinaryData) and `onSkinChanged()` (regenerate tinted variants)
+  - Named accessors for all PNG assets: knobs, buttons, toggles, dropdowns, headers, panels, specialty
+  - `tintImage()` — pixel-by-pixel colour multiplication for skin-aware tinting
+  - `drawImage9Slice()` — 9-slice scaling for panel backgrounds that preserve borders at any size
+  - `drawImageFitted()` — aspect-ratio-preserving image drawing
+  - `drawWheelFrame()` — sprite-strip wheel frame extraction (336 frames of 167×167)
+  - @2x detection for `Knob_Small_3`-`_10` retina variants
+- **BinaryData resources** — 35 PNG assets from Parallax/ReaPlugs embedded via Projucer resource system
+  - Knobs: Knob.png, Knob_Small.png, RoundController_Med.png
+  - Buttons: button_big_on/off, Button_1-7, Radio_Button/1
+  - Dropdowns: Dropdown, Dropdown_4-6
+  - Headers: Header_Big, Header_Small
+  - Panels: Content, Box/1/2, Frame_1/11/34/37/38/482/488
+  - Specialty: EQ_Graph, LpHp, wheel (336-frame sprite strip)
+  - All added to `Multiverse.jucer` with `resource="1"`, BinaryData generated
+- **drawRotarySlider rewritten** — image-based knob rendering replacing procedural arc drawing:
+  - `Knob.png` (420×484) for large knobs, `Knob_Small.png` (178×207) for knobs < 60px
+  - Knob image drawn centered with `AffineTransform::rotation(angle)` based on `sliderPos`
+  - Visual center offset (24px for large, 12px for small) accounts for shadow below knob circle
+  - Procedural accent arc overlay preserved ON TOP of image (skin-aware `accent1` color)
+  - Arc track at 0.85× radius (slightly outside knob image ring) with neon glow passes and tip dot
+  - Fallback: simple circle drawn if knob image unavailable
+  - NeuKnob modulation arcs, drag-over highlight, and value pill remain unchanged on top
+- **SkinManager integration** — `AssetManager::instance().onSkinChanged()` called in `SkinManager::setSkin()` to regenerate tinted variants on skin change
+- **PluginEditor integration** — `AssetManager::instance().initialise()` called in PluginEditor constructor
+
+**Build verified:** VST3 + AU both build and install successfully ✅
+
 ## Next Session
 
-**Serum 2-Style UI Redesign — Phase 2: Header Redesign** (36px header, clickable preset name, visible scale/quality/FX mode controls)
-
-**Remaining phases:** Phase 2 (Header), Phase 3 (Two-tier tabs), Phase 4 (Modulation restructure), Phase 5 (Preset overlay), Phase 6 (Theme polish)
+**ReaPlugs UI Phase 3:** Button & toggle replacement (button_big_on/off, Button_1-7, Radio_Button)
+**ReaPlugs UI Phase 4:** ComboBox & dropdown replacement (Dropdown, Dropdown_4-6)
+**ReaPlugs UI Phase 5:** Header & tab replacement (Header_Big/Small, Frame_10/11)
+**ReaPlugs UI Phase 6:** Panel backgrounds & frames (Box, Content, Frame_37, drawCard→9-slice)
+**ReaPlugs UI Phase 7:** Specialty elements (wheel sprite, EQ_Graph, LpHp)
+**ReaPlugs UI Phase 8:** Theme integration & polish (all 20 skins, tinting verification)
 
 **Remaining Phase 7 (deferred):** 7.2 (standalone via Projucer GUI — user action only).

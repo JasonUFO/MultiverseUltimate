@@ -61,6 +61,7 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 - State-of-the-art preset browser: 8-color favorites, #hashtags, auto-preview, metadata detail strip, back/forward history, save dialog, right-click context menu ✅
 - Flat UI theme (`MultiverseFlatTheme`) — clean Nexus 5-inspired design, no neumorphic shadows ✅
 - **ModBar** (`Source/UI/BottomBar.h/.cpp`) — 160px bottom modulation bar with 7 sub-tabs: ENV1/ENV2/ENV3 (ADSR + display), LFO1-8 (bank selector + Rate/Shape/Sync + waveform preview + DRAW button), MACRO (8 knobs + name/value), QFX (Filter/Amp mod + Delay + Reverb + Main Filter), KEY (pitch/mod wheels + keyboard) ✅
+- **PresetOverlay** (`Source/Presets/PresetOverlay.h/.cpp`) — full-content-area overlay wrapping LibrarianPanel; bgVoid backdrop at 85% opacity; X close button; ESC/Cmd+F to open/close; click preset name in header to open ✅
 - NeuKnob (`Source/NeuKnob.h/.cpp`) — value pill on hover/drag, amber arc when macro-assigned ✅
 - SynthDisplay (`Source/Synth/SynthDisplay.h/.cpp`) — real-time oscilloscope (left) + FFT spectrum (right), 30 Hz, lock-free FIFO ✅
 - WavetableEditor (`Source/Synth/WavetableEditor.h/.cpp`) — draw/edit wavetable frames, formula gen, import ✅
@@ -124,19 +125,30 @@ Reverb is always applied as a stereo block op; the chain correctly splits pre/po
 | Plugin Classification | `JucePluginDefines.h` corrected: IsSynth=1, WantsMidiInput=1, Vst3Category="Instrument", AUMainType='aumu' (was incorrectly set to effect) |
 | UI-9 | **COMPLETE** — Phase 2 Layout Restructure: permanent left sidebar (280px PresetBrowserPanel), right FX strip (200px QuickFXStrip placeholder), bottom bar (88px BottomBar: 8 macros + keyboard), compact header with ☰ menu; 10 tabs with 3-letter abbreviations (SYN/DRM/MOD/SMP/SEQ/ARP/FX/GRN/LYR/PRF); MAC tab removed |
 | Serum-UI-1 | **COMPLETE** — Serum 2-Style Phase 1: ModBar replaces BottomBar + QuickFXStrip; 160px bottom modulation bar with 7 sub-tabs (ENV1/2/3, LFO1-8, MACRO, QFX, KEY); all ENV/LFO/MACRO/QFX/KEY controls functional; layout: 32px header + tabs (full width) + 160px ModBar |
+| Serum-UI-2 | **COMPLETE** — Serum 2-Style Phase 2: 36px header with visible Scale/Quality/FX controls; clickable preset name opens PresetOverlay; PRE tab removed; overlay with bgVoid backdrop, X close, ESC/Cmd+F |
+| Serum-UI-3 | **COMPLETE** — Serum 2-Style Phase 3: Two-tier tab bar (Primary: OSC/FX/MOD/GLOBAL; Secondary: DRM/GRN/SMP/LYR/SEQ/ARP/ROU); GlobalPanel consolidates Voice/Unison/Chord/Scale/Quality/FX |
+| Serum-UI-4 | **COMPLETE** — Serum 2-Style Phase 4: ModulationMatrixPanel simplified to connections-only; LFO banks exclusively in ModBar LFOSubPanel with drag-from-LFO support |
+| Serum-UI-6 | **COMPLETE** — Serum 2-Style Phase 6: SubTabButton/BankButton custom components, drawCard fillColor param, overlay vignette, neon lighting, viewport scrolling |
+| ReaPlugs-1 | **COMPLETE** — AssetManager infrastructure: 35 PNG assets embedded as BinaryData, skin-aware tinting system, 9-slice scaling, wheel sprite extraction |
+| ReaPlugs-2 | **COMPLETE** — Image-based knob rendering: drawRotarySlider uses Knob.png/Knob_Small.png with AffineTransform::rotation, procedural accent arc overlay preserved on top |
 | UI-10 | **COMPLETE** — Phase 5 Visual Routing: RoutingPanel ("ROU" tab, 11th); 8× LayerBlock (engine type/mute/solo/bus/level bar); DrumsSummaryBlock; ChainStrip (drag-reorder effect chain); Aux send knobs (auxSendDelay/auxSendReverb); connection lines color-coded by bus/solo/mute; tab-switch callback to LYR/DRM tabs |
 
 ## Next Steps
 
-### Serum 2-Style UI Redesign (Current Focus)
-6-phase redesign to match Serum 2's layout, adapting for Multiverse's unique features (granular, drum sequencer, sampler, layers, etc.).
-**Plan:** `/Users/jason/.claude/plans/sparkling-wiggling-orbit.md`
-- ~~Phase 1: ModBar~~ ✅ (2026-05-09) — BottomBar + QuickFXStrip → 160px ModBar with ENV/LFO/MACRO/QFX/KEY sub-tabs
-- **Phase 2: Header Redesign** — 36px header, clickable preset name → overlay, visible scale/quality/FX mode
-- **Phase 3: Two-tier Tab System** — Primary (OSC/FX/MOD/GLOBAL) + secondary (DRM/GRN/SMP/LYR/SEQ/ARP/ROU), remove right FX strip, new GlobalPanel
-- **Phase 4: Modulation Restructure** — LFO banks move from MOD panel to ModBar LFO sub-tab; MOD panel shows only connections; ENV2/3 wired in ModBar
-- **Phase 5: Preset Overlay** — LibrarianPanel as overlay triggered by clicking preset name; remove PRE tab
-- **Phase 6: Theme Polish** — Primary/secondary tab styles, sub-tab buttons, overlay backdrop, visual polish
+### Serum 2-Style UI Redesign (COMPLETE)
+All 6 phases shipped. See completed table above.
+
+### ReaPlugs Image-Based UI (Current Focus)
+Replacing procedural drawing with PNG asset rendering from Parallax/ReaPlugs project.
+**Plan:** `/Users/jason/.claude/plans/drifting-jingling-sparrow.md`
+- ~~Phase 1: AssetManager~~ ✅ (2026-05-10) — AssetManager singleton, 35 PNGs embedded as BinaryData, tinting, 9-slice
+- ~~Phase 2: Knobs~~ ✅ (2026-05-10) — drawRotarySlider uses Knob.png/Knob_Small.png with rotation + accent arc overlay
+- **Phase 3: Buttons & Toggles** — button_big_on/off, Button_1-7, Radio_Button
+- **Phase 4: ComboBox & Dropdown** — Dropdown.png, Dropdown_6 arrow via 9-slice
+- **Phase 5: Header & Tabs** — Header_Big/Small, Frame_10/11 tab backgrounds
+- **Phase 6: Panel Backgrounds** — Box.png 9-slice for drawCard, Content.png, Frame_37 divider
+- **Phase 7: Specialty** — wheel.png sprite strip, EQ_Graph background, LpHp
+- **Phase 8: Theme Integration** — Tint verification across all 20 skins, polish
 
 ### Post-Gap Feature Roadmap (Deferred)
 All gap-fill phases (0–7) complete. Competitive feature expansion paused for UI redesign.
@@ -178,9 +190,9 @@ All gap-fill phases (0–7) complete. Competitive feature expansion paused for U
 | Default window size | 1200×800 |
 | Min window size | 800×533 |
 | Max window size | 1920×1280 |
-| Header height | 32px (36px after Phase 2) |
+| Header height | 36px (Scale/Quality/FX visible, clickable preset name → overlay) |
 | ModBar height | 160px (7 sub-tabs: ENV1/2/3, LFO, MACRO, QFX, KEY) |
-| Layout | Header (32px) → Tabs (full width) → ModBar (160px at bottom) |
+| Layout | Header (36px) → Tabs (full width) → ModBar (160px at bottom) |
 
 ---
 
@@ -242,3 +254,4 @@ All gap-fill phases (0–7) complete. Competitive feature expansion paused for U
 - **Phase 5 — Modulation upgrades:** `ModSourceType` now has 21 values (0-20): LFO1-LFO4=0-3, Envelope=4, Velocity=5, NoteNumber=6, Aftertouch=7, ModWheel=8, PitchBend=9, Random=10, EnvelopeFollower=11, MPEPressure=12, MPESlide=13, SequencerStep=14, LFO5-LFO8=15-18, Envelope2=19, Envelope3=20. `MAX_MOD_SOURCES=21`. `ModTargetType::LFO5Rate-LFO8Rate` = indices 22-25 (MAX_MOD_TARGETS=26 unchanged). `LFOShape` enum: Sine/Triangle/Saw/Square/SampleAndHold. `lfoPhase[8]`/`lfoRate[8]`/`lfoShape[8]`/`lfoSHValue[8]` arrays replace old individual members. `setLFOShape(int, LFOShape)` API. `advanceLFOs()` maps i=0-3 to sourceValues[0-3], i=4-7 to sourceValues[15-18] (formula: srcIdx = i < 4 ? i : 11+i). Triangle: `1 - 2*|p/π - 1|`; Saw: `p/π - 1`; Square: `p < π ? 1 : -1`; S&H: new random on phase wrap. DAW sync params: `lfoXSync` (Bool) + `lfoXSyncDiv` (Choice 0-7: 1/32,1/16,1/8,1/4,1/2,1/1,2/1,4/1); synced rate = `bpm/60 / divisor`. Env2/3: `juce::ADSR modEnv2, modEnv3` in PluginProcessor, triggered from noteOn/noteOff in MIDI loop, `setSampleRate` in prepareToPlay, advanced with `getNextSample()` per block, value pushed to `setModulationValue(ModSourceType::Envelope2/3, 0, level)`. APVTS: `lfoXRate/Shape/Sync/SyncDiv` (1-8), `modEnv2/3Attack/Decay/Sustain/Release`. LFO Banks section in ModulationMatrixPanel: 8 `LFORow` components above connections, each with rate/shape/sync/syncDiv APVTS attachments.
 - **Phase 4 — Multi-output buses:** `PluginProcessor` declares 17 fixed stereo output buses in constructor: Bus 0 = main (always active), Buses 1–8 = Layer 1–8 (disabled by default), Buses 9–16 = Drum Track 1–8 (disabled by default). `isBusesLayoutSupported()` requires bus 0 stereo; all others stereo-or-disabled. In `processBlock`, individual-bus layers are routed via `getBusBuffer(buffer, false, busIdx)` after the main effects chain; individual drum buses are routed from `drumSequencer.getTrackBuffer(t)` via the same mechanism. `LayerManager::processBlock` skips layers with `outputBusIndex > 0` to avoid double-processing. `LayersPanel` has a "BUS" ComboBox per row (Main / Bus 1–8); `DrumSequencerPanel::TrackRow` has "BUS" ComboBox (Main / Out 1–8) and "FX" button. Bus mapping: LayerEngine `outputBusIndex` 0=main, 1–8=buses 1–8; DrumSequencer `trackOutputBus[t]` 0=main, 9–16=buses 9–16.
 - **Phase 4 — Drum per-track FX:** `DrumSequencer` now has `std::array<LayerEffectChain, 8> trackFX` and `std::array<juce::AudioBuffer<float>, 8> trackBufs` (pre-allocated in `prepare()`). `process()` refactored: voices accumulate into `trackBufs[av.trackIndex]` per sample; after the sample loop, `trackFX[t].processBlock(trackBufs[t], n)` is applied per track; bus-0 tracks are summed into `mainBuffer`; non-zero-bus tracks remain in `trackBufs[t]` for PluginProcessor routing. `getTrackBuffer(t)` / `getTrackFX(t)` / `setTrackOutputBus(t, bus)` / `getTrackOutputBus(t)` are the new public API. Track FX + outputBus persisted as XML children in the Track node of `DrumSequencer::getState()`. `showTrackFXPopup(int track)` in DrumSequencerPanel launches a `CallOutBox` with 6 enable toggles + mix sliders — identical pattern to `LayersPanel::showFXPopup`.
+- **ReaPlugs Asset System:** `AssetManager` (singleton in `Source/Assets/AssetManager.h/.cpp`) loads 35 PNGs from `BinaryData` via `juce::ImageCache::getFromMemory()`. Call `initialise()` in PluginEditor constructor, `onSkinChanged()` in SkinManager::setSkin(). Knob images are single-frame rotation sprites — use `AffineTransform::rotation(angle, cx, cy)`. Large knob center offset: 24px below geometric center (shadow). Small knob: 12px offset. `wheel.png` is a 336-frame sprite strip (167×56244, each frame 167×167). All assets in `Resources/ReaPlugs/`. Projucer must be re-run after resource changes: `/Users/jason/JUCE/JUCE/Projucer.app/Contents/MacOS/Projucer --resave Multiverse.jucer`. After resave: run `Scripts/fix_instrument_classification.sh`.

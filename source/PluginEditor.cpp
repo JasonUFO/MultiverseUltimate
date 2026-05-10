@@ -1,4 +1,5 @@
 #include "PluginEditor.h"
+#include "Assets/AssetManager.h"
 
 PluginEditor::PluginEditor (PluginProcessor& p)
     : AudioProcessorEditor (p), mvTheme(), processorRef (p),
@@ -13,48 +14,93 @@ PluginEditor::PluginEditor (PluginProcessor& p)
       layersPanel (p, p.getLayerManager()),
       performancePanel (p),
       routingPanel (p),
-      tabs (juce::TabbedButtonBar::TabsAtTop),
+      globalPanel (p),
+      tabBar (*this),
       librarianPanel (p),
-      modBar (p)
+      presetOverlay (librarianPanel),
+      modBar (p),
+      keyboardStrip (p)
 {
     setLookAndFeel (&mvTheme);
 
-    setupTabs();
+    // Load UI assets
+    AssetManager::instance().initialise();
 
-    // Add PRE tab for librarian
-    addAndMakeVisible (librarianPanel);
+    // Register for skin changes
+    SkinManager::instance().addListener(this);
 
-    // Librarian panel (added to PRE tab in setupTabs)
+    // Panel array
+    panels[0]  = &synthPanel;
+    panels[1]  = &effectsPanel;
+    panels[2]  = &modulationMatrixPanel;
+    panels[3]  = &globalPanel;
+    panels[4]  = &drumSequencerPanel;
+    panels[5]  = &granularPanel;
+    panels[6]  = &samplerPanel;
+    panels[7]  = &layersPanel;
+    panels[8]  = &proSequencerPanel;
+    panels[9]  = &arpeggiatorPanel;
+    panels[10] = &routingPanel;
 
-    // Preset navigation (header)
+    for (auto* panel : panels)
+        addChildComponent (panel);
+
+    addAndMakeVisible (contentViewport);
+    contentViewport.setScrollBarsShown (true, false);
+    contentViewport.setScrollBarThickness (10);
+    contentViewport.setLookAndFeel (&mvTheme);
+
+    // Two-tier tab bar
+    juce::Array<TwoTierTabBar::TabDef> tabDefs;
+    tabDefs.add ({ "OSC",    0, true  });
+    tabDefs.add ({ "FX",     1, true  });
+    tabDefs.add ({ "MOD",    2, true  });
+    tabDefs.add ({ "GLOBAL", 3, true  });
+    tabDefs.add ({ "DRM",   4, false });
+    tabDefs.add ({ "GRN",   5, false });
+    tabDefs.add ({ "SMP",   6, false });
+    tabDefs.add ({ "LYR",   7, false });
+    tabDefs.add ({ "SEQ",   8, false });
+    tabDefs.add ({ "ARP",   9, false });
+    tabDefs.add ({ "ROU",  10, false });
+    tabBar.setTabs (tabDefs);
+    tabBar.setActivePanel (0);
+    addAndMakeVisible (tabBar);
+
+    activePanelIndex = 0;
+    panels[0]->setVisible (true);
+    contentViewport.setViewedComponent (panels[0], false);
+
+    // Preset navigation
     prevPresetButton.addListener (this);
     nextPresetButton.addListener (this);
     favoriteButton.addListener (this);
     backButton.addListener (this);
     forwardButton.addListener (this);
 
-    presetNameLabel.setJustificationType (juce::Justification::centred);
-    presetNameLabel.setFont (MultiverseFlatTheme::titleFont());
-    presetNameLabel.setColour (juce::Label::textColourId, juce::Colours::white);
-    presetNameLabel.setColour (juce::Label::backgroundColourId, MultiverseFlatTheme::bgDeep);
-    presetNameLabel.setColour (juce::Label::outlineColourId, MultiverseFlatTheme::accentBlue.withAlpha (0.3f));
-    presetNameLabel.setMinimumHorizontalScale (0.8f);
+    presetNameButton.setButtonText ("Init");
+    presetNameButton.setTooltip ("Click to browse presets (Cmd+F)");
+    presetNameButton.setColour (juce::TextButton::buttonColourId, MultiverseFlatTheme::bgDeep());
+    presetNameButton.setColour (juce::TextButton::textColourOffId, juce::Colours::white);
+    presetNameButton.setColour (juce::TextButton::textColourOnId, MultiverseFlatTheme::accent1());
+    presetNameButton.setColour (juce::TextButton::buttonOnColourId, MultiverseFlatTheme::bgDeep());
+    presetNameButton.onClick = [this] { showPresetOverlay(); };
+    addAndMakeVisible (presetNameButton);
 
     for (auto* btn : { &prevPresetButton, &nextPresetButton, &favoriteButton, &backButton, &forwardButton })
     {
-        btn->setColour (juce::TextButton::buttonColourId, MultiverseFlatTheme::bgDeep);
-        btn->setColour (juce::TextButton::textColourOffId, MultiverseFlatTheme::textSecondary);
+        btn->setColour (juce::TextButton::buttonColourId, MultiverseFlatTheme::bgDeep());
+        btn->setColour (juce::TextButton::textColourOffId, MultiverseFlatTheme::textSecondary());
         addAndMakeVisible (btn);
     }
-    addAndMakeVisible (presetNameLabel);
 
     updatePresetNameLabel();
     updateFavoriteButtonColor();
 
-    // Menu button (☰)
-    menuButton.setTooltip ("Menu — Save, Import, Export, Scale, Quality, FX Mode, MIDI Learn");
-    menuButton.setColour (juce::TextButton::buttonColourId, MultiverseFlatTheme::bgDeep);
-    menuButton.setColour (juce::TextButton::textColourOffId, MultiverseFlatTheme::textPrimary);
+    // Menu button
+    menuButton.setTooltip ("Menu — Save, Import, Export, Scale, Quality, FX Mode, MIDI Learn, Skins");
+    menuButton.setColour (juce::TextButton::buttonColourId, MultiverseFlatTheme::bgDeep());
+    menuButton.setColour (juce::TextButton::textColourOffId, MultiverseFlatTheme::textPrimary());
     menuButton.addListener (this);
     addAndMakeVisible (menuButton);
 
@@ -63,38 +109,58 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     randomizeButton.onClick = [this] { showRandomizeMenu(); };
     addAndMakeVisible (randomizeButton);
 
-    // Scale combo (hidden — controlled via menu)
+    // Scale combo
     scaleCombo.addItem ("75%",  1);
     scaleCombo.addItem ("100%", 2);
     scaleCombo.addItem ("125%", 3);
     scaleCombo.addItem ("150%", 4);
     scaleCombo.setSelectedId (2, juce::dontSendNotification);
+    scaleCombo.setColour (juce::ComboBox::backgroundColourId, MultiverseFlatTheme::bgDeep());
+    scaleCombo.setColour (juce::ComboBox::textColourId, MultiverseFlatTheme::textSecondary());
+    scaleCombo.setColour (juce::ComboBox::outlineColourId, MultiverseFlatTheme::borderLight());
+    scaleCombo.setColour (juce::ComboBox::arrowColourId, MultiverseFlatTheme::textMuted());
+    scaleCombo.addListener (this);
+    addAndMakeVisible (scaleCombo);
 
-    // Global quality combo (hidden — controlled via menu)
+    // Quality combo
     qualCombo.addItem ("Off",      1);
-    qualCombo.addItem ("2x High",  2);
-    qualCombo.addItem ("4x Ultra", 3);
+    qualCombo.addItem ("2x",  2);
+    qualCombo.addItem ("4x", 3);
     qualAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
         p.apvts, "globalQuality", qualCombo);
+    qualCombo.setColour (juce::ComboBox::backgroundColourId, MultiverseFlatTheme::bgDeep());
+    qualCombo.setColour (juce::ComboBox::textColourId, MultiverseFlatTheme::textSecondary());
+    qualCombo.setColour (juce::ComboBox::outlineColourId, MultiverseFlatTheme::borderLight());
+    qualCombo.setColour (juce::ComboBox::arrowColourId, MultiverseFlatTheme::textMuted());
+    addAndMakeVisible (qualCombo);
 
-    // FX Mode button (hidden — controlled via menu)
+    // FX Mode toggle
     fxModeButton.setClickingTogglesState (true);
+    fxModeButton.setColour (juce::TextButton::buttonColourId, MultiverseFlatTheme::bgDeep());
+    fxModeButton.setColour (juce::TextButton::textColourOffId, MultiverseFlatTheme::textMuted());
+    fxModeButton.setColour (juce::TextButton::buttonOnColourId, MultiverseFlatTheme::accent1().withAlpha (0.3f));
+    fxModeButton.setColour (juce::TextButton::textColourOnId, MultiverseFlatTheme::accent1());
     fxModeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         p.apvts, "fxModeEnabled", fxModeButton);
+    addAndMakeVisible (fxModeButton);
 
-    // Mod bar (ENV/LFO/MACRO/QFX/KEY sub-tabs)
+    // Mod bar (no KEY tab)
     addAndMakeVisible (modBar);
 
-    addAndMakeVisible (tabs);
+    // Keyboard strip — always visible at bottom
+    addAndMakeVisible (keyboardStrip);
 
-    // Mod-drag overlay (always on top for connection lines)
+    // Preset overlay
+    addChildComponent (presetOverlay);
+
+    // Mod-drag overlay
     addAndMakeVisible (modDragOverlay);
     modDragOverlay.setInterceptsMouseClicks (false, false);
 
     // Routing panel tab-switch callback
     routingPanel.onSwitchToTab = [this] (int index)
     {
-        tabs.setCurrentTabIndex (index, true);
+        switchToPanel (index);
     };
 
     setResizable (true, true);
@@ -104,56 +170,86 @@ PluginEditor::PluginEditor (PluginProcessor& p)
 
 PluginEditor::~PluginEditor()
 {
+    SkinManager::instance().removeListener(this);
     setLookAndFeel (nullptr);
 }
 
-void PluginEditor::setupTabs()
+void PluginEditor::switchToPanel (int panelIndex)
 {
-    tabs.addTab ("PRE",  MultiverseFlatTheme::bgBase, &librarianPanel,        false);
-    tabs.addTab ("SYN",  MultiverseFlatTheme::bgBase, &synthPanel,            false);
-    tabs.addTab ("DRM",  MultiverseFlatTheme::bgBase, &drumSequencerPanel,    false);
-    tabs.addTab ("MOD",  MultiverseFlatTheme::bgBase, &modulationMatrixPanel, false);
-    tabs.addTab ("SMP",  MultiverseFlatTheme::bgBase, &samplerPanel,          false);
-    tabs.addTab ("SEQ",  MultiverseFlatTheme::bgBase, &proSequencerPanel,     false);
-    tabs.addTab ("ARP",  MultiverseFlatTheme::bgBase, &arpeggiatorPanel,      false);
-    tabs.addTab ("FX",   MultiverseFlatTheme::bgBase, &effectsPanel,          false);
-    tabs.addTab ("GRN",  MultiverseFlatTheme::bgBase, &granularPanel,         false);
-    tabs.addTab ("LYR",  MultiverseFlatTheme::bgBase, &layersPanel,           false);
-    tabs.addTab ("PRF",  MultiverseFlatTheme::bgBase, &performancePanel,      false);
-    tabs.addTab ("ROU",  MultiverseFlatTheme::bgBase, &routingPanel,          false);
+    auto* currentViewed = contentViewport.getViewedComponent();
+    if (currentViewed != nullptr)
+    {
+        contentViewport.setViewedComponent (nullptr, false);
+        addChildComponent (currentViewed);
+        currentViewed->setVisible (false);
+    }
+
+    activePanelIndex = panelIndex;
+
+    panels[panelIndex]->setVisible (true);
+    contentViewport.setViewedComponent (panels[panelIndex], false);
+
+    tabBar.setActivePanel (panelIndex);
+    resized();
 }
 
 void PluginEditor::paint (juce::Graphics& g)
 {
-    g.fillAll (MultiverseFlatTheme::bgVoid);
+    g.fillAll (MultiverseFlatTheme::bgVoid());
 }
 
 void PluginEditor::resized()
 {
+    const Skin& s = MultiverseFlatTheme::skin();
     auto area = getLocalBounds();
 
-    // Header: 32px across full width
-    auto header = area.removeFromTop (32);
-    menuButton.setBounds (header.removeFromLeft (32).reduced (4, 4));
+    // Header: 36px across full width
+    constexpr int headerH = MultiverseFlatTheme::Metrics::headerH;
+    auto header = area.removeFromTop (headerH);
+    menuButton.setBounds (header.removeFromLeft (36).reduced (4, 4));
+
+    // Right side: Scale, Quality, FX Mode, RAND
     randomizeButton.setBounds (header.removeFromRight (52).reduced (4, 4));
+    fxModeButton.setBounds (header.removeFromRight (36).reduced (4, 4));
+    qualCombo.setBounds (header.removeFromRight (52).reduced (2, 4));
+    scaleCombo.setBounds (header.removeFromRight (52).reduced (2, 4));
 
     // Center: preset navigation strip
-    auto center = header.withSize (320, 32).withCentre (header.getCentre());
+    auto center = header.withSize (320, headerH).withCentre (header.getCentre());
     backButton.setBounds      (center.removeFromLeft (28).reduced (2, 4));
     prevPresetButton.setBounds(center.removeFromLeft (28).reduced (2, 4));
-    presetNameLabel.setBounds  (center.removeFromLeft (180).reduced (4, 4));
+    presetNameButton.setBounds(center.removeFromLeft (180).reduced (4, 4));
     nextPresetButton.setBounds(center.removeFromLeft (28).reduced (2, 4));
     favoriteButton.setBounds  (center.removeFromLeft (28).reduced (2, 4));
     forwardButton.setBounds   (center.removeFromLeft (28).reduced (2, 4));
 
-    // Mod bar: 160px at bottom, full width
+    // Tab bar: now taller (64px)
+    constexpr int tabBarH = MultiverseFlatTheme::Metrics::tabBarH;
+    auto tabBarArea = area.removeFromTop (tabBarH);
+    tabBar.setBounds (tabBarArea);
+
+    // Keyboard strip: always visible at the bottom
+    const int kbStripH = KeyboardStrip::STRIP_H;
+    auto kbArea = area.removeFromBottom (kbStripH);
+    keyboardStrip.setBounds (kbArea);
+
+    // Mod bar: above keyboard strip
     auto bottomArea = area.removeFromBottom (ModBar::MOD_BAR_H);
     modBar.setBounds (bottomArea);
 
-    // Tabs fill remaining center area (full width, no right strip)
-    tabs.setBounds (area);
+    // Content area: viewport fills remaining space
+    contentViewport.setBounds (area);
 
-    // Mod-drag overlay covers full editor (always on top)
+    auto* activePanel = panels[activePanelIndex];
+    const int viewportH = area.getHeight();
+    const int panelW = area.getWidth();
+    const int panelH = (activePanelIndex == 0) ? juce::jmax (viewportH, 960) : viewportH;
+    activePanel->setSize (panelW, panelH);
+
+    if (contentViewport.getViewedComponent() != activePanel)
+        contentViewport.setViewedComponent (activePanel, false);
+
+    presetOverlay.setBounds (getLocalBounds());
     modDragOverlay.setBounds (getLocalBounds());
     modDragOverlay.toFront (false);
 }
@@ -197,6 +293,16 @@ void PluginEditor::buttonClicked (juce::Button* button)
 
 void PluginEditor::comboBoxChanged (juce::ComboBox* combo)
 {
+    if (combo == &scaleCombo)
+    {
+        const float f[] = { 0.75f, 1.0f, 1.25f, 1.5f };
+        const int id = scaleCombo.getSelectedId();
+        if (id >= 1 && id <= 4)
+            setSize (juce::roundToInt (1200 * f[id - 1]),
+                     juce::roundToInt (800  * f[id - 1]));
+        return;
+    }
+
     if (combo == midiLearnCallout.getComponent())
     {
         const int selectedId = combo->getSelectedId();
@@ -222,10 +328,14 @@ bool PluginEditor::keyPressed (const juce::KeyPress& key)
         processorRef.undoManager.redo();
         return true;
     }
-    // Cmd+F: focus preset search (sidebar is always visible)
     if (key == juce::KeyPress ('f', juce::ModifierKeys::commandModifier, 0))
     {
-        librarianPanel.focusSearchEditor();
+        showPresetOverlay();
+        return true;
+    }
+    if (key == juce::KeyPress::escapeKey && presetOverlay.isVisible())
+    {
+        hidePresetOverlay();
         return true;
     }
     return false;
@@ -235,12 +345,25 @@ void PluginEditor::showMainMenu()
 {
     juce::PopupMenu menu;
 
-    // Preset actions
     menu.addItem ("Save Preset", [this] { librarianPanel.saveCurrentPreset(); });
-
-    // Import/Export
     menu.addItem ("Import Preset", [this] { librarianPanel.importPreset(); });
     menu.addItem ("Export Preset", [this] { librarianPanel.exportPreset(); });
+
+    menu.addSeparator();
+
+    // Skin selector submenu
+    juce::PopupMenu skinMenu;
+    auto& sm = SkinManager::instance();
+    for (int i = 0; i < sm.numSkins(); ++i)
+    {
+        const bool isSelected = (sm.getSkinIndex() == i);
+        skinMenu.addItem (sm.skinName(i), true, isSelected, [this, i] {
+            SkinManager::instance().setSkin(i);
+            mvTheme.applySkinColours();
+            repaint();
+        });
+    }
+    menu.addSubMenu ("Skins", skinMenu);
 
     menu.addSeparator();
 
@@ -276,7 +399,6 @@ void PluginEditor::showMainMenu()
 
     menu.addSeparator();
 
-    // MIDI Learn toggle
     menu.addItem ("MIDI Learn", true, midiLearnActive,
         [this] {
             midiLearnActive = ! midiLearnActive;
@@ -292,7 +414,6 @@ void PluginEditor::showMainMenu()
             }
         });
 
-    // Tooltips toggle
     menu.addItem ("Show Tooltips", true, tooltipsEnabled,
         [this] {
             tooltipsEnabled = ! tooltipsEnabled;
@@ -361,7 +482,6 @@ void PluginEditor::showRandomizeMenu()
 
 void PluginEditor::randomizeParams(const juce::StringArray& prefixes, bool filterBoring)
 {
-    // Params that should never be randomized
     static const juce::StringArray skipList {
         "masterVolume", "mpeEnabled", "portaAlways", "oscCount",
         "samplerVolume", "samplerPan", "fmAlgorithm"
@@ -377,12 +497,10 @@ void PluginEditor::randomizeParams(const juce::StringArray& prefixes, bool filte
 
         const juce::String id = rp->getParameterID();
 
-        // Always skip boring/structural params
         if (skipList.contains (id)) continue;
         if (id.startsWith ("lfo") && id.endsWith ("Sync")) continue;
         if (id.startsWith ("lfo") && id.endsWith ("SyncDiv")) continue;
 
-        // If a prefix filter is given, only randomize matching params
         if (!prefixes.isEmpty())
         {
             bool matches = false;
@@ -404,7 +522,7 @@ void PluginEditor::updatePresetNameLabel()
     juce::String name = pm.getCurrentPreset().getName();
     if (name.isEmpty())
         name = "Init";
-    presetNameLabel.setText (name, juce::dontSendNotification);
+    presetNameButton.setButtonText (name);
 }
 
 void PluginEditor::updateFavoriteButtonColor()
@@ -412,7 +530,6 @@ void PluginEditor::updateFavoriteButtonColor()
     auto& pm = processorRef.getPresetManager();
     juce::String currentName = pm.getCurrentPreset().getName();
 
-    // Find the preset index by name
     auto names = pm.getPresetNames();
     int idx = names.indexOf (currentName);
 
@@ -431,8 +548,8 @@ void PluginEditor::updateFavoriteButtonColor()
             return;
         }
     }
-    favoriteButton.setColour (juce::TextButton::textColourOffId, MultiverseFlatTheme::textSecondary);
-    favoriteButton.setColour (juce::TextButton::textColourOnId, MultiverseFlatTheme::textSecondary);
+    favoriteButton.setColour (juce::TextButton::textColourOffId, MultiverseFlatTheme::textSecondary());
+    favoriteButton.setColour (juce::TextButton::textColourOnId, MultiverseFlatTheme::textSecondary());
 }
 
 void PluginEditor::navigatePresetPrev()
@@ -471,9 +588,7 @@ void PluginEditor::cycleFavorite()
     if (idx >= 0)
     {
         int currentColor = pm.getFavoriteColor (idx);
-        // Cycle: -1 -> 0, 0 -> 1, ..., 6 -> 7, 7 -> -1
         int newColor = (currentColor + 1) % PresetManager::NUM_FAV_COLORS;
-        // If was not favorite (colorIdx == -1), set to 0; if was 7, wrap to -1
         if (currentColor < 0)
             newColor = 0;
         else if (currentColor >= PresetManager::NUM_FAV_COLORS - 1)
@@ -482,4 +597,14 @@ void PluginEditor::cycleFavorite()
         updateFavoriteButtonColor();
         librarianPanel.refresh();
     }
+}
+
+void PluginEditor::showPresetOverlay()
+{
+    presetOverlay.showOverlay();
+}
+
+void PluginEditor::hidePresetOverlay()
+{
+    presetOverlay.hideOverlay();
 }
